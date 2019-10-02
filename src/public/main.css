@@ -1,0 +1,40 @@
+:root {
+    --primary-color: white;
+    --secondary-color: #0f2f9f;
+    --subheader-color: #1f3faf;
+    /* --primary-color: #1f1f1f; */
+    /* --secondary-color: white; */
+    /* --subheader-color: #dfdfdf; */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+body {
+    transform: translateY(50%);
+}
+
+header, footer {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+    margin: auto;
+    max-width: 1000px;
+}
+
+.subheader {
+    color: var(--subheader-color);
+    text-align: center;
+}
