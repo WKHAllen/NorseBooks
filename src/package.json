@@ -1,0 +1,21 @@
+{
+  "name": "norsebooks",
+  "version": "0.1.0",
+  "description": "A place for Luther students to resell textbooks",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "keywords": [
+    "textbooks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WKHAllen/NorseBooks.git"
+  },
+  "author": "Will Allen",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
