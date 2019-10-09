@@ -26,6 +26,10 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-app.get('/register', (req, res) => {
-    res.render('register');
+app.use((req, res) => {
+    return res.status(404).render('404');
+});
+
+app.use((req, res) => {
+    return res.status(500).render('505');
 });
