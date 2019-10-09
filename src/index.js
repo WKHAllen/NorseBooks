@@ -1,6 +1,7 @@
 const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
+const database = require('./database');
 
 const debug = process.env.PORT === undefined;
 

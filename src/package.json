@@ -16,8 +16,10 @@
   "author": "Will Allen",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
-    "express-sslify": "^1.2.0"
+    "express-sslify": "^1.2.0",
+    "pg": "^7.12.1"
   }
 }
