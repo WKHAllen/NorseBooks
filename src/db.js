@@ -1,9 +1,11 @@
 const { Pool } = require('pg');
 
-function logError(stmt, res, err) {
+function logError(stmt, params, res, err) {
     console.log('\n\n######### ERROR #########\n\n');
     console.log('\nStatement:');
     console.log(stmt);
+    console.log('\nParameters:');
+    console.log(params);
     console.log('\nResponse: ');
     console.log(res);
     console.log('\nError:');
@@ -28,7 +30,7 @@ class DB {
             if (err) throw err;
             client.query(stmt, params, (err, res) => {
                 release();
-                if (err) logError(stmt, res, err);
+                if (err) logError(stmt, params, res, err);
                 if (callback) callback(err, res.rows);
             });
         });
@@ -46,11 +48,11 @@ class DB {
         this.pool.connect((err, client, release) => {
             if (err) throw err;
             client.query(stmt, params, (err, res) => {
-                if (err) logError(stmt, res, err);
+                if (err) logError(stmt, params, res, err);
                 if (callback) callback(err, res.rows);
                 client.query(afterStmt, afterParams, (err, res) => {
                     release();
-                    if (err) logError(stmt, res, err);
+                    if (err) logError(afterStmt, afterParams, res, err);
                     if (afterCallback) afterCallback(err, res.rows);
                 });
             });
@@ -63,7 +65,7 @@ class DB {
             for (let stmt of stmts) {
                 client.query(stmt, (err, res) => {
                     if (err) {
-                        logError(stmt, res, err);
+                        logError(stmt, [], res, err);
                     }
                     if (callback) callback(err, res.rows);
                 });

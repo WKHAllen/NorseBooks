@@ -27,8 +27,7 @@ function populateStaticTable(tableName) {
     fs.createReadStream(getStaticTablePath(tableName))
         .pipe(csv.parse({ headers: true }))
         .on('data', (row) => {
-            console.log(row);
-            sql = `INSERT INTO ? (id, name) VALUES (?, ?);`;
+            sql = `INSERT INTO ${tableName} (id, name) VALUES (?, ?);`;
             params = [tableName, row.id, row.name];
             mainDB.execute(sql, params);
         });
