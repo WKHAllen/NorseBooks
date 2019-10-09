@@ -15,7 +15,7 @@ function getTime() {
 
 function init() {
     var userTable = `
-        CREATE TABLE IF NOT EXISTS User (
+        CREATE TABLE IF NOT EXISTS NBUser (
             id SERIAL PRIMARY KEY,
             firstname TEXT NOT NULL,
             lastname TEXT NOT NULL,

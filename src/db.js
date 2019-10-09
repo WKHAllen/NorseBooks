@@ -63,7 +63,6 @@ class DB {
             for (let stmt of stmts) {
                 client.query(stmt, (err, res) => {
                     if (err) {
-                        // release();
                         logError(stmt, res, err);
                     }
                     if (callback) callback(err, res.rows);
