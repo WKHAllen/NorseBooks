@@ -52,7 +52,7 @@ function init() {
             name TEXT NOT NULL,
             departmentId INT NOT NULL,
             userId INT NOT NULL,
-            price DOUBLE NOT NULL,
+            price NUMERIC(5,2) NOT NULL,
             condition TEXT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
