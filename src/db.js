@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 
+// If an error is thrown, provide information on the error
 function logError(stmt, params, res, err) {
     console.log('\n\n######### ERROR #########\n\n');
     console.log('\nStatement:');
@@ -12,6 +13,7 @@ function logError(stmt, params, res, err) {
     throw err;
 }
 
+// Control the database easily
 class DB {
     constructor(dbURL) {
         this.pool = new Pool({
@@ -21,6 +23,7 @@ class DB {
         });
     }
 
+    // Execute a SQL query
     execute(stmt, params, callback) {
         var paramCount = 0;
         while (stmt.includes('?')) {
@@ -36,6 +39,7 @@ class DB {
         });
     }
 
+    // Execute two SQL queries, one right after the other
     executeAfter(stmt, params, callback, afterStmt, afterParams, afterCallback) {
         var paramCount = 0;
         while (stmt.includes('?')) {
@@ -59,10 +63,11 @@ class DB {
         });
     }
 
+    // Execute multiple SQL queries, each one right after the last
     executeMany(stmts, callback) {
         this.pool.connect((err, client, release) => {
             if (err) throw err;
-            for (let stmt of stmts) {
+            for (var stmt of stmts) {
                 client.query(stmt, (err, res) => {
                     if (err) {
                         logError(stmt, [], res, err);
@@ -75,6 +80,7 @@ class DB {
     }
 }
 
+// Export the database controller class
 module.exports = {
     'DB': DB
 }

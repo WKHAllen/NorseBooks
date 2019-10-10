@@ -11,16 +11,20 @@ const hexLength = 64;
 const passwordResetTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
 
+// The database object
 var mainDB = new db.DB(dbURL);
 
+// Get the current time to the second
 function getTime() {
     return Math.floor(new Date().getTime() / 1000);
 }
 
+// Get the path to a static table
 function getStaticTablePath(tableName) {
     return path.join(__dirname, staticTablePath, tableName) + '.csv';
 }
 
+// Populate the static tables in the database
 function populateStaticTable(tableName) {
     var sql;
     var params;
@@ -33,6 +37,7 @@ function populateStaticTable(tableName) {
         });
 }
 
+// Initialize the database
 function init() {
     // Drop static tables
     var dropDepartmentTable = `
@@ -111,6 +116,7 @@ function init() {
     });
 }
 
+// Delete a password reset ID
 function deletePasswordResetID(passwordResetID, callback) {
     var sql = `DELETE FROM PasswordReset WHERE resetId = ?;`;
     var params = [passwordResetID];
@@ -119,8 +125,10 @@ function deletePasswordResetID(passwordResetID, callback) {
     });
 }
 
+// Export the database control functions
 module.exports = {
     'deletePasswordResetID': deletePasswordResetID
 }
 
+// Initialize the database on import
 init();
