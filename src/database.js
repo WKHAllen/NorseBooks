@@ -84,7 +84,8 @@ function init() {
             condition TEXT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
-            stateId INT NOT NULL
+            stateId INT NOT NULL,
+            imageUrl TEXT
         );
     `;
     var bookCourseTable = `
@@ -211,10 +212,10 @@ function validLogin(email, password, callback) {
 // Register a new user
 function register(email, phone, password, firstname, lastname, callback) {
     var sql = `
-        INSERT INTO NBUser (email, phone, password, firstname, lastname, joinTimestamp) VALUES (
-            ?, ?, ?, ?, ?, ?
+        INSERT INTO NBUser (email, phone, password, firstname, lastname, joinTimestamp, itemsListed) VALUES (
+            ?, ?, ?, ?, ?, ?, ?
         );`;
-    var params = [email, phone, password, firstname, lastname, getTime()];
+    var params = [email, phone, password, firstname, lastname, getTime(), 0];
     mainDB.execute(sql, params, (err, rows) => {
         if (callback) callback();
     });
