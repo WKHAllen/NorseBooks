@@ -1,6 +1,7 @@
 const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
+const bodyParser = require('body-parser');
 const database = require('./database');
 
 const debug = process.env.PORT === undefined;
@@ -20,6 +21,9 @@ app.engine('.html', hbs({
     defaultLayout: 'default'
 }));
 app.set('view engine', '.html');
+
+// Request body parsing
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Include static directory for css and js files
 app.use(express.static('static'));
