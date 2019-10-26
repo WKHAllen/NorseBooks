@@ -170,11 +170,11 @@ function newSessionId(email, callback) {
                 } else {
                     sql = `
                         INSERT INTO Session (id, userId, createTimestamp) VALUES (
-                            (SELECT id FROM NBUser WHERE email = ?),
                             ?,
+                            (SELECT id FROM NBUser WHERE email = ?),
                             ?
                         );`;
-                    params = [email, sessionId, getTime()];
+                    params = [sessionId, email, getTime()];
                     mainDB.execute(sql, params, (err, rows) => {
                         if (callback) callback(sessionId);
                     });
