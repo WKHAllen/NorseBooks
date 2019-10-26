@@ -101,7 +101,14 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, bookStateTable, bookTable, bookCourseTable, passwordResetTable]);
+    var sessionTable = `
+        CREATE TABLE IF NOT EXISTS Session (
+            id TEXT NOT NULL,
+            userId INT NOT NULL,
+            createTimestamp INT NOT NULL
+        );
+    `;
+    mainDB.executeMany([userTable, departmentTable, bookStateTable, bookTable, bookCourseTable, passwordResetTable, sessionTable]);
     // Populate static tables
     populateStaticTable('BookState');
     populateStaticTable('Department');
@@ -116,8 +123,105 @@ function init() {
     });
 }
 
+// Authorize/authenticate a user
+function auth(sessionId, callback) {
+    var sql = `SELECT id FROM Session WHERE id = ?;`;
+    var params = [sessionId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows.length > 0);
+        if (rows.length > 0) {
+            sql = `
+                UPDATE NBUser SET lastLogin = ? WHERE id = (
+                    SELECT userId FROM Session WHERE id = ?
+                );`;
+            params = [getTime(), sessionId];
+            mainDB.execute(sql, params);
+        }
+    });
+}
+
+// Check if a user exists
+function userExists(email, callback) {
+    var sql = `SELECT id FROM NBUser WHERE email = ?;`;
+    var params = [email];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+
+// Create a new session ID
+function newSessionId(email, callback) {
+    var sql = `
+        DELETE FROM Session WHERE userId = (
+            SELECT id FROM NBUser WHERE email = ?
+        );`;
+    var params = [email];
+    mainDB.execute(sql, params, (err, rows) => {
+        crypto.randomBytes(hexLength / 2, (err, buffer) => {
+            if (err) throw err;
+            var sessionId = buffer.toString('hex');
+            var sql = `SELECT id FROM Session WHERE id = ?;`;
+            var params = [sessionId];
+            mainDB.execute(sql, params, (err, rows) => {
+                if (rows.length > 0) {
+                    newSessionId(email, callback);
+                } else {
+                    sql = `
+                        INSERT INTO Session (id, userId, createTimestamp) VALUES (
+                            (SELECT id FROM NBUser WHERE email = ?),
+                            ?,
+                            ?
+                        );`;
+                    params = [email, sessionId, getTime()];
+                    mainDB.execute(sql, params, (err, rows) => {
+                        if (callback) callback(sessionId);
+                    });
+                }
+            });
+        });
+    });
+}
+
+// Check if a login is valid
+function validLogin(email, password, callback) {
+    var sql = `SELECT email, password FROM NBUser WHERE email = ?;`;
+    var params = [email];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (rows.length === 0) {
+            if (callback) callback(false);
+        } else {
+            bcrypt.compare(password, rows[0].password, (err, res) => {
+                if (err) throw err;
+                if (res) {
+                    sql = `UPDATE users SET lastlogin = ? WHERE email = ?;`;
+                    params = [getTime(), email];
+                    mainDB.execute(sql, params);
+                    newSessionId(email, (sessionId) => {
+                        if (callback) callback(true, sessionId);
+                    });
+                } else if (callback) {
+                    callback(false);
+                }
+            });
+        }
+    });
+}
+
+// Register a new user
+function register(email, phone, password, firstname, lastname, callback) {
+    var sql = `
+        INSERT INTO NBUser (email, phone, password, firstname, lastname, joinTimestamp) VALUES (
+            ?, ?, ?, ?, ?, ?
+        );`;
+    var params = [email, phone, password, firstname, lastname, getTime()];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback();
+    });
+}
+
 // Delete a password reset ID
-function deletePasswordResetID(passwordResetID, callback) {
+function deletePasswordResetId(passwordResetID, callback) {
     var sql = `DELETE FROM PasswordReset WHERE resetId = ?;`;
     var params = [passwordResetID];
     mainDB.execute(sql, params, (err, rows) => {
@@ -127,7 +231,12 @@ function deletePasswordResetID(passwordResetID, callback) {
 
 // Export the database control functions
 module.exports = {
-    'deletePasswordResetID': deletePasswordResetID
+    'auth': auth,
+    'userExists': userExists,
+    'newSessionId': newSessionId,
+    'validLogin': validLogin,
+    'register': register,
+    'deletePasswordResetId': deletePasswordResetId
 }
 
 // Initialize the database on import
