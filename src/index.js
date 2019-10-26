@@ -1,11 +1,13 @@
 const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const database = require('./database');
 
 const debug = process.env.PORT === undefined;
 var port = process.env.PORT || 3000;
+var sessionSecret = process.env.SESSION_SECRET;
 
 // The app object
 var app = express();
@@ -24,6 +26,13 @@ app.set('view engine', '.html');
 
 // Request body parsing
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Track sessions
+app.use(session({
+    secret: sessionSecret,
+    resave: true,
+    saveUninitialized: true
+}));
 
 // Include static directory for css and js files
 app.use(express.static('static'));
