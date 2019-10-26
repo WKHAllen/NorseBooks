@@ -195,7 +195,7 @@ function validLogin(email, password, callback) {
             bcrypt.compare(password, rows[0].password, (err, res) => {
                 if (err) throw err;
                 if (res) {
-                    sql = `UPDATE users SET lastlogin = ? WHERE email = ?;`;
+                    sql = `UPDATE NBUser SET lastLogin = ? WHERE email = ?;`;
                     params = [getTime(), email];
                     mainDB.execute(sql, params);
                     newSessionId(email, (sessionId) => {
