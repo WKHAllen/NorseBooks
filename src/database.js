@@ -211,13 +211,16 @@ function validLogin(email, password, callback) {
 
 // Register a new user
 function register(email, phone, password, firstname, lastname, callback) {
-    var sql = `
-        INSERT INTO NBUser (email, phone, password, firstname, lastname, joinTimestamp, itemsListed) VALUES (
-            ?, ?, ?, ?, ?, ?, ?
-        );`;
-    var params = [email, phone, password, firstname, lastname, getTime(), 0];
-    mainDB.execute(sql, params, (err, rows) => {
-        if (callback) callback();
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) throw err;
+        var sql = `
+            INSERT INTO NBUser (email, phone, password, firstname, lastname, joinTimestamp, itemsListed) VALUES (
+                ?, ?, ?, ?, ?, ?, ?
+            );`;
+        var params = [email, phone, hash, firstname, lastname, getTime(), 0];
+        mainDB.execute(sql, params, (err, rows) => {
+            if (callback) callback();
+        });
     });
 }
 
