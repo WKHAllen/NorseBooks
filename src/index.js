@@ -30,8 +30,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Track sessions
 app.use(session({
     secret: sessionSecret,
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: false
 }));
 
 // Include static directory for css and js files
@@ -96,8 +96,10 @@ app.post('/register', (req, res) => {
 
 // Logout event
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
+    req.session.destroy((err) => {
+        if (err) throw err;
+        res.redirect('/login');
+    });
 });
 
 // Test for the auth function
