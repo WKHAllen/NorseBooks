@@ -33,6 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Track sessions
 app.use(session({
     secret: sessionSecret,
+    store: null,
     resave: false,
     saveUninitialized: false
 }));
