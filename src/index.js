@@ -12,6 +12,7 @@ var sessionSecret = process.env.SESSION_SECRET;
 // The app object
 var app = express();
 
+// Disable etag to fix caching problem
 app.set('etag', false);
 
 // Enforce HTTPS
@@ -32,8 +33,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Track sessions
 app.use(session({
     secret: sessionSecret,
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: false
 }));
 
 // Include static directory for css and js files
