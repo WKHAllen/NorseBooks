@@ -111,11 +111,6 @@ app.get('/test', auth, (req, res) => {
     res.send('Successfully authorized and authenticated');
 });
 
-// Error 401 (unauthorized)
-app.use((req, res) => {
-    return res.status(401).render('401');
-});
-
 // Error 404 (not found)
 app.use((req, res) => {
     return res.status(404).render('404');
