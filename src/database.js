@@ -184,6 +184,15 @@ function newSessionId(email, callback) {
     });
 }
 
+// Delete a session
+function deleteSession(sessionId, callback) {
+    var sql = `DELETE FROM Session WHERE id = ?;`;
+    var params = [sessionId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback();
+    });
+}
+
 // Check if a login is valid
 function validLogin(email, password, callback) {
     var sql = `SELECT email, password FROM NBUser WHERE email = ?;`;
@@ -238,6 +247,7 @@ module.exports = {
     'auth': auth,
     'userExists': userExists,
     'newSessionId': newSessionId,
+    'deleteSession': deleteSession,
     'validLogin': validLogin,
     'register': register,
     'deletePasswordResetId': deletePasswordResetId

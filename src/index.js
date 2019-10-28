@@ -99,8 +99,10 @@ app.post('/register', (req, res) => {
 
 // Logout event
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
+    database.deleteSession(req.session.sessionId, () => {
+        req.session.destroy();
+        res.redirect('/login');
+    });
 });
 
 // Test for the auth function
