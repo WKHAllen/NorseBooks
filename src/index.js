@@ -12,6 +12,8 @@ var sessionSecret = process.env.SESSION_SECRET;
 // The app object
 var app = express();
 
+app.set('etag', false);
+
 // Enforce HTTPS
 if (!debug)
     app.use(enforce.HTTPS({ trustProtoHeader: true }));
@@ -30,15 +32,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Track sessions
 app.use(session({
     secret: sessionSecret,
-    resave: false,
-    saveUninitialized: false
+    resave: true,
+    saveUninitialized: true
 }));
 
 // Include static directory for css and js files
 app.use(express.static('static'));
 
 // Authorize/authenticate
-var auth = function(req, res, next) {
+var auth = (req, res, next) => {
     if (!req.session) {
         return res.sendStatus(401);
     } else {
@@ -96,10 +98,8 @@ app.post('/register', (req, res) => {
 
 // Logout event
 app.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) throw err;
-        res.redirect('/login');
-    });
+    req.session.destroy();
+    res.redirect('/login');
 });
 
 // Test for the auth function
