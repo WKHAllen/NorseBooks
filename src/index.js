@@ -2,8 +2,8 @@ const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const database = require('./database');
 
 const debug = process.env.PORT === undefined;
@@ -31,16 +31,15 @@ app.set('view engine', '.html');
 // Request body parsing
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Cookie parsing
-app.use(cookieParser());
-
 // Track sessions
 app.use(session({
-    key: 'sessionId',
     secret: sessionSecret,
-    store: null,
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new pgSession({
+        pool: database.mainDB.pool,
+        tableName: 'Session'
+    })
 }));
 
 // Include static directory for css and js files
@@ -48,11 +47,11 @@ app.use(express.static('static'));
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
-    console.log(req.cookies);
-    if (!req.cookies) {
+    console.log(req.session);
+    if (!req.session) {
         return res.sendStatus(401);
     } else {
-        database.auth(req.cookies.sessionId, (valid) => {
+        database.auth(req.session.sessionId, (valid) => {
             if (valid)
                 next();
             else
@@ -75,7 +74,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     database.validLogin(req.body.email, req.body.password, (valid, sessionId) => {
         if (valid) {
-            req.cookies.sessionId = sessionId;
+            req.session.sessionId = sessionId;
             res.redirect('/');
         } else {
             // return the page, with some error
@@ -106,8 +105,8 @@ app.post('/register', (req, res) => {
 
 // Logout event
 app.get('/logout', (req, res) => {
-    database.deleteSession(req.cookies.sessionId, () => {
-        res.clearCookie('sessionId');
+    database.deleteSession(req.session.sessionId, () => {
+        req.session.destroy();
         res.redirect('/login');
     });
 });

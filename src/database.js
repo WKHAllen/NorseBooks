@@ -250,7 +250,8 @@ module.exports = {
     'deleteSession': deleteSession,
     'validLogin': validLogin,
     'register': register,
-    'deletePasswordResetId': deletePasswordResetId
+    'deletePasswordResetId': deletePasswordResetId,
+    'mainDB': mainDB
 }
 
 // Initialize the database on import
