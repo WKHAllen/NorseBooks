@@ -3,6 +3,7 @@ const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const database = require('./database');
 
 const debug = process.env.PORT === undefined;
@@ -30,8 +31,12 @@ app.set('view engine', '.html');
 // Request body parsing
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Cookie parsing
+app.use(cookieParser());
+
 // Track sessions
 app.use(session({
+    key: 'sessionId',
     secret: sessionSecret,
     store: null,
     resave: false,
@@ -43,11 +48,11 @@ app.use(express.static('static'));
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
-    console.log(req.session);
-    if (!req.session) {
+    console.log(req.cookies);
+    if (!req.cookies) {
         return res.sendStatus(401);
     } else {
-        database.auth(req.session.sessionId, (valid) => {
+        database.auth(req.cookies.sessionId, (valid) => {
             if (valid)
                 next();
             else
@@ -70,7 +75,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     database.validLogin(req.body.email, req.body.password, (valid, sessionId) => {
         if (valid) {
-            req.session.sessionId = sessionId;
+            req.cookies.sessionId = sessionId;
             res.redirect('/');
         } else {
             // return the page, with some error
@@ -101,8 +106,8 @@ app.post('/register', (req, res) => {
 
 // Logout event
 app.get('/logout', (req, res) => {
-    database.deleteSession(req.session.sessionId, () => {
-        req.session.destroy();
+    database.deleteSession(req.cookies.sessionId, () => {
+        req.clearCookie('sessionId');
         res.redirect('/login');
     });
 });
