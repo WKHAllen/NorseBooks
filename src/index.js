@@ -2,6 +2,7 @@ const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple');
 const bodyParser = require('body-parser');
 const database = require('./database');
 
@@ -33,9 +34,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Track sessions
 app.use(session({
     secret: sessionSecret,
-    store: null,
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new pgSession({
+        pool: database.mainDB.pool,
+        tableName: 'Session'
+    })
 }));
 
 // Include static directory for css and js files
@@ -43,6 +47,7 @@ app.use(express.static('static'));
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
+    console.log(req.session);
     if (!req.session) {
         return res.sendStatus(401);
     } else {
