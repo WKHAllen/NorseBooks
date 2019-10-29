@@ -107,7 +107,7 @@ app.post('/register', (req, res) => {
 // Logout event
 app.get('/logout', (req, res) => {
     database.deleteSession(req.cookies.sessionId, () => {
-        req.clearCookie('sessionId');
+        res.clearCookie('sessionId');
         res.redirect('/login');
     });
 });
