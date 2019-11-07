@@ -2,19 +2,29 @@ const express = require('express');
 const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session);
 const bodyParser = require('body-parser');
 const database = require('./database');
 
-const debug = process.env.PORT === undefined;
-var port = process.env.PORT || 3000;
-var sessionSecret = process.env.SESSION_SECRET;
+var debug = true;
+
+try {
+    var processenv = require('./processenv');
+} catch (ex) {
+    debug = false;
+}
+
+var port = process.env.PORT || processenv.port;
+var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
 // The app object
 var app = express();
 
-// Disable etag to fix caching problem
+// Disable caching for authentication purposes
 app.set('etag', false);
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    next();
+});
 
 // Enforce HTTPS
 if (!debug)
@@ -35,11 +45,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
     secret: sessionSecret,
     resave: false,
-    saveUninitialized: false,
-    store: new pgSession({
-        pool: database.mainDB.pool,
-        tableName: 'Session'
-    })
+    saveUninitialized: false
 }));
 
 // Include static directory for css and js files

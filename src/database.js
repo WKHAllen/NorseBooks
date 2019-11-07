@@ -5,14 +5,22 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const db = require('./db');
 
-const dbURL = process.env.DATABASE_URL;
+var debug = true;
+
+try {
+    var processenv = require('./processenv');
+} catch (ex) {
+    debug = false;
+}
+
+const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
 const saltRounds = 12;
 const hexLength = 64;
 const passwordResetTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
 
 // The database object
-var mainDB = new db.DB(dbURL);
+var mainDB = new db.DB(dbURL, !debug);
 
 // Get the current time to the second
 function getTime() {
