@@ -15,10 +15,10 @@ function logError(stmt, params, res, err) {
 
 // Control the database easily
 class DB {
-    constructor(dbURL) {
+    constructor(dbURL, ssl) {
         this.pool = new Pool({
             connectionString: dbURL,
-            ssl: true,
+            ssl: ssl || true,
             max: 1
         });
     }
