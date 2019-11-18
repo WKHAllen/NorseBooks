@@ -60,13 +60,13 @@ app.use(express.static('static'));
 // Authorize/authenticate
 var auth = (req, res, next) => {
     if (!req.session) {
-        return res.sendStatus(401);
+        return res.status(401).render('401', { title: 'Permission denied' });
     } else {
         database.auth(req.session.sessionId, (valid) => {
             if (valid)
                 next();
             else
-                return res.sendStatus(401);
+                return res.status(401).render('401', { title: 'Permission denied' });
         });
     }
 }
@@ -78,7 +78,7 @@ app.get('/', (req, res) => {
 
 // Login page
 app.get('/login', (req, res) => {
-    res.render('login');
+    res.render('login', { title: 'Login' });
 });
 
 // Login event
@@ -88,14 +88,14 @@ app.post('/login', (req, res) => {
             req.session.sessionId = sessionId;
             res.redirect('/');
         } else {
-            res.render('login', { error: 'Invalid login' });
+            res.render('login', { title: 'Login', error: 'Invalid login' });
         }
     });
 });
 
 // Registration page
 app.get('/register', (req, res) => {
-    res.render('register');
+    res.render('register', { title: 'Register' });
 });
 
 // Registration event
@@ -114,19 +114,19 @@ app.post('/register', (req, res) => {
                             res.redirect('/login');
                             // TODO: send verification email
                         } else {
-                            res.render('register', { error: 'Please enter a valid name' });
+                            res.render('register', { title: 'Register', error: 'Please enter a valid name' });
                         }
                     } else {
-                        res.render('register', { error: result.errors.join('\n') });
+                        res.render('register', { title: 'Register', error: result.errors.join('\n') });
                     }
                 } else {
-                    res.render('register', { error: 'Passwords do not match' });
+                    res.render('register', { title: 'Register', error: 'Passwords do not match' });
                 }
             } else {
-                res.render('register', { error: 'Email address is too long' });
+                res.render('register', { title: 'Register', error: 'Email address is too long' });
             }
         } else {
-            res.render('register', { error: 'That email address has already been registered' });
+            res.render('register', { title: 'Register', error: 'That email address has already been registered' });
         }
     });
 });
@@ -146,12 +146,12 @@ app.get('/test', auth, (req, res) => {
 
 // Error 404 (not found)
 app.use((req, res) => {
-    return res.status(404).render('404');
+    return res.status(404).render('404', { title: 'Not found' });
 });
 
 // Error 500 (internal server error)
 app.use((req, res) => {
-    return res.status(500).render('505');
+    return res.status(500).render('500', { title: 'Internal Server Error' });
 });
 
 // Listen for connections
