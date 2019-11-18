@@ -5,6 +5,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const owasp = require('owasp-password-strength-test');
 const database = require('./database');
+const email = require('./email');
 
 var debug = true;
 
@@ -14,13 +15,10 @@ try {
     debug = false;
 }
 
-var port = process.env.PORT || processenv.port;
+var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
-// Helper that removes whitespace from the ends of a string
-function stripWhitespace(str) {
-    return str.replace(/^\s+|\s+$/g, '');
-}
+const hostname = 'https://norsebooks.com';
 
 // The app object
 var app = express();
@@ -56,6 +54,21 @@ app.use(session({
 
 // Include static directory for css and js files
 app.use(express.static('static'));
+
+// Removes whitespace from the ends of a string
+function stripWhitespace(str) {
+    return str.replace(/^\s+|\s+$/g, '');
+}
+
+// Sends a registration verification email
+function sendEmailVerification(email) {
+    email = email.toLowerCase();
+    database.newVerifyId(email, (verifyId) => {
+        email.sendEmail(email, 'Norse Books - Verify Email',
+            `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email.\n\nSincerely,\nThe Norse Books Dev Team`
+        );
+    });
+}
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
@@ -112,7 +125,7 @@ app.post('/register', (req, res) => {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
                             res.redirect('/login');
-                            // TODO: send verification email
+                            sendEmailVerification(email);
                         } else {
                             res.render('register', { title: 'Register', error: 'Please enter a valid name' });
                         }
@@ -139,6 +152,17 @@ app.get('/logout', (req, res) => {
     });
 });
 
+app.get('/verify/:verifyId', (req, res) => {
+    database.checkVerifyID(req.params.verifyId, (valid) => {
+        res.render('verify', { valid: valid });
+        if (valid) {
+            database.setValid(req.params.verifyId);
+            database.deleteVerifyID(req.params.verifyId);
+        }
+    });
+});
+
+// TODO: remove this
 // Test for the auth function
 app.get('/test', auth, (req, res) => {
     res.send('Successfully authorized and authenticated');

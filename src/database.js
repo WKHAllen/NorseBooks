@@ -17,6 +17,7 @@ const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
 const saltRounds = 12;
 const hexLength = 64;
 const passwordResetTimeout = 60 * 60 * 1000;
+const verifyTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
 
 // The database object
@@ -45,6 +46,15 @@ function populateStaticTable(tableName) {
         });
 }
 
+// Generate a new id
+function newId(callback, length) {
+    length = length !== undefined ? length : hexLength;
+    crypto.randomBytes(Math.floor(length / 2), (err, buffer) => {
+        if (err) throw err;
+        if (callback) callback(buffer.toString('hex'));
+    });
+}
+
 // Initialize the database
 function init() {
     // Drop static tables
@@ -63,7 +73,8 @@ function init() {
             imageUrl TEXT,
             joinTimestamp INT NOT NULL,
             lastLogin INT,
-            itemsListed INT NOT NULL
+            itemsListed INT NOT NULL,
+            verified INT NOT NULL
         );
     `;
     var departmentTable = `
@@ -126,6 +137,14 @@ function init() {
             setTimeout(deletePasswordResetID, timeRemaining * 1000, row.resetid);
         }
     });
+    sql = `SELECT verifyId, createTimestamp FROM Verify;`;
+    mainDB.execute(sql, [], (err, rows) => {
+        var timeRemaining;
+        for (var row of rows) {
+            timeRemaining = row.createTimestamp + Math.floor(verifyTimeout / 1000) - getTime();
+            setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
+        }
+    });
 }
 
 // Authorize/authenticate a user
@@ -147,26 +166,90 @@ function auth(sessionId, callback) {
 
 // Check if a user exists
 function userExists(email, callback) {
-    var sql = `SELECT id FROM NBUser WHERE email = ?;`;
+    email = email.toLowerCase();
+    var sql = `SELECT id FROM NBUser WHERE email = ? AND verified = 1;`;
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
         if (callback) callback(rows.length > 0);
     });
 }
 
+// Create a new email verification ID
+function newVerifyId(email, callback) {
+    email = email.toLowerCase();
+    var sql = `DELETE FROM Verify WHERE email = ?;`;
+    var params = [email];
+    mainDB.execute(sql, params, (err, rows) => {
+        newId((verifyId) => {
+            sql = `SELECT id FROM Verify WHERE id = ?;`;
+            params = [verifyId];
+            mainDB.execute(sql, params, (err, rows) => {
+                if (rows.length > 0) {
+                    newVerifyId(email, callback);
+                } else {
+                    sql = `INSERT INTO Verify (email, verifyId, createTimestamp) VALUES (?, ?, ?);`;
+                    params = [email, verifyId, getTime()];
+                    mainDB.execute(sql, params, (err, rows) => {
+                        setTimeout(pruneUnverified, verifyTimeout, verifyId);
+                        if (callback) callback(verifyId);
+                    });
+                }
+            });
+        });
+    });
+}
+
+// Check a verify ID
+function checkVerifyID(verifyId, callback) {
+    var sql = `SELECT verifyId FROM Verify WHERE verifyId = ?;`;
+    var params = [verifyId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+// Mark a user as verified
+function setVerified(verifyId, callback) {
+    var sql = `
+        UPDATE NBUser SET verified = 1 WHERE email = (
+            SELECT email FROM Verify WHERE verifyId = ?
+        );`;
+    var params = [verifyId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback();
+    });
+}
+
+// Delete a verify ID
+function deleteVerifyID(verifyId, callback) {
+    var sql = `DELETE FROM Verify WHERE verifyId = ?;`;
+    var params = [verifyId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback();
+    });
+}
+
+// Prune an unverified account
+function pruneUnverified(verifyId, callback) {
+    var sql = `DELETE FROM NBUser WHERE verifyId = ? AND verified = 0;`;
+    var params = [verifyId];
+    mainDB.execute(sql, params, (err, rows) => {
+        deleteVerifyID(verifyId);
+    });
+}
+
 // Create a new session ID
 function newSessionId(email, callback) {
+    email = email.toLowerCase();
     var sql = `
         DELETE FROM Session WHERE userId = (
             SELECT id FROM NBUser WHERE email = ?
         );`;
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
-        crypto.randomBytes(hexLength / 2, (err, buffer) => {
-            if (err) throw err;
-            var sessionId = buffer.toString('hex');
-            var sql = `SELECT id FROM Session WHERE id = ?;`;
-            var params = [sessionId];
+        newId((sessionId) => {
+            sql = `SELECT id FROM Session WHERE id = ?;`;
+            params = [sessionId];
             mainDB.execute(sql, params, (err, rows) => {
                 if (rows.length > 0) {
                     newSessionId(email, callback);
@@ -198,7 +281,8 @@ function deleteSession(sessionId, callback) {
 
 // Check if a login is valid
 function validLogin(email, password, callback) {
-    var sql = `SELECT email, password FROM NBUser WHERE email = ?;`;
+    email = email.toLowerCase();
+    var sql = `SELECT email, password FROM NBUser WHERE email = ? AND verified = 1;`;
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
         if (rows.length === 0) {
@@ -223,13 +307,14 @@ function validLogin(email, password, callback) {
 
 // Register a new user
 function register(email, password, firstname, lastname, callback) {
+    email = email.toLowerCase();
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `
-            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed) VALUES (
-                ?, ?, ?, ?, ?, ?
+            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, verified) VALUES (
+                ?, ?, ?, ?, ?, ?, ?
             );`;
-        var params = [email, hash, firstname, lastname, getTime(), 0];
+        var params = [email, hash, firstname, lastname, getTime(), 0, 0];
         mainDB.execute(sql, params, (err, rows) => {
             if (callback) callback();
         });
@@ -245,17 +330,22 @@ function deletePasswordResetId(passwordResetID, callback) {
     });
 }
 
+// Initialize the database on import
+init();
+
 // Export the database control functions
 module.exports = {
     'auth': auth,
     'userExists': userExists,
+    'newVerifyId': newVerifyId,
+    'checkVerifyID': checkVerifyID,
+    'setVerified': setVerified,
+    'deleteVerifyID': deleteVerifyID,
+    'pruneUnverified': pruneUnverified,
     'newSessionId': newSessionId,
     'deleteSession': deleteSession,
     'validLogin': validLogin,
     'register': register,
     'deletePasswordResetId': deletePasswordResetId,
     'mainDB': mainDB
-}
-
-// Initialize the database on import
-init();
+};
