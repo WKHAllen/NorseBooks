@@ -3,6 +3,7 @@ const enforce = require('express-sslify');
 const hbs = require('express-handlebars');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const owasp = require('owasp-password-strength-test');
 const database = require('./database');
 
 var debug = true;
@@ -15,6 +16,11 @@ try {
 
 var port = process.env.PORT || processenv.port;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
+
+// Helper that removes whitespace from the ends of a string
+function stripWhitespace(str) {
+    return str.replace(/^\s+|\s+$/g, '');
+}
 
 // The app object
 var app = express();
@@ -53,7 +59,6 @@ app.use(express.static('static'));
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
-    console.log(req.session);
     if (!req.session) {
         return res.sendStatus(401);
     } else {
@@ -83,8 +88,7 @@ app.post('/login', (req, res) => {
             req.session.sessionId = sessionId;
             res.redirect('/');
         } else {
-            // return the page, with some error
-            throw `Invalid login: ${req.body.email}, ${req.body.password}`;
+            res.render('login', { error: 'Invalid login' });
         }
     });
 });
@@ -98,13 +102,24 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
     database.userExists(req.body.email, (exists) => {
         if (!exists) {
-            // validate email, phone, password, firstname, lastname
-            database.register(req.body.email, req.body.phone, req.body.password, req.body.firstname, req.body.lastname);
-            res.redirect('/login');
-            // require email verification
+            if (req.body.password === req.body.passwordConfirm) {
+                var result = owasp.test(req.body.password);
+                if (result.errors.length === 0) {
+                    if (stripWhitespace(req.body.firstname) !== '' && stripWhitespace(req.body.lastname) !== '') {
+                        database.register(req.body.email, req.body.password, req.body.firstname, req.body.lastname);
+                        res.redirect('/login');
+                        // TODO: send verification email
+                    } else {
+                        res.render('register', { error: 'Please enter a valid name' });
+                    }
+                } else {
+                    res.render('register', { error: result.errors.join('\n') });
+                }
+            } else {
+                res.render('register', { error: 'Passwords do not match' });
+            }
         } else {
-            // return the page, with some error
-            throw `User already exists: ${req.body.email}`;
+            res.render('register', { error: 'That email address has already been registered' });
         }
     });
 });
@@ -136,3 +151,5 @@ app.use((req, res) => {
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
 });
+
+module.exports = app;
