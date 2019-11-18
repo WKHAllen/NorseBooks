@@ -51,10 +51,7 @@ function init() {
     var dropDepartmentTable = `
         DROP TABLE IF EXISTS Department;
     `;
-    var dropBookStateTable = `
-        DROP TABLE IF EXISTS BookState;
-    `;
-    mainDB.executeMany([dropDepartmentTable, dropBookStateTable]);
+    mainDB.executeMany([dropDepartmentTable]);
     // Create tables
     var userTable = `
         CREATE TABLE IF NOT EXISTS NBUser (
@@ -75,12 +72,6 @@ function init() {
             name TEXT NOT NULL
         );
     `;
-    var bookStateTable = `
-        CREATE TABLE BookState (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL
-        );
-    `;
     var bookTable = `
         CREATE TABLE IF NOT EXISTS Book (
             id SERIAL PRIMARY KEY,
@@ -91,7 +82,6 @@ function init() {
             condition TEXT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
-            stateId INT NOT NULL,
             imageUrl TEXT
         );
     `;
@@ -109,6 +99,14 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
+    var verifyTable = `
+        CREATE TABLE IF NOT EXISTS Verify (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL,
+            verifyId TEXT NOT NULL,
+            createTimestamp INT NOT NULL
+        );
+    `;
     var sessionTable = `
         CREATE TABLE IF NOT EXISTS Session (
             id TEXT NOT NULL,
@@ -116,9 +114,8 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, bookStateTable, bookTable, bookCourseTable, passwordResetTable, sessionTable]);
+    mainDB.executeMany([userTable, departmentTable, bookTable, bookCourseTable, passwordResetTable, verifyTable, sessionTable]);
     // Populate static tables
-    populateStaticTable('BookState');
     populateStaticTable('Department');
     // Remove expired password resets
     var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;

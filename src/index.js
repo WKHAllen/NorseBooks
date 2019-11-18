@@ -100,23 +100,30 @@ app.get('/register', (req, res) => {
 
 // Registration event
 app.post('/register', (req, res) => {
-    database.userExists(req.body.email, (exists) => {
+    var email = stripWhitespace(req.body.email);
+    var fname = stripWhitespace(req.body.firstname);
+    var lname = stripWhitespace(req.body.lastname);
+    database.userExists(email, (exists) => {
         if (!exists) {
-            if (req.body.password === req.body.passwordConfirm) {
-                var result = owasp.test(req.body.password);
-                if (result.errors.length === 0) {
-                    if (stripWhitespace(req.body.firstname) !== '' && stripWhitespace(req.body.lastname) !== '') {
-                        database.register(req.body.email, req.body.password, req.body.firstname, req.body.lastname);
-                        res.redirect('/login');
-                        // TODO: send verification email
+            if (email.length <= 64) {
+                if (req.body.password === req.body.passwordConfirm) {
+                    var result = owasp.test(req.body.password);
+                    if (result.errors.length === 0) {
+                        if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
+                            database.register(email, req.body.password, fname, lname);
+                            res.redirect('/login');
+                            // TODO: send verification email
+                        } else {
+                            res.render('register', { error: 'Please enter a valid name' });
+                        }
                     } else {
-                        res.render('register', { error: 'Please enter a valid name' });
+                        res.render('register', { error: result.errors.join('\n') });
                     }
                 } else {
-                    res.render('register', { error: result.errors.join('\n') });
+                    res.render('register', { error: 'Passwords do not match' });
                 }
             } else {
-                res.render('register', { error: 'Passwords do not match' });
+                res.render('register', { error: 'Email address is too long' });
             }
         } else {
             res.render('register', { error: 'That email address has already been registered' });
