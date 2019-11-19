@@ -5,7 +5,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const owasp = require('owasp-password-strength-test');
 const database = require('./database');
-const email = require('./email');
+const emailer = require('./emailer');
 
 var debug = true;
 
@@ -64,7 +64,7 @@ function stripWhitespace(str) {
 function sendEmailVerification(email) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
-        email.sendEmail(email, 'Norse Books - Verify Email',
+        emailer.sendEmail(email, 'Norse Books - Verify Email',
             `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email.\n\nSincerely,\nThe Norse Books Dev Team`
         );
     });
