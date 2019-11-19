@@ -18,7 +18,7 @@ try {
 var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
-const hostname = 'https://norsebooks.com';
+const hostname = 'https://www.norsebooks.com';
 
 // The app object
 var app = express();
