@@ -181,7 +181,7 @@ function newVerifyId(email, callback) {
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
         newId((verifyId) => {
-            sql = `SELECT id FROM Verify WHERE id = ?;`;
+            sql = `SELECT id FROM Verify WHERE verifyId = ?;`;
             params = [verifyId];
             mainDB.execute(sql, params, (err, rows) => {
                 if (rows.length > 0) {
