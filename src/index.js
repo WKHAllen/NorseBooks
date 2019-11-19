@@ -156,7 +156,7 @@ app.get('/verify/:verifyId', (req, res) => {
     database.checkVerifyID(req.params.verifyId, (valid) => {
         res.render('verify', { valid: valid });
         if (valid) {
-            database.setValid(req.params.verifyId);
+            database.setVerified(req.params.verifyId);
             database.deleteVerifyID(req.params.verifyId);
         }
     });
