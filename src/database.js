@@ -129,19 +129,19 @@ function init() {
     // Populate static tables
     populateStaticTable('Department');
     // Remove expired password resets
+    var timeRemaining;
     var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
     mainDB.execute(sql, [], (err, rows) => {
-        var timeRemaining;
         for (var row of rows) {
-            timeRemaining = row.createTimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
+            timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
             setTimeout(deletePasswordResetID, timeRemaining * 1000, row.resetid);
         }
     });
+    // Remove expired verification entries
     sql = `SELECT verifyId, createTimestamp FROM Verify;`;
     mainDB.execute(sql, [], (err, rows) => {
-        var timeRemaining;
         for (var row of rows) {
-            timeRemaining = row.createTimestamp + Math.floor(verifyTimeout / 1000) - getTime();
+            timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
             setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
         }
     });
