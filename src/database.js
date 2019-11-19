@@ -231,7 +231,10 @@ function deleteVerifyID(verifyId, callback) {
 
 // Prune an unverified account
 function pruneUnverified(verifyId, callback) {
-    var sql = `DELETE FROM NBUser WHERE verifyId = ? AND verified = 0;`;
+    var sql = `
+        DELETE FROM NBUser WHERE email = (
+            SELECT email FROM Verify WHERE verifyId = ?
+        ) AND verified = 0;`;
     var params = [verifyId];
     mainDB.execute(sql, params, (err, rows) => {
         deleteVerifyID(verifyId);
