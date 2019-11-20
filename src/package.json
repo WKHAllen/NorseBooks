@@ -1,7 +1,7 @@
 {
   "name": "norsebooks",
   "version": "0.1.0",
-  "description": "A place for Luther students to resell textbooks",
+  "description": "A place for Luther College students to resell textbooks",
   "main": "index.js",
   "scripts": {
     "start": "node ."
