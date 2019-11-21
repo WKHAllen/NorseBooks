@@ -34,7 +34,7 @@ class DB {
             client.query(stmt, params, (err, res) => {
                 release();
                 if (err) logError(stmt, params, res, err);
-                if (callback) callback(err, res.rows);
+                if (callback) callback(res.rows);
             });
         });
     }
@@ -53,18 +53,18 @@ class DB {
             if (err) throw err;
             client.query(stmt, params, (err, res) => {
                 if (err) logError(stmt, params, res, err);
-                if (callback) callback(err, res.rows);
+                if (callback) callback(res.rows);
                 client.query(afterStmt, afterParams, (err, res) => {
                     release();
                     if (err) logError(afterStmt, afterParams, res, err);
-                    if (afterCallback) afterCallback(err, res.rows);
+                    if (afterCallback) afterCallback(res.rows);
                 });
             });
         });
     }
 
     // Execute multiple SQL queries, each one right after the last
-    executeMany(stmts, callback) {
+    executeMany(stmts, callback, doneCallback) {
         this.pool.connect((err, client, release) => {
             if (err) throw err;
             for (var stmt of stmts) {
@@ -72,10 +72,11 @@ class DB {
                     if (err) {
                         logError(stmt, [], res, err);
                     }
-                    if (callback) callback(err, res.rows);
+                    if (callback) callback(res.rows);
                 });
             }
             release();
+            if (doneCallback) doneCallback();
         });
     }
 }

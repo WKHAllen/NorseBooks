@@ -32,7 +32,7 @@ function getTime() {
 // Check if a table is empty
 function tableEmpty(tableName, callback) {
     var sql = `SELECT id FROM ${tableName};`;
-    mainDB.execute(sql, [], (err, rows) => {
+    mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows.length === 0);
     });
 }
@@ -159,7 +159,7 @@ function init() {
     // Remove expired password resets
     var timeRemaining;
     var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
-    mainDB.execute(sql, [], (err, rows) => {
+    mainDB.execute(sql, [], (rows) => {
         for (var row of rows) {
             timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
             setTimeout(deletePasswordResetID, timeRemaining * 1000, row.resetid);
@@ -167,7 +167,7 @@ function init() {
     });
     // Remove expired verification entries
     sql = `SELECT verifyId, createTimestamp FROM Verify;`;
-    mainDB.execute(sql, [], (err, rows) => {
+    mainDB.execute(sql, [], (rows) => {
         for (var row of rows) {
             timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
             setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
@@ -179,7 +179,7 @@ function init() {
 function auth(sessionId, callback) {
     var sql = `SELECT id FROM Session WHERE id = ?;`;
     var params = [sessionId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length > 0);
         if (rows.length > 0) {
             sql = `
@@ -199,7 +199,7 @@ function getAuthUser(sessionId, callback) {
             SELECT userId FROM Session WHERE id = ?
         );`;
     var params = [sessionId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0].id);
     });
 }
@@ -209,7 +209,7 @@ function userExists(email, callback) {
     email = email.toLowerCase();
     var sql = `SELECT id FROM NBUser WHERE email = ? AND verified = 1;`;
     var params = [email];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length > 0);
     });
 }
@@ -219,17 +219,17 @@ function newVerifyId(email, callback) {
     email = email.toLowerCase();
     var sql = `DELETE FROM Verify WHERE email = ?;`;
     var params = [email];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         newHexId((verifyId) => {
             sql = `SELECT id FROM Verify WHERE verifyId = ?;`;
             params = [verifyId];
-            mainDB.execute(sql, params, (err, rows) => {
+            mainDB.execute(sql, params, (rows) => {
                 if (rows.length > 0) {
                     newVerifyId(email, callback);
                 } else {
                     sql = `INSERT INTO Verify (email, verifyId, createTimestamp) VALUES (?, ?, ?);`;
                     params = [email, verifyId, getTime()];
-                    mainDB.execute(sql, params, (err, rows) => {
+                    mainDB.execute(sql, params, (rows) => {
                         setTimeout(pruneUnverified, verifyTimeout, verifyId);
                         if (callback) callback(verifyId);
                     });
@@ -243,7 +243,7 @@ function newVerifyId(email, callback) {
 function checkVerifyID(verifyId, callback) {
     var sql = `SELECT verifyId FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length > 0);
     });
 }
@@ -255,7 +255,7 @@ function setVerified(verifyId, callback) {
             SELECT email FROM Verify WHERE verifyId = ?
         );`;
     var params = [verifyId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
 }
@@ -264,7 +264,7 @@ function setVerified(verifyId, callback) {
 function deleteVerifyID(verifyId, callback) {
     var sql = `DELETE FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
 }
@@ -276,7 +276,7 @@ function pruneUnverified(verifyId, callback) {
             SELECT email FROM Verify WHERE verifyId = ?
         ) AND verified = 0;`;
     var params = [verifyId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         deleteVerifyID(verifyId);
     });
 }
@@ -289,11 +289,11 @@ function newSessionId(email, callback) {
             SELECT id FROM NBUser WHERE email = ?
         );`;
     var params = [email];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         newHexId((sessionId) => {
             sql = `SELECT id FROM Session WHERE id = ?;`;
             params = [sessionId];
-            mainDB.execute(sql, params, (err, rows) => {
+            mainDB.execute(sql, params, (rows) => {
                 if (rows.length > 0) {
                     newSessionId(email, callback);
                 } else {
@@ -304,7 +304,7 @@ function newSessionId(email, callback) {
                             ?
                         );`;
                     params = [sessionId, email, getTime()];
-                    mainDB.execute(sql, params, (err, rows) => {
+                    mainDB.execute(sql, params, (rows) => {
                         if (callback) callback(sessionId);
                     });
                 }
@@ -317,7 +317,7 @@ function newSessionId(email, callback) {
 function deleteSession(sessionId, callback) {
     var sql = `DELETE FROM Session WHERE id = ?;`;
     var params = [sessionId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
 }
@@ -327,7 +327,7 @@ function validLogin(email, password, callback) {
     email = email.toLowerCase();
     var sql = `SELECT email, password FROM NBUser WHERE email = ? AND verified = 1;`;
     var params = [email];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (rows.length === 0) {
             if (callback) callback(false);
         } else {
@@ -358,7 +358,7 @@ function register(email, password, firstname, lastname, callback) {
                 ?, ?, ?, ?, ?, ?, ?
             );`;
         var params = [email, hash, firstname, lastname, getTime(), 0, 0];
-        mainDB.execute(sql, params, (err, rows) => {
+        mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
     });
@@ -368,7 +368,7 @@ function register(email, password, firstname, lastname, callback) {
 function deletePasswordResetId(passwordResetID, callback) {
     var sql = `DELETE FROM PasswordReset WHERE resetId = ?;`;
     var params = [passwordResetID];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
 }
@@ -378,7 +378,7 @@ function newBookId(callback, length) {
     newBase64Id((bookId) => {
         var sql = `SELECT id FROM Book WHERE bookId = ?;`;
         var params = [bookId];
-        mainDB.execute(sql, params, (err, rows) => {
+        mainDB.execute(sql, params, (rows) => {
             if (rows.length > 0) {
                 newBookId(callback, length);
             } else {
@@ -397,7 +397,7 @@ function newBook(name, author, departmentId, courseNumber, condition, descriptio
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
         var params = [bookId, name, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
         var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
-        mainDB.executeAfter(sql, params, null, sqlAfter, [], (err, rows) => {
+        mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
             if (callback) callback(rows[0].id, bookId);
         });
     });
@@ -406,7 +406,7 @@ function newBook(name, author, departmentId, courseNumber, condition, descriptio
 // Get all departments
 function getDepartments(callback) {
     var sql = `SELECT id, name FROM Department ORDER BY name;`;
-    mainDB.execute(sql, [], (err, rows) => {
+    mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
     });
 }
@@ -415,7 +415,7 @@ function getDepartments(callback) {
 function validDepartment(departmentId, callback) {
     var sql = `SELECT id FROM Department WHERE id = ?;`;
     var params = [departmentId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length === 1);
     });
 }
@@ -423,7 +423,7 @@ function validDepartment(departmentId, callback) {
 // Get all book conditions
 function getConditions(callback) {
     var sql = `SELECT id, name FROM Condition ORDER BY id;`;
-    mainDB.execute(sql, [], (err, rows) => {
+    mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
     });
 }
@@ -432,7 +432,7 @@ function getConditions(callback) {
 function validCondition(conditionId, callback) {
     var sql = `SELECT id FROM Condition WHERE id = ?;`;
     var params = [conditionId];
-    mainDB.execute(sql, params, (err, rows) => {
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length === 1);
     });
 }
