@@ -244,7 +244,7 @@ app.post('/book', auth, (req, res) => {
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.name, values.author, values.department, values.courseNumber, values.condition, values.description, userId, values.price, values.imageUrl, (id, bookId) => {
+                database.newBook(values.name, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (id, bookId) => {
                     res.redirect(`/book/${bookId}`);
                 });
             });
