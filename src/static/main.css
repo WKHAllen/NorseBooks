@@ -38,3 +38,7 @@ main {
     color: var(--subheader-color);
     text-align: center;
 }
+
+/* .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+    background-color: var(--secondary-color) !important;
+} */

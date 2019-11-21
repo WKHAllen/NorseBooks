@@ -16,6 +16,7 @@ try {
 const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
 const saltRounds = 12;
 const hexLength = 64;
+const base64Length = 4;
 const passwordResetTimeout = 60 * 60 * 1000;
 const verifyTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
@@ -28,6 +29,14 @@ function getTime() {
     return Math.floor(new Date().getTime() / 1000);
 }
 
+// Check if a table is empty
+function tableEmpty(tableName, callback) {
+    var sql = `SELECT id FROM ${tableName};`;
+    mainDB.execute(sql, [], (err, rows) => {
+        if (callback) callback(rows.length === 0);
+    });
+}
+
 // Get the path to a static table
 function getStaticTablePath(tableName) {
     return path.join(__dirname, staticTablePath, tableName) + '.csv';
@@ -35,19 +44,21 @@ function getStaticTablePath(tableName) {
 
 // Populate the static tables in the database
 function populateStaticTable(tableName) {
-    var sql;
-    var params;
-    fs.createReadStream(getStaticTablePath(tableName))
-        .pipe(csv.parse({ headers: true }))
-        .on('data', (row) => {
-            sql = `INSERT INTO ${tableName} (id, name) VALUES (?, ?);`;
-            params = [row.id, row.name];
-            mainDB.execute(sql, params);
-        });
+    tableEmpty(tableName, (empty) => {
+        if (empty) {
+            fs.createReadStream(getStaticTablePath(tableName))
+                .pipe(csv.parse({ headers: true }))
+                .on('data', (row) => {
+                    var sql = `INSERT INTO ${tableName} (id, name) VALUES (?, ?);`;
+                    var params = [row.id, row.name];
+                    mainDB.execute(sql, params);
+                });
+        }
+    });
 }
 
-// Generate a new id
-function newId(callback, length) {
+// Generate a new hex id
+function newHexId(callback, length) {
     length = length !== undefined ? length : hexLength;
     crypto.randomBytes(Math.floor(length / 2), (err, buffer) => {
         if (err) throw err;
@@ -55,13 +66,20 @@ function newId(callback, length) {
     });
 }
 
+// Generate a new base64 id
+function newBase64Id(callback, length) {
+    length = length !== undefined ? length : base64Length;
+    crypto.randomBytes(length, (err, buffer) => {
+        if (err) throw err;
+        var base64Id = buffer.toString('base64').slice(0, length);
+        while (base64Id.includes('/')) base64Id = base64Id.replace('/', '-');
+        while (base64Id.includes('+')) base64Id = base64Id.replace('+', '_');
+        if (callback) callback(base64Id);
+    });
+}
+
 // Initialize the database
 function init() {
-    // Drop static tables
-    var dropDepartmentTable = `
-        DROP TABLE IF EXISTS Department;
-    `;
-    mainDB.executeMany([dropDepartmentTable]);
     // Create tables
     var userTable = `
         CREATE TABLE IF NOT EXISTS NBUser (
@@ -78,7 +96,13 @@ function init() {
         );
     `;
     var departmentTable = `
-        CREATE TABLE Department (
+        CREATE TABLE IF NOT EXISTS Department (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL
+        );
+    `;
+    var conditionTable = `
+        CREATE TABLE IF NOT EXISTS Condition (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL
         );
@@ -86,11 +110,14 @@ function init() {
     var bookTable = `
         CREATE TABLE IF NOT EXISTS Book (
             id SERIAL PRIMARY KEY,
+            bookId TEXT NOT NULL,
             name TEXT NOT NULL,
+            author TEXT NOT NULL,
             departmentId INT NOT NULL,
+            courseNumber INT,
             userId INT NOT NULL,
             price NUMERIC(5,2) NOT NULL,
-            condition TEXT NOT NULL,
+            conditionId INT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
             imageUrl TEXT
@@ -125,9 +152,10 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, bookTable, bookCourseTable, passwordResetTable, verifyTable, sessionTable]);
+    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, bookCourseTable, passwordResetTable, verifyTable, sessionTable]);
     // Populate static tables
     populateStaticTable('Department');
+    populateStaticTable('Condition');
     // Remove expired password resets
     var timeRemaining;
     var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
@@ -164,6 +192,18 @@ function auth(sessionId, callback) {
     });
 }
 
+// Get the id of an authenticated user by the session ID
+function getAuthUser(sessionId, callback) {
+    var sql = `
+        SELECT id FROM NBUser WHERE id = (
+            SELECT userId FROM Session WHERE id = ?
+        );`;
+    var params = [sessionId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows[0].id);
+    });
+}
+
 // Check if a user exists
 function userExists(email, callback) {
     email = email.toLowerCase();
@@ -180,7 +220,7 @@ function newVerifyId(email, callback) {
     var sql = `DELETE FROM Verify WHERE email = ?;`;
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
-        newId((verifyId) => {
+        newHexId((verifyId) => {
             sql = `SELECT id FROM Verify WHERE verifyId = ?;`;
             params = [verifyId];
             mainDB.execute(sql, params, (err, rows) => {
@@ -250,7 +290,7 @@ function newSessionId(email, callback) {
         );`;
     var params = [email];
     mainDB.execute(sql, params, (err, rows) => {
-        newId((sessionId) => {
+        newHexId((sessionId) => {
             sql = `SELECT id FROM Session WHERE id = ?;`;
             params = [sessionId];
             mainDB.execute(sql, params, (err, rows) => {
@@ -333,12 +373,77 @@ function deletePasswordResetId(passwordResetID, callback) {
     });
 }
 
+// Create a new book id
+function newBookId(callback, length) {
+    newBase64Id((bookId) => {
+        var sql = `SELECT id FROM Book WHERE bookId = ?;`;
+        var params = [bookId];
+        mainDB.execute(sql, params, (err, rows) => {
+            if (rows.length > 0) {
+                newBookId(callback, length);
+            } else {
+                if (callback) callback(bookId);
+            }
+        });
+    }, length);
+}
+
+// Add a new book
+function newBook(name, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, callback) {
+    newBookId((bookId) => {
+        var sql = `
+            INSERT INTO Book (
+                bookId, name, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+        var params = [bookId, name, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
+        var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
+        mainDB.executeAfter(sql, params, null, sqlAfter, [], (err, rows) => {
+            if (callback) callback(rows[0].id, bookId);
+        });
+    });
+}
+
+// Get all departments
+function getDepartments(callback) {
+    var sql = `SELECT id, name FROM Department ORDER BY name;`;
+    mainDB.execute(sql, [], (err, rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Check if a department is valid
+function validDepartment(departmentId, callback) {
+    var sql = `SELECT id FROM Department WHERE id = ?;`;
+    var params = [departmentId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
+// Get all book conditions
+function getConditions(callback) {
+    var sql = `SELECT id, name FROM Condition ORDER BY id;`;
+    mainDB.execute(sql, [], (err, rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Check if a book condition is valid
+function validCondition(conditionId, callback) {
+    var sql = `SELECT id FROM Condition WHERE id = ?;`;
+    var params = [conditionId];
+    mainDB.execute(sql, params, (err, rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
 // Initialize the database on import
 init();
 
 // Export the database control functions
 module.exports = {
     'auth': auth,
+    'getAuthUser': getAuthUser,
     'userExists': userExists,
     'newVerifyId': newVerifyId,
     'checkVerifyID': checkVerifyID,
@@ -350,5 +455,11 @@ module.exports = {
     'validLogin': validLogin,
     'register': register,
     'deletePasswordResetId': deletePasswordResetId,
+    'newBookId': newBookId,
+    'newBook': newBook,
+    'getDepartments': getDepartments,
+    'validDepartment': validDepartment,
+    'getConditions': getConditions,
+    'validCondition': validCondition,
     'mainDB': mainDB
 };

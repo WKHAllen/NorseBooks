@@ -57,6 +57,7 @@ app.use(express.static('static'));
 
 // Removes whitespace from the ends of a string
 function stripWhitespace(str) {
+    if (!str && str !== '') return '';
     return str.replace(/^\s+|\s+$/g, '');
 }
 
@@ -68,6 +69,72 @@ function sendEmailVerification(email) {
             `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email.\n\nSincerely,\nThe Norse Books Dev Team`
         );
     });
+}
+
+// Check if a book form is valid
+function validBook(form, callback) {
+    var name = stripWhitespace(form.name);
+    var author = stripWhitespace(form.author);
+    var department = parseInt(stripWhitespace(form.department));
+    var courseNumber = parseInt(stripWhitespace(form.courseNumber));
+    var price = Math.floor(parseFloat(stripWhitespace(form.price)) * 100) / 100;
+    var condition = stripWhitespace(form.condition);
+    var imageUrl = stripWhitespace(form.imageUrl);
+    var description = stripWhitespace(form.description);
+    // Check name
+    if (name.length === 0 || name.length > 128) {
+        callback(false, 'Please enter the name of the book. It must be at most 128 characters long.');
+    } else {
+        // Check author
+        if (author.length === 0 || author.length > 64) {
+            callback(false, 'Please enter the author\'s name. It must be at most 64 characters long.');
+        } else {
+            // Check department
+            database.validDepartment(department, (valid) => {
+                if (!valid) {
+                    callback(false, 'Please select a valid department.');
+                } else {
+                    // Check course number
+                    if (stripWhitespace(form.courseNumber).length > 0 && (isNaN(courseNumber) || courseNumber < 101 || courseNumber > 499)) {
+                        callback(false, 'Please enter a valid course number.');
+                    } else {
+                        // Check price
+                        if (isNaN(price) || price < 0 || price > 999.99) {
+                            callback(false, 'Please enter a valid price less than $1000.');
+                        } else {
+                            // Check condition
+                            database.validCondition(condition, (valid) => {
+                                if (!valid) {
+                                    callback(false, 'Please select a valid book condition.');
+                                } else {
+                                    // Check imageUrl
+                                    if (imageUrl.length > 256) {
+                                        callback(false, 'Please enter a valid image URL or leave the box blank. The URL must be less than 256 characters.');
+                                    } else {
+                                        // Check description
+                                        if (description.length === 0 || description.length > 1024) {
+                                            callback(false, 'Please enter a description of at most 1024 characters.');
+                                        } else {
+                                            callback(true, null, {
+                                                name: name,
+                                                author: author,
+                                                department: department,
+                                                courseNumber: courseNumber,
+                                                price: price,
+                                                condition: condition,
+                                                imageUrl: imageUrl,
+                                                description: description
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    }
 }
 
 // Authorize/authenticate
@@ -152,9 +219,10 @@ app.get('/logout', (req, res) => {
     });
 });
 
+// Verify email address page
 app.get('/verify/:verifyId', (req, res) => {
     database.checkVerifyID(req.params.verifyId, (valid) => {
-        res.render('verify', { valid: valid });
+        res.render('verify', { title: 'Verify', valid: valid });
         if (valid) {
             database.setVerified(req.params.verifyId);
             database.deleteVerifyID(req.params.verifyId);
@@ -162,10 +230,41 @@ app.get('/verify/:verifyId', (req, res) => {
     });
 });
 
-// TODO: remove this
-// Test for the auth function
-app.get('/test', auth, (req, res) => {
-    res.send('Successfully authorized and authenticated');
+// List new book page
+app.get('/book', auth, (req, res) => {
+    database.getDepartments((departments) => {
+        database.getConditions((conditions) => {
+            res.render('book', { title: 'New Book', departments: departments, conditions: conditions });
+        });
+    });
+});
+
+// List new book event
+app.post('/book', auth, (req, res) => {
+    validBook(req.body, (valid, err, values) => {
+        if (valid) {
+            database.getAuthUser(req.session.sessionId, (userId) => {
+                database.newBook(values.name, values.author, values.department, values.courseNumber, values.condition, values.description, userId, values.price, values.imageUrl, (id, bookId) => {
+                    res.redirect(`/book/${bookId}`);
+                });
+            });
+        } else {
+            database.getDepartments((departments) => {
+                database.getConditions((conditions) => {
+                    res.render('book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                        name: req.body.name,
+                        author: req.body.author,
+                        department: req.body.department,
+                        courseNumber: req.body.courseNumber,
+                        price: req.body.price,
+                        condition: req.body.condition,
+                        imageUrl: req.body.imageUrl,
+                        description: req.body.description
+                    }});
+                });
+            });
+        }
+    });
 });
 
 // Error 404 (not found)
