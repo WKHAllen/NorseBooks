@@ -1,6 +1,11 @@
 :root {
     --primary-color: white;
+    --primary-hover: #d7d7ef;
+    --primary-active: #cfcfdf;
     --secondary-color: #0f2f9f;
+    --secondary-hover: #0b2797;
+    --secondary-active: #071f8f;
+    --secondary-light: #1f4fcf;
     --subheader-color: #1f3faf;
     /* --primary-color: #1f1f1f; */
     /* --secondary-color: white; */
@@ -17,15 +22,21 @@ html, body {
     color: var(--secondary-color);
 }
 
-body {
-    margin-top: 200px;
+header {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
 }
 
-header, footer {
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
-    padding: 20px;
-    text-align: center;
+header a, header a:link, header a:visited {
+    color: var(--primary-color);
+}
+
+header a:hover {
+    color: var(--primary-hover);
+}
+
+header a:active {
+    color: var(--primary-active);
 }
 
 main {
@@ -34,11 +45,30 @@ main {
     max-width: 1000px;
 }
 
+footer {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 20px;
+    text-align: center;
+}
+
 .subheader {
     color: var(--subheader-color);
     text-align: center;
 }
 
-/* .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
-    background-color: var(--secondary-color) !important;
-} */
+.btn-primary, .btn-primary:visited, .btn-primary:focus {
+    background-color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-hover);
+}
+
+.btn-primary:active {
+    background-color: var(--secondary-active) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 2pt var(--secondary-light) !important;
+}

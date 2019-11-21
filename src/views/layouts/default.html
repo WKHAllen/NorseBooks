@@ -12,13 +12,24 @@
     </head>
     <body>
         <header>
-            <h1>Welcome to Norse Books</h1>
+            <nav class="navbar navbar-expand-lg">
+                <a class="navbar-brand" href="/">NorseBooks</a>
+                <!-- TODO: insert favicon before label within link -->
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-main" aria-controls="navbar-main" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbar-main">
+                    <div class="navbar-nav">
+                        <a class="nav-item nav-link" href="/book">New book</a>
+                        <a class="nav-item nav-link" href="/about">About</a>
+                        <a class="nav-item nav-link" href="/contact">Contact</a>
+                    </div>
+                </div>
+                <!-- TODO: insert user image as dropdown with profile, logout options -->
+            </nav>
         </header>
         <main>
             {{{body}}}
         </main>
-        <footer>
-            &copy;2019 Norse Books
-        </footer>
     </body>
 </html>
