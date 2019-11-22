@@ -1,14 +1,18 @@
-{{#if error}}
-    <div class="alert alert-danger" role="alert">{{error}}</div>
-{{/if}}
-<form method="POST">
-    <div class="form-group">
-        <label for="email">Email address</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
+<h1 class="centered">Login</h1>
+<div class="thin">
+    {{#if error}}
+        <div class="alert alert-danger" role="alert">{{error}}</div>
+    {{/if}}
+    <p class="justified">Log in using your email address and password. If you do not have an account, please <a href="/register">create one here</a>.</p>
+    <form method="POST">
+        <div class="form-group">
+            <label for="email">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>

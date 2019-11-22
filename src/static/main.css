@@ -3,18 +3,11 @@
     --primary-hover: #d7d7ef;
     --primary-active: #cfcfdf;
     --secondary-color: #0f2f9f;
-    --secondary-hover: #0b2797;
-    --secondary-active: #071f8f;
+    --secondary-hover: #071f8f;
+    --secondary-active: #000f7f;
     --secondary-light: #1f4fcf;
-    --subheader-color: #1f3faf;
     /* --primary-color: #1f1f1f; */
     /* --secondary-color: white; */
-    /* --subheader-color: #dfdfdf; */
-}
-
-* {
-    margin: 0;
-    padding: 0;
 }
 
 html, body {
@@ -52,9 +45,16 @@ footer {
     text-align: center;
 }
 
-.subheader {
-    color: var(--subheader-color);
-    text-align: center;
+h1 {
+    margin-bottom: 24px;
+}
+
+h2, h3 {
+    margin-bottom: 20px;
+}
+
+h4, h5, h6 {
+    margin-bottom: 16px;
 }
 
 .btn-primary, .btn-primary:visited, .btn-primary:focus {
@@ -70,5 +70,20 @@ footer {
 }
 
 input:focus, select:focus, textarea:focus {
-    box-shadow: 0 0 0 2pt var(--secondary-light) !important;
+    border-color: var(--secondary-light) !important;
+    box-shadow: 0 0 2pt var(--secondary-light) !important;
+    outline: 0 none;
+}
+
+.centered {
+    text-align: center;
+}
+
+.justified {
+    text-align: justify;
+}
+
+.thin {
+    margin: 0 auto;
+    max-width: 600px;
 }
