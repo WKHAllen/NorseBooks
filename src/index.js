@@ -79,13 +79,13 @@ function validBook(form, callback) {
     var author = stripWhitespace(form.author);
     var department = parseInt(stripWhitespace(form.department));
     var courseNumber = parseInt(stripWhitespace(form.courseNumber));
-    var price = Math.floor(parseFloat(stripWhitespace(form.price)) * 100) / 100;
+    var price = Math.floor(parseFloat(stripWhitespace(form.price.replace('$', ''))) * 100) / 100;
     var condition = stripWhitespace(form.condition);
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
     // Check name
     if (name.length === 0 || name.length > 128) {
-        callback(false, 'Please enter the name of the book. It must be at most 128 characters long.');
+        callback(false, 'Please enter the title of the book. It must be at most 128 characters long.');
     } else {
         // Check author
         if (author.length === 0 || author.length > 64) {
