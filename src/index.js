@@ -75,7 +75,7 @@ function sendEmailVerification(email) {
 
 // Check if a book form is valid
 function validBook(form, callback) {
-    var name = stripWhitespace(form.name);
+    var title = stripWhitespace(form.title);
     var author = stripWhitespace(form.author);
     var department = parseInt(stripWhitespace(form.department));
     var courseNumber = parseInt(stripWhitespace(form.courseNumber));
@@ -83,8 +83,8 @@ function validBook(form, callback) {
     var condition = stripWhitespace(form.condition);
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
-    // Check name
-    if (name.length === 0 || name.length > 128) {
+    // Check title
+    if (title.length === 0 || title.length > 128) {
         callback(false, 'Please enter the title of the book. It must be at most 128 characters long.');
     } else {
         // Check author
@@ -118,7 +118,7 @@ function validBook(form, callback) {
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
                                             callback(true, null, {
-                                                name: name,
+                                                title: title,
                                                 author: author,
                                                 department: department,
                                                 courseNumber: courseNumber,
