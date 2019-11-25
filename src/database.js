@@ -403,6 +403,15 @@ function newBook(name, author, departmentId, courseNumber, condition, descriptio
     });
 }
 
+// Get the number of departments
+function getNumBooks(userId, callback) {
+    var sql = `SELECT id FROM Book WHERE userId = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length);
+    });
+}
+
 // Get all departments
 function getDepartments(callback) {
     var sql = `SELECT id, name FROM Department ORDER BY name;`;
@@ -457,6 +466,7 @@ module.exports = {
     'deletePasswordResetId': deletePasswordResetId,
     'newBookId': newBookId,
     'newBook': newBook,
+    'getNumBooks': getNumBooks,
     'getDepartments': getDepartments,
     'validDepartment': validDepartment,
     'getConditions': getConditions,

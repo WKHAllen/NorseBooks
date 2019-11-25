@@ -20,6 +20,8 @@ var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
 const hostname = 'https://www.norsebooks.com';
 
+const maxNumBooks = 8;
+
 // The app object
 var app = express();
 
@@ -232,9 +234,17 @@ app.get('/verify/:verifyId', (req, res) => {
 
 // List new book page
 app.get('/book', auth, (req, res) => {
-    database.getDepartments((departments) => {
-        database.getConditions((conditions) => {
-            res.render('book', { title: 'New Book', departments: departments, conditions: conditions });
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getNumBooks(userId, (numBooks) => {
+            if (numBooks < maxNumBooks) {
+                database.getDepartments((departments) => {
+                    database.getConditions((conditions) => {
+                        res.render('book', { title: 'New Book', departments: departments, conditions: conditions });
+                    });
+                });
+            } else {
+                res.render('error', { title: 'New Book - Error', errorTitle: 'New Book', errorText: 'You have already listed the maximum number of books. Please remove other books before listing more. To increase your chances of your books being bought, you could share links to your books via social media. Go to your profile to see your books.' });
+            }
         });
     });
 });
