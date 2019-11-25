@@ -5,13 +5,13 @@
 <p>Fill out the form below to list a book. All boxes must be filled out except course number and image URL, which are optional.</p>
 <form method="POST">
     <div class="form-row">
-        <!-- Name -->
+        <!-- Title -->
         <div class="form-group col-6">
-            <label for="name">Book title</label>
+            <label for="title">Book title</label>
             {{#if form}}
-                <input type="text" class="form-control" id="name" name="name" maxlength="128" value="{{form.name}}" required>
+                <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}" required>
             {{else}}
-                <input type="text" class="form-control" id="name" name="name" maxlength="128" required>
+                <input type="text" class="form-control" id="title" name="title" maxlength="128" required>
             {{/if}}
         </div>
         <!-- Author -->

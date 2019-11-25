@@ -111,7 +111,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS Book (
             id SERIAL PRIMARY KEY,
             bookId TEXT NOT NULL,
-            name TEXT NOT NULL,
+            title TEXT NOT NULL,
             author TEXT NOT NULL,
             departmentId INT NOT NULL,
             courseNumber INT,

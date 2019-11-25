@@ -254,7 +254,7 @@ app.post('/book', auth, (req, res) => {
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.name, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (id, bookId) => {
+                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (id, bookId) => {
                     res.redirect(`/book/${bookId}`);
                 });
             });
@@ -262,7 +262,7 @@ app.post('/book', auth, (req, res) => {
             database.getDepartments((departments) => {
                 database.getConditions((conditions) => {
                     res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
-                        name: req.body.name,
+                        title: req.body.title,
                         author: req.body.author,
                         department: req.body.department,
                         courseNumber: req.body.courseNumber,
@@ -284,7 +284,7 @@ app.get('/book/:bookId', (req, res) => {
                 database.getDepartmentName(bookInfo.departmentid, (department) => {
                     database.getConditionName(bookInfo.conditionid, (condition) => {
                         res.render('book', {
-                            name: bookInfo.name,
+                            title: bookInfo.title,
                             author: bookInfo.author,
                             department: department,
                             courseNumber: bookInfo.coursenumber,
