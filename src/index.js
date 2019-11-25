@@ -239,11 +239,11 @@ app.get('/book', auth, (req, res) => {
             if (numBooks < maxNumBooks) {
                 database.getDepartments((departments) => {
                     database.getConditions((conditions) => {
-                        res.render('newbook', { title: 'New Book', departments: departments, conditions: conditions });
+                        res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions });
                     });
                 });
             } else {
-                res.render('error', { title: 'New Book - Error', errorTitle: 'New Book', errorText: 'You have already listed the maximum number of books. Please remove other books before listing more. To increase your chances of your books being bought, you could share links to your books via social media. Go to your profile to see your books.' });
+                res.render('max-books', { title: 'Too many books' });
             }
         });
     });
@@ -261,7 +261,7 @@ app.post('/book', auth, (req, res) => {
         } else {
             database.getDepartments((departments) => {
                 database.getConditions((conditions) => {
-                    res.render('newbook', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                    res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
                         name: req.body.name,
                         author: req.body.author,
                         department: req.body.department,
@@ -297,7 +297,7 @@ app.get('/book/:bookId', (req, res) => {
                 });
             });
         } else {
-            res.render('error', { title: 'Book - Error', errorTitle: 'Book', errorText: 'This book does not exist. It has likely been removed from the site. If you would like to search for a similar book, please visit the home page.' });
+            res.render('book-not-found', { title: 'Book not found' });
         }
     });
 });
