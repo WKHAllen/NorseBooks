@@ -389,13 +389,13 @@ function newBookId(callback, length) {
 }
 
 // Add a new book
-function newBook(name, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, callback) {
+function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, callback) {
     newBookId((bookId) => {
         var sql = `
             INSERT INTO Book (
-                bookId, name, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
+                bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-        var params = [bookId, name, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
+        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
         var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
         mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
             if (callback) callback(rows[0].id, bookId);
@@ -414,7 +414,7 @@ function validBook(bookId, callback) {
 
 // Get information on a book
 function getBookInfo(bookId, callback) {
-    var sql = `SELECT name, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var sql = `SELECT title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
