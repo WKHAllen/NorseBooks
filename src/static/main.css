@@ -87,3 +87,9 @@ input:focus, select:focus, textarea:focus {
     margin: 0 auto;
     max-width: 600px;
 }
+
+.fit-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+}

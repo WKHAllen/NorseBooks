@@ -403,6 +403,24 @@ function newBook(name, author, departmentId, courseNumber, condition, descriptio
     });
 }
 
+// Check if a book is valid
+function validBook(bookId, callback) {
+    var sql = `SELECT id FROM Book WHERE bookId = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
+// Get information on a book
+function getBookInfo(bookId, callback) {
+    var sql = `SELECT name, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0]);
+    });
+}
+
 // Get the number of departments
 function getNumBooks(userId, callback) {
     var sql = `SELECT id FROM Book WHERE userId = ?;`;
@@ -420,6 +438,15 @@ function getDepartments(callback) {
     });
 }
 
+// Get the name of a department by ID
+function getDepartmentName(departmentId, callback) {
+    var sql = `SELECT name FROM Department WHERE id = ?;`;
+    var params = [departmentId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].name);
+    });
+}
+
 // Check if a department is valid
 function validDepartment(departmentId, callback) {
     var sql = `SELECT id FROM Department WHERE id = ?;`;
@@ -434,6 +461,15 @@ function getConditions(callback) {
     var sql = `SELECT id, name FROM Condition ORDER BY id;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
+    });
+}
+
+// Get the name of a condition by ID
+function getConditionName(conditionId, callback) {
+    var sql = `SELECT name FROM Condition WHERE id = ?;`;
+    var params = [conditionId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].name);
     });
 }
 
@@ -466,10 +502,14 @@ module.exports = {
     'deletePasswordResetId': deletePasswordResetId,
     'newBookId': newBookId,
     'newBook': newBook,
+    'validBook': validBook,
+    'getBookInfo': getBookInfo,
     'getNumBooks': getNumBooks,
     'getDepartments': getDepartments,
+    'getDepartmentName': getDepartmentName,
     'validDepartment': validDepartment,
     'getConditions': getConditions,
+    'getConditionName': getConditionName,
     'validCondition': validCondition,
     'mainDB': mainDB
 };

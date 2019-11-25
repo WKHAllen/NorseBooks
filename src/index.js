@@ -239,7 +239,7 @@ app.get('/book', auth, (req, res) => {
             if (numBooks < maxNumBooks) {
                 database.getDepartments((departments) => {
                     database.getConditions((conditions) => {
-                        res.render('book', { title: 'New Book', departments: departments, conditions: conditions });
+                        res.render('newbook', { title: 'New Book', departments: departments, conditions: conditions });
                     });
                 });
             } else {
@@ -261,7 +261,7 @@ app.post('/book', auth, (req, res) => {
         } else {
             database.getDepartments((departments) => {
                 database.getConditions((conditions) => {
-                    res.render('book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                    res.render('newbook', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
                         name: req.body.name,
                         author: req.body.author,
                         department: req.body.department,
@@ -273,6 +273,31 @@ app.post('/book', auth, (req, res) => {
                     }});
                 });
             });
+        }
+    });
+});
+
+app.get('/book/:bookId', (req, res) => {
+    database.validBook(req.params.bookId, (valid) => {
+        if (valid) {
+            database.getBookInfo(req.params.bookId, (bookInfo) => {
+                database.getDepartmentName(bookInfo.departmentid, (department) => {
+                    database.getConditionName(bookInfo.conditionid, (condition) => {
+                        res.render('book', {
+                            name: bookInfo.name,
+                            author: bookInfo.author,
+                            department: department,
+                            courseNumber: bookInfo.coursenumber,
+                            price: bookInfo.price,
+                            condition: condition,
+                            imageUrl: bookInfo.imageurl, // TODO: add default imageUrl here
+                            description: bookInfo.description
+                        });
+                    });
+                });
+            });
+        } else {
+            res.render('error', { title: 'Book - Error', errorTitle: 'Book', errorText: 'This book does not exist. It has likely been removed from the site. If you would like to search for a similar book, please visit the home page.' });
         }
     });
 });
