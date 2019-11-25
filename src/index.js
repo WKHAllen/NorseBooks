@@ -267,6 +267,14 @@ app.post('/book', auth, (req, res) => {
     });
 });
 
+app.get('/about', (req, res) => {
+    res.render('about', { title: 'About NorseBooks' });
+});
+
+app.get('/contact', (req, res) => {
+    res.render('contact', { title: 'Contact Us' });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     return res.status(404).render('404', { title: 'Not found' });
