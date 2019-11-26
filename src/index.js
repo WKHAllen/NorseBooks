@@ -302,10 +302,59 @@ app.get('/book/:bookId', (req, res) => {
     });
 });
 
+// Profile viewing/editing page
+app.get('/profile', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getUserInfo(userId, (userInfo) => {
+            var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
+            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email, imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted });
+            req.session.errorMsg = undefined;
+        });
+    });
+});
+
+// Set image event
+app.post('/setImage', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.setUserImage(userId, req.body.imageUrl, () => {
+            res.redirect('/profile');
+        });
+    });
+});
+
+// Change password event
+app.post('/changePassword', auth, (req, res) => {
+    if (req.body.newPassword === req.body.confirmNewPassword) {
+        var result = owasp.test(req.body.newPassword);
+        if (result.errors.length === 0) {
+            database.getAuthUser(req.session.sessionId, (userId) => {
+                database.checkPassword(userId, req.body.currentPassword, (correct) => {
+                    if (correct) {
+                        database.setUserPassword(userId, req.body.newPassword, () => {
+                            res.redirect('/profile');
+                        });
+                    } else {
+                        req.session.errorMsg = 'Incorrect password';
+                        res.redirect('/profile');
+                    }
+                });
+            });
+        } else {
+            req.session.errorMsg = result.errors.join('\n');
+            res.redirect('/profile');
+        }
+    } else {
+        req.session.errorMsg = 'Passwords do not match';
+        res.redirect('/profile');
+    }
+});
+
+// About page
 app.get('/about', (req, res) => {
     res.render('about', { title: 'About NorseBooks' });
 });
 
+// Contact page
 app.get('/contact', (req, res) => {
     res.render('contact', { title: 'Contact Us' });
 });

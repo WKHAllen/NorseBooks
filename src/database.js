@@ -214,6 +214,48 @@ function userExists(email, callback) {
     });
 }
 
+// Check if a user's password is correct
+function checkPassword(userId, password, callback) {
+    var sql = `SELECT password FROM NBUser WHERE id = ? AND verified = 1;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        bcrypt.compare(password, rows[0].password, (err, res) => {
+            if (err) throw err;
+            if (callback) callback(res);
+        });
+    });
+}
+
+// Get the info of a user by session ID
+function getUserInfo(userId, callback) {
+    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0]);
+    });
+}
+
+// Set a user's image
+function setUserImage(userId, imageUrl, callback) {
+    var sql = `UPDATE NBUser SET imageUrl = ? WHERE id = ?;`;
+    var params = [imageUrl, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
+// Set a user's password
+function setUserPassword(userId, password, callback) {
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) throw err;
+        var sql = `UPDATE NBUser SET password = ? WHERE id = ?;`;
+        var params = [hash, userId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback();
+        });
+    });
+}
+
 // Create a new email verification ID
 function newVerifyId(email, callback) {
     email = email.toLowerCase();
@@ -399,6 +441,9 @@ function newBook(title, author, departmentId, courseNumber, condition, descripti
         var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
         mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
             if (callback) callback(rows[0].id, bookId);
+            sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE userId = ?;`;
+            params = [userId];
+            mainDB.execute(sql, params);
         });
     });
 }
@@ -490,6 +535,10 @@ module.exports = {
     'auth': auth,
     'getAuthUser': getAuthUser,
     'userExists': userExists,
+    'checkPassword': checkPassword,
+    'getUserInfo': getUserInfo,
+    'setUserImage': setUserImage,
+    'setUserPassword': setUserPassword,
     'newVerifyId': newVerifyId,
     'checkVerifyID': checkVerifyID,
     'setVerified': setVerified,

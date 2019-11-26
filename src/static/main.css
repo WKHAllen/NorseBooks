@@ -6,8 +6,6 @@
     --secondary-hover: #071f8f;
     --secondary-active: #000f7f;
     --secondary-light: #1f4fcf;
-    /* --primary-color: #1f1f1f; */
-    /* --secondary-color: white; */
 }
 
 html, body {
@@ -88,8 +86,18 @@ input:focus, select:focus, textarea:focus {
     max-width: 600px;
 }
 
-.fit-image {
+#book-image {
     width: 100%;
     max-height: 300px;
     object-fit: contain;
+}
+
+#user-image {
+    width: 100%;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+.space-above {
+    margin-top: 24px;
 }
