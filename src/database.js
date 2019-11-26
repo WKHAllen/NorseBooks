@@ -207,7 +207,7 @@ function getAuthUser(sessionId, callback) {
 // Check if a user exists
 function userExists(email, callback) {
     email = email.toLowerCase();
-    var sql = `SELECT id FROM NBUser WHERE email = ? AND verified = 1;`;
+    var sql = `SELECT id FROM NBUser WHERE email = ?;`;
     var params = [email];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length > 0);
