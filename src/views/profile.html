@@ -15,37 +15,33 @@
 </p>
 <div class="space-above">
     <form method="POST">
-        <h3>Set image</h3>
-        <div class="container">
-            <div class="form-row">
-                <div class="form-group col-12">
-                    <label for="imageUrl">Image URL</label>
-                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required>
-                </div>
+        <h3 class="centered">Set image</h3>
+        <div class="form-row">
+            <div class="form-group col-12">
+                <label for="imageUrl">Image URL</label>
+                <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required>
             </div>
-            <button type="submit" class="btn btn-primary" formaction="/setImage">Set image</button>
         </div>
+        <button type="submit" class="btn btn-primary" formaction="/setImage">Set image</button>
     </form>
 </div>
 <div class="space-above">
     <form method="POST">
-        <h3>Change password</h3>
-        <div class="container">
-            <div class="form-row">
-                <div class="form-group col-4">
-                    <label for="currentPassword">Current password</label>
-                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" maxlength="128" required>
-                </div>
-                <div class="form-group col-4">
-                    <label for="newPassword">New password</label>
-                    <input type="password" class="form-control" id="newPassword" name="newPassword" maxlength="128" required>
-                </div>
-                <div class="form-group col-4">
-                    <label for="confirmNewPassword">Confirm new password</label>
-                    <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
-                </div>
+        <h3 class="centered">Change password</h3>
+        <div class="form-row">
+            <div class="form-group col-4">
+                <label for="currentPassword">Current password</label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" maxlength="128" required>
             </div>
-            <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
-        </div> 
+            <div class="form-group col-4">
+                <label for="newPassword">New password</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" maxlength="128" required>
+            </div>
+            <div class="form-group col-4">
+                <label for="confirmNewPassword">Confirm new password</label>
+                <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
     </form>
 </div>
