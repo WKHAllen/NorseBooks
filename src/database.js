@@ -89,6 +89,8 @@ function init() {
             email TEXT NOT NULL,
             password TEXT NOT NULL,
             imageUrl TEXT,
+            contactPlatform TEXT,
+            contactInfo TEXT,
             joinTimestamp INT NOT NULL,
             lastLogin INT,
             itemsListed INT NOT NULL,
@@ -228,7 +230,7 @@ function checkPassword(userId, password, callback) {
 
 // Get the info of a user by session ID
 function getUserInfo(userId, callback) {
-    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
+    var sql = `SELECT firstname, lastname, email, imageUrl, contactPlatform, contactInfo, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -253,6 +255,24 @@ function setUserPassword(userId, password, callback) {
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
+    });
+}
+
+// Check if a user has set their contact information
+function hasContactInfo(userId, callback) {
+    var sql = `SELECT contactPlatform, contactInfo FROM NBUser WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].contactplatform !== null && rows[0].contactinfo !== null);
+    });
+}
+
+// Set a user's contact information
+function setContactInfo(userId, contactPlatform, contactInfo, callback) {
+    var sql = `UPDATE NBUser SET contactPlatform = ?, contactInfo = ? WHERE id = ?;`;
+    var params = [contactPlatform, contactInfo, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
     });
 }
 
@@ -539,6 +559,8 @@ module.exports = {
     'getUserInfo': getUserInfo,
     'setUserImage': setUserImage,
     'setUserPassword': setUserPassword,
+    'hasContactInfo': hasContactInfo,
+    'setContactInfo': setContactInfo,
     'newVerifyId': newVerifyId,
     'checkVerifyID': checkVerifyID,
     'setVerified': setVerified,

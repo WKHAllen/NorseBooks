@@ -237,10 +237,16 @@ app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getNumBooks(userId, (numBooks) => {
             if (numBooks < maxNumBooks) {
-                database.getDepartments((departments) => {
-                    database.getConditions((conditions) => {
-                        res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions });
-                    });
+                database.hasContactInfo(userId, (hasInfo) => {
+                    if (hasInfo) {
+                        database.getDepartments((departments) => {
+                            database.getConditions((conditions) => {
+                                res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions });
+                            });
+                        });
+                    } else {
+                        res.render('no-contact-info', { title: 'No contact info' });
+                    }
                 });
             } else {
                 res.render('max-books', { title: 'Too many books' });
@@ -307,7 +313,7 @@ app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
             var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email, imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted });
+            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email, imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
             req.session.errorMsg = undefined;
         });
     });
@@ -345,6 +351,27 @@ app.post('/changePassword', auth, (req, res) => {
         }
     } else {
         req.session.errorMsg = 'Passwords do not match';
+        res.redirect('/profile');
+    }
+});
+
+// Set preferred contact info
+app.post('/setContactInfo', auth, (req, res) => {
+    var contactPlatform = stripWhitespace(req.body.contactPlatform);
+    var contactInfo = stripWhitespace(req.body.contactInfo);
+    if (contactPlatform.length > 0 && contactPlatform.length <= 32) {
+        if (contactInfo.length > 0 && contactInfo.length <= 128) {
+            database.getAuthUser(req.session.sessionId, (userId) => {
+                database.setContactInfo(userId, contactPlatform, contactInfo, () => {
+                    res.redirect('/profile');
+                });
+            });
+        } else {
+            req.session.errorMsg = 'Contact info must be less than 128 characters';
+            res.redirect('/profile');
+        }
+    } else {
+        req.session.errorMsg = 'Contact platform must be less than 32 characters';
         res.redirect('/profile');
     }
 });

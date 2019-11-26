@@ -45,3 +45,27 @@
         <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
     </form>
 </div>
+<div class="space-above">
+    <form method="POST">
+        <h3 class="centered">Set contact info</h3>
+        <div class="form-row">
+            <div class="form-group col-6">
+                <label for="contactPlatform">Contact platform</label>
+                {{#if contactPlatform}}
+                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Facebook, Snapchat" value="{{contactPlatform}}" required>
+                {{else}}
+                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Facebook, Snapchat" required>
+                {{/if}}
+            </div>
+            <div class="form-group col-6">
+                <label for="contactInfo">Contact info</label>
+                {{#if contactInfo}}
+                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com" value="{{contactInfo}}" required>
+                {{else}}
+                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com" required>
+                {{/if}}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" formaction="/setContactInfo">Set contact info</button>
+    </form>
+</div>
