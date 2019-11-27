@@ -125,12 +125,6 @@ function init() {
             imageUrl TEXT
         );
     `;
-    var bookCourseTable = `
-        CREATE TABLE IF NOT EXISTS BookCourse (
-            bookId INT NOT NULL,
-            courseNumber INT NOT NULL
-        );
-    `;
     var passwordResetTable = `
         CREATE TABLE IF NOT EXISTS PasswordReset (
             id SERIAL PRIMARY KEY,
@@ -154,7 +148,7 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, bookCourseTable, passwordResetTable, verifyTable, sessionTable]);
+    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable]);
     // Populate static tables
     populateStaticTable('Department');
     populateStaticTable('Condition');
@@ -486,6 +480,18 @@ function getBookInfo(bookId, callback) {
     });
 }
 
+// Get information on the user who listed a book
+function getUserBookInfo(bookId, callback) {
+    var sql = `
+        SELECT firstname, lastname, contactPlatform, contactInfo FROM NBUser WHERE id = (
+            SELECT userId FROM Book WHERE bookId = ?
+        );`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0]);
+    });
+}
+
 // Get the number of departments
 function getNumBooks(userId, callback) {
     var sql = `SELECT id FROM Book WHERE userId = ?;`;
@@ -575,6 +581,7 @@ module.exports = {
     'newBook': newBook,
     'validBook': validBook,
     'getBookInfo': getBookInfo,
+    'getUserBookInfo': getUserBookInfo,
     'getNumBooks': getNumBooks,
     'getDepartments': getDepartments,
     'getDepartmentName': getDepartmentName,

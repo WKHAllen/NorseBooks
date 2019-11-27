@@ -283,21 +283,28 @@ app.post('/book', auth, (req, res) => {
     });
 });
 
+// View a book
 app.get('/book/:bookId', (req, res) => {
     database.validBook(req.params.bookId, (valid) => {
         if (valid) {
             database.getBookInfo(req.params.bookId, (bookInfo) => {
-                database.getDepartmentName(bookInfo.departmentid, (department) => {
-                    database.getConditionName(bookInfo.conditionid, (condition) => {
-                        res.render('book', {
-                            title: bookInfo.title,
-                            author: bookInfo.author,
-                            department: department,
-                            courseNumber: bookInfo.coursenumber,
-                            price: bookInfo.price,
-                            condition: condition,
-                            imageUrl: bookInfo.imageurl, // TODO: add default imageUrl here
-                            description: bookInfo.description
+                database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
+                    database.getDepartmentName(bookInfo.departmentid, (department) => {
+                        database.getConditionName(bookInfo.conditionid, (condition) => {
+                            res.render('book', {
+                                title: bookInfo.title,
+                                author: bookInfo.author,
+                                department: department,
+                                courseNumber: bookInfo.coursenumber,
+                                price: bookInfo.price,
+                                condition: condition,
+                                imageUrl: bookInfo.imageurl,
+                                description: bookInfo.description,
+                                firstname: userBookInfo.firstname,
+                                lastname: userBookInfo.lastname,
+                                contactPlatform: userBookInfo.contactplatform,
+                                contactInfo: userBookInfo.contactinfo
+                            });
                         });
                     });
                 });

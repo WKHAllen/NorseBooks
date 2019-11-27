@@ -9,4 +9,7 @@
     </div>
 </p>
 <p class="justified">{{description}}</p>
-<button type="button" class="btn btn-primary">Request to purchase</button>
+<button type="button" class="btn btn-primary" onclick="document.getElementById('contact-info').classList.remove('hidden');">Request to purchase</button>
+<div id="contact-info" class="small-space-above hidden">
+    <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+</div>
