@@ -476,7 +476,7 @@ function newBook(title, author, departmentId, courseNumber, condition, descripti
         var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
         mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
             if (callback) callback(rows[0].id, bookId);
-            sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE userId = ?;`;
+            sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
             params = [userId];
             mainDB.execute(sql, params);
         });
