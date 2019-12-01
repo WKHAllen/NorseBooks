@@ -231,6 +231,15 @@ function getUserInfo(userId, callback) {
     });
 }
 
+// Get a user's image
+function getUserImage(userId, callback) {
+    var sql = `SELECT imageUrl FROM NBUser WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].imageurl);
+    });
+}
+
 // Set a user's image
 function setUserImage(userId, imageUrl, callback) {
     var sql = `UPDATE NBUser SET imageUrl = ? WHERE id = ?;`;
@@ -267,6 +276,18 @@ function setContactInfo(userId, contactPlatform, contactInfo, callback) {
     var params = [contactPlatform, contactInfo, userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
+    });
+}
+
+// Get the info necessary for rendering the navbar
+function getNavInfo(sessionId, callback) {
+    var sql = `
+        SELECT id, imageUrl FROM NBUser WHERE id = (
+            SELECT userId FROM Session WHERE id = ?
+        );`;
+    var params = [sessionId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0]);
     });
 }
 
@@ -563,10 +584,12 @@ module.exports = {
     'userExists': userExists,
     'checkPassword': checkPassword,
     'getUserInfo': getUserInfo,
+    'getUserImage': getUserImage,
     'setUserImage': setUserImage,
     'setUserPassword': setUserPassword,
     'hasContactInfo': hasContactInfo,
     'setContactInfo': setContactInfo,
+    'getNavInfo': getNavInfo,
     'newVerifyId': newVerifyId,
     'checkVerifyID': checkVerifyID,
     'setVerified': setVerified,

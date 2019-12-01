@@ -26,7 +26,15 @@
                         <a class="nav-item nav-link" href="/contact">Contact</a>
                     </div>
                 </div>
-                <!-- TODO: insert user image as dropdown with profile, logout options -->
+                <div class="form-inline">
+                    {{#if loggedIn}}
+                        <a class="nav-item nav-link" href="/logout">Logout</a>
+                        <a href="/profile"><img src="{{userImageUrl}}" alt="" width="30" height="30" id="img-circle"></a>
+                    {{else}}
+                        <a class="nav-item nav-link" href="/login">Login</a>
+                        <a class="nav-item nav-link" href="/register">Register</a>
+                    {{/if}}
+                </div>
             </nav>
         </header>
         <main>

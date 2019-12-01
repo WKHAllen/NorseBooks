@@ -162,14 +162,34 @@ var auth = (req, res, next) => {
     }
 }
 
+// Render a page
+function renderPage(req, res, page, options) {
+    options = options || {};
+    if (!req.session || !req.session.sessionId) {
+        options.loggedIn = false;
+        res.render(page, options);
+    } else {
+        database.getNavInfo(req.session.sessionId, (result) => {
+            if (result.length === 0) {
+                options.loggedIn = false;
+                res.render(page, options);
+            } else {
+                options.loggedIn = true;
+                options.userImageUrl = result.imageurl;
+                res.render(page, options);
+            }
+        });
+    }
+}
+
 // Main page
 app.get('/', (req, res) => {
-    res.render('index');
+    renderPage(req, res, 'index');
 });
 
 // Login page
 app.get('/login', (req, res) => {
-    res.render('login', { title: 'Login' });
+    renderPage(req, res, 'login', { title: 'Login' });
 });
 
 // Login event
@@ -179,14 +199,14 @@ app.post('/login', (req, res) => {
             req.session.sessionId = sessionId;
             res.redirect('/');
         } else {
-            res.render('login', { title: 'Login', error: 'Invalid login' });
+            renderPage(req, res, 'login', { title: 'Login', error: 'Invalid login' });
         }
     });
 });
 
 // Registration page
 app.get('/register', (req, res) => {
-    res.render('register', { title: 'Register', passwordExample: newRandomPassword() });
+    renderPage(req, res, 'register', { title: 'Register', passwordExample: newRandomPassword() });
 });
 
 // Registration event
@@ -205,19 +225,19 @@ app.post('/register', (req, res) => {
                             res.redirect('/login');
                             sendEmailVerification(email);
                         } else {
-                            res.render('register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
+                            renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
                         }
                     } else {
-                        res.render('register', { title: 'Register', error: result.errors.join('\n'), passwordExample: newRandomPassword() });
+                        renderPage(req, res, 'register', { title: 'Register', error: result.errors.join('\n'), passwordExample: newRandomPassword() });
                     }
                 } else {
-                    res.render('register', { title: 'Register', error: 'Passwords do not match', passwordExample: newRandomPassword() });
+                    renderPage(req, res, 'register', { title: 'Register', error: 'Passwords do not match', passwordExample: newRandomPassword() });
                 }
             } else {
-                res.render('register', { title: 'Register', error: 'Email address is too long', passwordExample: newRandomPassword() });
+                renderPage(req, res, 'register', { title: 'Register', error: 'Email address is too long', passwordExample: newRandomPassword() });
             }
         } else {
-            res.render('register', { title: 'Register', error: 'That email address has already been registered', passwordExample: newRandomPassword() });
+            renderPage(req, res, 'register', { title: 'Register', error: 'That email address has already been registered', passwordExample: newRandomPassword() });
         }
     });
 });
@@ -233,7 +253,7 @@ app.get('/logout', (req, res) => {
 // Verify email address page
 app.get('/verify/:verifyId', (req, res) => {
     database.checkVerifyID(req.params.verifyId, (valid) => {
-        res.render('verify', { title: 'Verify', valid: valid });
+        renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
             database.setVerified(req.params.verifyId);
             database.deleteVerifyID(req.params.verifyId);
@@ -250,15 +270,15 @@ app.get('/book', auth, (req, res) => {
                     if (hasInfo) {
                         database.getDepartments((departments) => {
                             database.getConditions((conditions) => {
-                                res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions });
+                                renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions });
                             });
                         });
                     } else {
-                        res.render('no-contact-info', { title: 'No contact info' });
+                        renderPage(req, res, 'no-contact-info', { title: 'No contact info' });
                     }
                 });
             } else {
-                res.render('max-books', { title: 'Too many books' });
+                renderPage(req, res, 'max-books', { title: 'Too many books' });
             }
         });
     });
@@ -276,7 +296,7 @@ app.post('/book', auth, (req, res) => {
         } else {
             database.getDepartments((departments) => {
                 database.getConditions((conditions) => {
-                    res.render('new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                    renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
                         title: req.body.title,
                         author: req.body.author,
                         department: req.body.department,
@@ -300,7 +320,7 @@ app.get('/book/:bookId', (req, res) => {
                 database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
                     database.getDepartmentName(bookInfo.departmentid, (department) => {
                         database.getConditionName(bookInfo.conditionid, (condition) => {
-                            res.render('book', {
+                            renderPage(req, res, 'book', {
                                 title: bookInfo.title,
                                 author: bookInfo.author,
                                 department: department,
@@ -319,7 +339,7 @@ app.get('/book/:bookId', (req, res) => {
                 });
             });
         } else {
-            res.render('book-not-found', { title: 'Book not found' });
+            renderPage(req, res, 'book-not-found', { title: 'Book not found' });
         }
     });
 });
@@ -329,7 +349,7 @@ app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
             var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email + '@luther.edu', imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
+            renderPage(req, res, 'profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email + '@luther.edu', imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
             req.session.errorMsg = undefined;
         });
     });
@@ -394,12 +414,12 @@ app.post('/setContactInfo', auth, (req, res) => {
 
 // About page
 app.get('/about', (req, res) => {
-    res.render('about', { title: 'About NorseBooks' });
+    renderPage(req, res, 'about', { title: 'About NorseBooks' });
 });
 
 // Contact page
 app.get('/contact', (req, res) => {
-    res.render('contact', { title: 'Contact Us' });
+    renderPage(req, res, 'contact', { title: 'Contact Us' });
 });
 
 // Error 404 (not found)

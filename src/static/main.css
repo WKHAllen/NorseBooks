@@ -98,6 +98,12 @@ input:focus, select:focus, textarea:focus {
     object-fit: contain;
 }
 
+#img-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
 .space-above {
     margin-top: 24px;
 }
