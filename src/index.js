@@ -224,7 +224,7 @@ app.post('/register', (req, res) => {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
                             res.redirect('/login');
-                            sendEmailVerification(email, `${req.protocol}://${req.get('host')}/`);
+                            sendEmailVerification(email, `${req.protocol}://${req.get('host')}`);
                         } else {
                             renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
                         }
