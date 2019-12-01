@@ -168,7 +168,7 @@ function renderPage(req, res, page, options) {
         res.render(page, options);
     } else {
         database.getNavInfo(req.session.sessionId, (result) => {
-            if (result) {
+            if (!result) {
                 options.loggedIn = false;
                 res.render(page, options);
             } else {
