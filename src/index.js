@@ -4,6 +4,7 @@ const hbs = require('express-handlebars');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const owasp = require('owasp-password-strength-test');
+const randomPassword = require('secure-random-password');
 const database = require('./database');
 const emailer = require('./emailer');
 
@@ -63,11 +64,19 @@ function stripWhitespace(str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
 
+// Generate a random password
+function newRandomPassword() {
+    var examplePassword = randomPassword.randomPassword({ length: 10, characters: [
+        randomPassword.lower, randomPassword.upper, randomPassword.digits, randomPassword.symbols
+    ]});
+    return examplePassword;
+}
+
 // Sends a registration verification email
 function sendEmailVerification(email) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
-        emailer.sendEmail(email, 'Norse Books - Verify Email',
+        emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email',
             `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email.\n\nSincerely,\nThe Norse Books Dev Team`
         );
     });
@@ -141,7 +150,7 @@ function validBook(form, callback) {
 
 // Authorize/authenticate
 var auth = (req, res, next) => {
-    if (!req.session) {
+    if (!req.session || !req.session.sessionId) {
         return res.status(401).render('401', { title: 'Permission denied' });
     } else {
         database.auth(req.session.sessionId, (valid) => {
@@ -165,7 +174,7 @@ app.get('/login', (req, res) => {
 
 // Login event
 app.post('/login', (req, res) => {
-    database.validLogin(req.body.email, req.body.password, (valid, sessionId) => {
+    database.validLogin(req.body.email.replace('@luther.edu', ''), req.body.password, (valid, sessionId) => {
         if (valid) {
             req.session.sessionId = sessionId;
             res.redirect('/');
@@ -177,12 +186,12 @@ app.post('/login', (req, res) => {
 
 // Registration page
 app.get('/register', (req, res) => {
-    res.render('register', { title: 'Register' });
+    res.render('register', { title: 'Register', passwordExample: newRandomPassword() });
 });
 
 // Registration event
 app.post('/register', (req, res) => {
-    var email = stripWhitespace(req.body.email);
+    var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
     var fname = stripWhitespace(req.body.firstname);
     var lname = stripWhitespace(req.body.lastname);
     database.userExists(email, (exists) => {
@@ -196,19 +205,19 @@ app.post('/register', (req, res) => {
                             res.redirect('/login');
                             sendEmailVerification(email);
                         } else {
-                            res.render('register', { title: 'Register', error: 'Please enter a valid name' });
+                            res.render('register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
                         }
                     } else {
-                        res.render('register', { title: 'Register', error: result.errors.join('\n') });
+                        res.render('register', { title: 'Register', error: result.errors.join('\n'), passwordExample: newRandomPassword() });
                     }
                 } else {
-                    res.render('register', { title: 'Register', error: 'Passwords do not match' });
+                    res.render('register', { title: 'Register', error: 'Passwords do not match', passwordExample: newRandomPassword() });
                 }
             } else {
-                res.render('register', { title: 'Register', error: 'Email address is too long' });
+                res.render('register', { title: 'Register', error: 'Email address is too long', passwordExample: newRandomPassword() });
             }
         } else {
-            res.render('register', { title: 'Register', error: 'That email address has already been registered' });
+            res.render('register', { title: 'Register', error: 'That email address has already been registered', passwordExample: newRandomPassword() });
         }
     });
 });
@@ -320,7 +329,7 @@ app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
             var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email, imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
+            res.render('profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email + '@luther.edu', imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
             req.session.errorMsg = undefined;
         });
     });
