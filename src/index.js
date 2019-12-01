@@ -409,7 +409,7 @@ app.use((req, res) => {
 
 // Error 500 (internal server error)
 app.use((req, res) => {
-    return res.status(500).render('500', { title: 'Internal Server Error' });
+    return res.status(500).render('500', { title: 'Internal server error' });
 });
 
 // Listen for connections
