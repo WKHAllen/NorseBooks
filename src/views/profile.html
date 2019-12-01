@@ -1,7 +1,5 @@
 <h1 class="centered">Your Profile</h1>
-<p>
-    <img id="user-image" src="{{imageUrl}}">
-</p>
+<img id="user-image" src="{{imageUrl}}" alt="">
 {{#if error}}
     <div class="alert alert-danger" role="alert">{{error}}</div>
 {{/if}}
@@ -52,17 +50,17 @@
             <div class="form-group col-6">
                 <label for="contactPlatform">Contact platform</label>
                 {{#if contactPlatform}}
-                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Facebook, Snapchat" value="{{contactPlatform}}" required>
+                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Phone, Facebook, Snapchat" value="{{contactPlatform}}" required>
                 {{else}}
-                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Facebook, Snapchat" required>
+                    <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Phone, Facebook, Snapchat" required>
                 {{/if}}
             </div>
             <div class="form-group col-6">
                 <label for="contactInfo">Contact info</label>
                 {{#if contactInfo}}
-                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com" value="{{contactInfo}}" required>
+                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com, (505) 503-4455" value="{{contactInfo}}" required>
                 {{else}}
-                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com" required>
+                    <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. mynorsebooks@gmail.com, (505) 503-4455" required>
                 {{/if}}
             </div>
         </div>
