@@ -19,8 +19,6 @@ try {
 var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
-const hostname = 'https://www.norsebooks.com';
-
 const maxNumBooks = 8;
 
 // The app object
@@ -73,7 +71,7 @@ function newRandomPassword() {
 }
 
 // Sends a registration verification email
-function sendEmailVerification(email) {
+function sendEmailVerification(email, hostname) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
         emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email',
@@ -151,13 +149,13 @@ function validBook(form, callback) {
 // Authorize/authenticate
 var auth = (req, res, next) => {
     if (!req.session || !req.session.sessionId) {
-        return res.status(401).render('401', { title: 'Permission denied' });
+        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
         database.auth(req.session.sessionId, (valid) => {
             if (valid)
                 next();
             else
-                return res.status(401).render('401', { title: 'Permission denied' });
+                return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
         });
     }
 }
@@ -197,7 +195,10 @@ app.post('/login', (req, res) => {
     database.validLogin(req.body.email.replace('@luther.edu', ''), req.body.password, (valid, sessionId) => {
         if (valid) {
             req.session.sessionId = sessionId;
-            res.redirect('/');
+            if (req.query.after)
+                res.redirect(req.query.after);
+            else
+                res.redirect('/');
         } else {
             renderPage(req, res, 'login', { title: 'Login', error: 'Invalid login' });
         }
@@ -223,7 +224,7 @@ app.post('/register', (req, res) => {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
                             res.redirect('/login');
-                            sendEmailVerification(email);
+                            sendEmailVerification(email, `${req.protocol}://${req.get('host')}/`);
                         } else {
                             renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
                         }
