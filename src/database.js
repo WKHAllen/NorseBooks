@@ -526,26 +526,35 @@ function getNumBooks(userId, callback) {
 function getDepartments(callback) {
     var sql = `SELECT id, name FROM Department ORDER BY name;`;
     mainDB.execute(sql, [], (rows) => {
+        rows.push({ id: -1, name: 'Other' });
         if (callback) callback(rows);
     });
 }
 
 // Get the name of a department by ID
 function getDepartmentName(departmentId, callback) {
-    var sql = `SELECT name FROM Department WHERE id = ?;`;
-    var params = [departmentId];
-    mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(rows[0].name);
-    });
+    if (departmentId === -1) {
+        if (callback) callback('Other');
+    } else {
+        var sql = `SELECT name FROM Department WHERE id = ?;`;
+        var params = [departmentId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows[0].name);
+        });
+    }
 }
 
 // Check if a department is valid
 function validDepartment(departmentId, callback) {
-    var sql = `SELECT id FROM Department WHERE id = ?;`;
-    var params = [departmentId];
-    mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(rows.length === 1);
-    });
+    if (departmentId === -1) {
+        if (callback) callback(true);
+    } else {
+        var sql = `SELECT id FROM Department WHERE id = ?;`;
+        var params = [departmentId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows.length === 1);
+        });
+    }
 }
 
 // Get all book conditions
