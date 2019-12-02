@@ -158,7 +158,7 @@ function init() {
     mainDB.execute(sql, [], (rows) => {
         for (var row of rows) {
             timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
-            setTimeout(deletePasswordResetID, timeRemaining * 1000, row.resetid);
+            setTimeout(deletePasswordResetId, timeRemaining * 1000, row.resetid);
         }
     });
     // Remove expired verification entries
@@ -317,7 +317,7 @@ function newVerifyId(email, callback) {
 }
 
 // Check a verify ID
-function checkVerifyID(verifyId, callback) {
+function checkVerifyId(verifyId, callback) {
     var sql = `SELECT verifyId FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
@@ -338,7 +338,7 @@ function setVerified(verifyId, callback) {
 }
 
 // Delete a verify ID
-function deleteVerifyID(verifyId, callback) {
+function deleteVerifyId(verifyId, callback) {
     var sql = `DELETE FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
@@ -441,13 +441,70 @@ function register(email, password, firstname, lastname, callback) {
     });
 }
 
+// Generate a new password reset ID
+function newPasswordResetId(email, callback) {
+    email = email.toLowerCase();
+    crypto.randomBytes(hexLength / 2, (err, buffer) => {
+        if (err) throw err;
+        var resetId = buffer.toString('hex');
+        var sql = `SELECT resetId FROM PasswordReset WHERE resetId = ?;`;
+        var params = [resetId];
+        mainDB.execute(sql, params, (rows) => {
+            if (rows.length > 0) {
+                newPasswordResetID(email, callback);
+            } else {
+                sql = `INSERT INTO PasswordReset (email, resetId, createTimestamp) VALUES (?, ?, ?);`;
+                params = [email, resetId, getTime()];
+                var sqlAfter = `SELECT resetId FROM passwordReset ORDER BY id DESC LIMIT 1;`;
+                mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
+                    setTimeout(deletePasswordResetId, passwordResetTimeout, rows[0].resetid);
+                    if (callback) callback(rows[0].resetid);
+                });
+            }
+        });
+    });
+}
+
+// Check if a password reset ID is valid
+function checkPasswordResetId(passwordResetId, callback) {
+    var sql = `SELECT resetId FROM PasswordReset WHERE resetId = ?;`;
+    var params = [passwordResetId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
 // Delete a password reset ID
-function deletePasswordResetId(passwordResetID, callback) {
+function deletePasswordResetId(passwordResetId, callback) {
     var sql = `DELETE FROM PasswordReset WHERE resetId = ?;`;
-    var params = [passwordResetID];
+    var params = [passwordResetId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
+}
+
+// Reset a password
+function resetPassword(passwordResetId, newPassword) {
+    var sql = `
+        SELECT id FROM NBUser WHERE email = (
+            SELECT email FROM PasswordReset WHERE resetId = ?
+        );`;
+    var params = [passwordResetId];
+    mainDB.execute(sql, params, (rows) => {
+        if (rows.length === 1) {
+            setUserPassword(rows[0].id, newPassword);
+            deletePasswordResetId(passwordResetId);
+        }
+    });
+}
+
+// Check if a password reset request has already been created
+function passwordResetExists(email, callback) {
+    var sql = `SELECT email FROM PasswordReset WHERE email = ?;`;
+    var params = [email];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    })
 }
 
 // Create a new book id
@@ -600,15 +657,19 @@ module.exports = {
     'setContactInfo': setContactInfo,
     'getNavInfo': getNavInfo,
     'newVerifyId': newVerifyId,
-    'checkVerifyID': checkVerifyID,
+    'checkVerifyId': checkVerifyId,
     'setVerified': setVerified,
-    'deleteVerifyID': deleteVerifyID,
+    'deleteVerifyId': deleteVerifyId,
     'pruneUnverified': pruneUnverified,
     'newSessionId': newSessionId,
     'deleteSession': deleteSession,
     'validLogin': validLogin,
     'register': register,
+    'newPasswordResetId': newPasswordResetId,
+    'checkPasswordResetId': checkPasswordResetId,
     'deletePasswordResetId': deletePasswordResetId,
+    'resetPassword': resetPassword,
+    'passwordResetExists': passwordResetExists,
     'newBookId': newBookId,
     'newBook': newBook,
     'validBook': validBook,

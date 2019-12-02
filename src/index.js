@@ -62,6 +62,11 @@ function stripWhitespace(str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
 
+// Get the hostname of a request
+function getHostname(req) {
+    return `${req.protocol}://${req.get('host')}`;
+}
+
 // Generate a random password
 function newRandomPassword() {
     var examplePassword = randomPassword.randomPassword({ length: 10, characters: [
@@ -70,12 +75,22 @@ function newRandomPassword() {
     return examplePassword;
 }
 
-// Sends a registration verification email
+// Send a registration verification email
 function sendEmailVerification(email, hostname) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
         emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email',
-            `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email.\n\nSincerely,\nThe Norse Books Dev Team`
+            `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email, and do not click on the above link.\n\nSincerely,\nThe Norse Books Dev Team`
+        );
+    });
+}
+
+// Send a password reset email
+function sendPasswordResetEmail(email, hostname) {
+    email = email.toLowerCase();
+    database.newPasswordResetId(email, (passwordResetId) => {
+        emailer.sendEmail(email + '@luther.edu', 'Norse Books - Password Reset',
+            `Hello,\n\nA password reset request was sent. To reset your password, please click on the link below.\n\n${hostname}/password-reset/${passwordResetId}\n\nIf you did not request to reset your password, please disregard this email. Do not share the above link with anyone.\n\nSincerely,\nThe Norse Books Dev Team`
         );
     });
 }
@@ -224,7 +239,7 @@ app.post('/register', (req, res) => {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
                             res.redirect('/login');
-                            sendEmailVerification(email, `${req.protocol}://${req.get('host')}`);
+                            sendEmailVerification(email, getHostname(req));
                         } else {
                             renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
                         }
@@ -260,6 +275,44 @@ app.get('/verify/:verifyId', (req, res) => {
             database.deleteVerifyID(req.params.verifyId);
         }
     });
+});
+
+// Request password reset page
+app.get('/password-reset', (req, res) => {
+    renderPage(req, res, 'password-reset-request', { title: 'Password reset request' });
+});
+
+// Request password reset event
+app.post('/password-reset', (req, res) => {
+    var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
+    renderPage(req, res, 'password-reset-request-success', { title: 'Password reset request' });
+    database.passwordResetExists(email, (exists) => {
+        if (!exists) {
+            sendPasswordResetEmail(email, getHostname(req));
+        }
+    });
+});
+
+// Password reset page
+app.get('/password-reset/:passwordResetId', (req, res) => {
+    database.checkPasswordResetId(req.params.passwordResetId, (valid) => {
+        renderPage(req, res, 'password-reset', { title: 'Reset password', valid: valid, passwordExample: newRandomPassword() });
+    });
+});
+
+// Password reset event
+app.post('/password-reset/:passwordResetId', (req, res) => {
+    if (req.body.newPassword === req.body.confirmNewPassword) {
+        var result = owasp.test(req.body.newPassword);
+        if (result.errors.length === 0) {
+            database.resetPassword(req.params.passwordResetId, req.body.newPassword);
+            renderPage(req, res, 'password-reset-success', { title: 'Password reset success' });
+        } else {
+            renderPage(req, res, 'password-reset', { title: 'Reset password', valid: true, passwordExample: newRandomPassword(), error: result.errors.join('\n') });
+        }
+    } else {
+        renderPage(req, res, 'password-reset', { title: 'Reset password', valid: true, passwordExample: newRandomPassword(), error: 'Passwords do not match' });
+    }
 });
 
 // List new book page
