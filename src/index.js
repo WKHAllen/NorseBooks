@@ -272,7 +272,7 @@ app.get('/verify/:verifyId', (req, res) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
             database.setVerified(req.params.verifyId);
-            database.deleteVerifyID(req.params.verifyId);
+            database.deleteVerifyId(req.params.verifyId);
         }
     });
 });
