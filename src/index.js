@@ -268,7 +268,7 @@ app.get('/logout', (req, res) => {
 
 // Verify email address page
 app.get('/verify/:verifyId', (req, res) => {
-    database.checkVerifyID(req.params.verifyId, (valid) => {
+    database.checkVerifyId(req.params.verifyId, (valid) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
             database.setVerified(req.params.verifyId);
