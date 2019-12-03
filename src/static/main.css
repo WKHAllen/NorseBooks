@@ -116,3 +116,15 @@ input:focus, select:focus, textarea:focus {
 .hidden {
     display: none;
 }
+
+.normal-link {
+    color: var(--secondary-light);
+}
+
+.normal-link:hover {
+    color: var(--secondary-hover);
+}
+
+.normal-link:active {
+    color: var(--secondary-active);
+}

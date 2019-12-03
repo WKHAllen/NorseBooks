@@ -1,3 +1,18 @@
-<h1 class="centered">Norse Books</h1>
-<p class="centered">This website is currently in development. The plan is to have it up and running by early December.</p>
-<p class="centered">If you would like to contact us, please do so at <a href="mailto:mynorsebooks@gmail.com">mynorsebooks@gmail.com</a>.</p>
+<h1 class="centered">NorseBooks</h1>
+<div class="card-columns">
+    {{#each books}}
+        <a href="/book/{{this.bookid}}" class="normal-link">
+            <div class="card">
+                <img src="{{this.imageurl}}" alt="" class="card-img-top">
+                <div class="card-body">
+                    <h5 class="card-title">{{this.title}}</h5>
+                    <p class="card-text">
+                        {{this.author}}<br>
+                        {{this.department}}{{#if this.coursenumber}} {{this.coursenumber}}{{/if}}<br>
+                        {{this.price}}<br>
+                    </p>
+                </div>
+            </div>
+        </a>
+    {{/each}}
+</div>

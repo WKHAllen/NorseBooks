@@ -20,6 +20,7 @@ const base64Length = 4;
 const passwordResetTimeout = 60 * 60 * 1000;
 const verifyTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
+const booksPerPage = 24;
 
 // The database object
 var mainDB = new db.DB(dbURL, !debug);
@@ -591,6 +592,27 @@ function deleteBook(userId, bookId, callback) {
     });
 }
 
+// Get info on books searched
+function searchBooks(options, page, callback) {
+    var params = [];
+    var searchQuery = '';
+    if (Object.keys(options).length > 0) {
+        var searchOptions = [];
+        for (var option in options) {
+            searchOptions.push(` ${option} = ?`);
+            params.push(options[option]);
+        }
+        searchQuery = ' WHERE' + searchOptions.join(' AND');
+    }
+    var sql = `
+        SELECT bookId, title, author, Department.name AS department, courseNumber, price, imageUrl FROM Book
+        JOIN Department ON Book.departmentId = Department.id
+        ${searchQuery} ORDER BY listedTimestamp DESC;`;
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
 // Get all departments
 function getDepartments(callback) {
     var sql = `SELECT id, name FROM Department ORDER BY name;`;
@@ -689,6 +711,7 @@ module.exports = {
     'getUserBookInfo': getUserBookInfo,
     'getNumBooks': getNumBooks,
     'deleteBook': deleteBook,
+    'searchBooks': searchBooks,
     'getDepartments': getDepartments,
     'getDepartmentName': getDepartmentName,
     'validDepartment': validDepartment,

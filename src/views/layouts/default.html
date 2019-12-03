@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta id="vp" name="viewport" content="width=device-width, initial-scale=1">
-        <script>
-            window.onload = function() {
-                if (screen.width < 800) {
-                    var mvp = document.getElementById('vp');
-                    mvp.setAttribute('content', 'user-scalable=no, width=800');
-                }
-            }
-        </script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {{#if title}}
             <title>{{title}} - Norse Books</title>
         {{else}}

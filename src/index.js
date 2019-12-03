@@ -197,7 +197,9 @@ function renderPage(req, res, page, options) {
 
 // Main page
 app.get('/', (req, res) => {
-    renderPage(req, res, 'index');
+    database.searchBooks({}, 1, (rows) => {
+        renderPage(req, res, 'index', { books: rows });
+    });
 });
 
 // Login page
