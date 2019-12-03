@@ -374,19 +374,23 @@ app.get('/book/:bookId', (req, res) => {
                 database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
                     database.getDepartmentName(bookInfo.departmentid, (department) => {
                         database.getConditionName(bookInfo.conditionid, (condition) => {
-                            renderPage(req, res, 'book', {
-                                title: bookInfo.title,
-                                author: bookInfo.author,
-                                department: department,
-                                courseNumber: bookInfo.coursenumber,
-                                price: bookInfo.price,
-                                condition: condition,
-                                imageUrl: bookInfo.imageurl,
-                                description: bookInfo.description,
-                                firstname: userBookInfo.firstname,
-                                lastname: userBookInfo.lastname,
-                                contactPlatform: userBookInfo.contactplatform,
-                                contactInfo: userBookInfo.contactinfo
+                            database.getAuthUser(req.session.sessionId, (userId) => {
+                                renderPage(req, res, 'book', {
+                                    title: bookInfo.title,
+                                    author: bookInfo.author,
+                                    department: department,
+                                    courseNumber: bookInfo.coursenumber,
+                                    price: bookInfo.price,
+                                    condition: condition,
+                                    imageUrl: bookInfo.imageurl,
+                                    description: bookInfo.description,
+                                    firstname: userBookInfo.firstname,
+                                    lastname: userBookInfo.lastname,
+                                    contactPlatform: userBookInfo.contactplatform,
+                                    contactInfo: userBookInfo.contactinfo,
+                                    bookOwner: userId === userBookInfo.id,
+                                    bookId: req.params.bookId
+                                });
                             });
                         });
                     });
@@ -395,6 +399,15 @@ app.get('/book/:bookId', (req, res) => {
         } else {
             renderPage(req, res, 'book-not-found', { title: 'Book not found' });
         }
+    });
+});
+
+// Delete book event
+app.post('/deleteBook/:bookId', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.deleteBook(userId, req.params.bookId, () => {
+            res.redirect('/');
+        });
     });
 });
 

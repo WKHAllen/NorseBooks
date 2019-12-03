@@ -10,8 +10,15 @@
     </div>
 </p>
 <p class="justified">{{description}}</p>
-<button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
-<button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-<div id="contact-info" class="small-space-above hidden">
-    <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
-</div>
+{{#if bookOwner}}
+    <form method="POST">
+        <button type="submit" class="btn btn-primary" formaction="/deleteBook/{{bookId}}">Delete book</button>
+        <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
+    </form>
+{{else}}
+    <button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
+    <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
+    <div id="contact-info" class="small-space-above hidden">
+        <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+    </div>
+{{/if}}

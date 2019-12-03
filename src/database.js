@@ -196,7 +196,10 @@ function getAuthUser(sessionId, callback) {
         );`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(rows[0].id);
+        if (callback) {
+            if (rows.length > 0) callback(rows[0].id);
+            else callback(null);
+        }
     });
 }
 
@@ -561,7 +564,7 @@ function getBookInfo(bookId, callback) {
 // Get information on the user who listed a book
 function getUserBookInfo(bookId, callback) {
     var sql = `
-        SELECT firstname, lastname, contactPlatform, contactInfo FROM NBUser WHERE id = (
+        SELECT id, firstname, lastname, contactPlatform, contactInfo FROM NBUser WHERE id = (
             SELECT userId FROM Book WHERE bookId = ?
         );`;
     var params = [bookId];
@@ -576,6 +579,15 @@ function getNumBooks(userId, callback) {
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length);
+    });
+}
+
+// Delete a book
+function deleteBook(userId, bookId, callback) {
+    var sql = `DELETE FROM Book WHERE bookId = ? AND userId = ?;`;
+    var params = [bookId, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
     });
 }
 
@@ -676,6 +688,7 @@ module.exports = {
     'getBookInfo': getBookInfo,
     'getUserBookInfo': getUserBookInfo,
     'getNumBooks': getNumBooks,
+    'deleteBook': deleteBook,
     'getDepartments': getDepartments,
     'getDepartmentName': getDepartmentName,
     'validDepartment': validDepartment,
