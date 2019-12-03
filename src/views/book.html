@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/main.js"></script>
 <h1 class="centered">{{title}}</h1>
 <img id="book-image" src="{{imageUrl}}" alt="">
 <p>
@@ -9,7 +10,8 @@
     </div>
 </p>
 <p class="justified">{{description}}</p>
-<button type="button" class="btn btn-primary" onclick="document.getElementById('contact-info').classList.remove('hidden');">Request to purchase</button>
+<button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
+<button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
 <div id="contact-info" class="small-space-above hidden">
     <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
 </div>
