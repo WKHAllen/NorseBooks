@@ -14,6 +14,7 @@ try {
 }
 
 const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
+const maxDBClients = 20;
 const saltRounds = 12;
 const hexLength = 64;
 const base64Length = 4;
@@ -23,7 +24,7 @@ const staticTablePath = 'tables';
 const booksPerPage = 24;
 
 // The database object
-var mainDB = new db.DB(dbURL, !debug);
+var mainDB = new db.DB(dbURL, !debug, maxDBClients);
 
 // Get the current time to the second
 function getTime() {
@@ -459,10 +460,9 @@ function newPasswordResetId(email, callback) {
             } else {
                 sql = `INSERT INTO PasswordReset (email, resetId, createTimestamp) VALUES (?, ?, ?);`;
                 params = [email, resetId, getTime()];
-                var sqlAfter = `SELECT resetId FROM passwordReset ORDER BY id DESC LIMIT 1;`;
-                mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
-                    setTimeout(deletePasswordResetId, passwordResetTimeout, rows[0].resetid);
-                    if (callback) callback(rows[0].resetid);
+                mainDB.execute(sql, params, (rows) => {
+                    setTimeout(deletePasswordResetId, passwordResetTimeout, resetId);
+                    if (callback) callback(resetId);
                 });
             }
         });
@@ -534,9 +534,8 @@ function newBook(title, author, departmentId, courseNumber, condition, descripti
                 bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
         var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
-        var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
-        mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
-            if (callback) callback(rows[0].id, bookId);
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(bookId);
             sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
             params = [userId];
             mainDB.execute(sql, params);
