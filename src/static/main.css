@@ -113,6 +113,10 @@ input:focus, select:focus, textarea:focus {
     margin-top: 16px;
 }
 
+.space-below {
+    margin-bottom: 24px;
+}
+
 .hidden {
     display: none;
 }

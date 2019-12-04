@@ -605,7 +605,7 @@ function searchBooks(options, page, callback) {
         searchQuery = ' WHERE' + searchOptions.join(' AND');
     }
     var sql = `
-        SELECT bookId, title, author, Department.name AS department, courseNumber, price, imageUrl FROM Book
+        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl FROM Book
         JOIN Department ON Book.departmentId = Department.id
         ${searchQuery} ORDER BY listedTimestamp DESC;`;
     mainDB.execute(sql, params, (rows) => {

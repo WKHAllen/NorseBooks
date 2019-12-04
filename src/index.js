@@ -197,8 +197,33 @@ function renderPage(req, res, page, options) {
 
 // Main page
 app.get('/', (req, res) => {
-    database.searchBooks({}, 1, (rows) => {
-        renderPage(req, res, 'index', { books: rows });
+    var searched = true;
+    if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) searched = false;
+    var title = stripWhitespace(req.query.title);
+    var author = stripWhitespace(req.query.author);
+    var department = parseInt(stripWhitespace(req.query.department));
+    if (isNaN(department)) department = null;
+    var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+    var searchOptions = {};
+    if (title.length > 0 && title.length <= 128) searchOptions.title = title;
+    if (author.length > 0 && author.length <= 64) searchOptions.author = author;
+    database.validDepartment(department, (valid) => {
+        if (valid) searchOptions.departmentId = department;
+        if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
+        database.getDepartments((departments) => {
+            database.searchBooks(searchOptions, 1, (rows) => {
+                if (!searched) {
+                    renderPage(req, res, 'index', { books: rows, departments: departments });
+                } else {
+                    renderPage(req, res, 'index', { books: rows, departments: departments, form: {
+                        title: title,
+                        author: author,
+                        department: department,
+                        courseNumber: courseNumber
+                    }});
+                }
+            });
+        });
     });
 });
 
