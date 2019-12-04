@@ -4,17 +4,17 @@
         <div class="form-group col-3">
             <label for="title">Book title</label>
             {{#if form.title}}
-                <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}">
+            <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}">
             {{else}}
-                <input type="text" class="form-control" id="title" name="title" maxlength="128">
+            <input type="text" class="form-control" id="title" name="title" maxlength="128">
             {{/if}}
         </div>
         <div class="form-group col-3">
             <label for="author">Author</label>
             {{#if form.author}}
-                <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}">
+            <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}">
             {{else}}
-                <input type="text" class="form-control" id="author" name="author" maxlength="64">
+            <input type="text" class="form-control" id="author" name="author" maxlength="64">
             {{/if}}
         </div>
         <div class="form-group col-3">
@@ -22,43 +22,47 @@
             <select class="form-control" id="department" name="department">
                 <option value="">Select...</option>
                 {{#each departments}}
-                    <option value="{{this.id}}">{{this.name}}</option>
+                <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
             {{#if form.department}}
-                <script type="text/javascript">
-                    document.getElementById('department').value = '{{form.department}}';
-                </script>
+            <script type="text/javascript">
+                document.getElementById('department').value = '{{form.department}}';
+            </script>
             {{/if}}
         </div>
         <div class="form-group col-3">
             <label for="courseNumber">Course number</label>
             {{#if form.courseNumber}}
-                <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
+            <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
             {{else}}
-                <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3">
+            <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3">
             {{/if}}
         </div>
     </div>
     <button type="submit" class="btn btn-primary no-expand">Search</button>
     {{#if form}}
-        <a class="btn btn-primary" href="/">Clear search</a>
+    <a class="btn btn-primary" href="/">Clear search</a>
     {{/if}}
 </form>
-<div class="card-columns">
-    {{#each books}}
-        <a href="/book/{{this.bookid}}" class="normal-link">
-            <div class="card">
-                <img src="{{this.imageurl}}" alt="" class="card-img-top">
+
+
+<div class="container">
+    <div class="row" id="index">
+        {{#each books}}
+        <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card" style="width: 18rem;">
+                <img src="{{this.imageurl}}" class="card-img-top thumbnail" alt="...">
                 <div class="card-body">
-                    <h5 class="card-title">{{this.title}}</h5>
-                    <p class="card-text">
-                        {{this.author}}<br>
-                        {{this.department}}{{#if this.coursenumber}} {{this.coursenumber}}{{/if}}<br>
-                        ${{this.price}}<br>
-                    </p>
+                    <div class="space-between">
+                        <span class="title">{{this.title}}</span>
+                        <span class="card-price">${{this.price}}</span>
+                    </div>
+                    <div>By: <span>{{this.author}}</span></div>
+                    <div>{{this.department}}</div>
                 </div>
             </div>
-        </a>
-    {{/each}}
+        </div>
+        {{/each}}
+    </div>
 </div>

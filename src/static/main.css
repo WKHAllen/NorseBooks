@@ -117,6 +117,11 @@ input:focus, select:focus, textarea:focus {
     margin-bottom: 24px;
 }
 
+.space-between {
+    display: flex;
+    justify-content: space-between;
+}
+
 .hidden {
     display: none;
 }
@@ -130,5 +135,38 @@ input:focus, select:focus, textarea:focus {
 }
 
 .normal-link:active {
+    color: var(--secondary-active);
+}
+
+
+/* Index Page */
+
+#index .card {
+    margin: 0 auto;
+    border: none;
+    padding: 0px 20px;
+}
+
+#index .thumbnail {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+}
+
+#index .card-price {
+    font-size: 1rem;
+    color: black;
+}
+
+#index .card-body {
+    color: black;
+}
+
+#index .card-info {
+    font-size: 1rem;
+}
+
+#index .title {
+    font-weight: 700;
     color: var(--secondary-active);
 }
