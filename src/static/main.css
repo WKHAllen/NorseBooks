@@ -122,6 +122,11 @@ input:focus, select:focus, textarea:focus {
     justify-content: space-between;
 }
 
+.flex-start {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .hidden {
     display: none;
 }
@@ -138,6 +143,17 @@ input:focus, select:focus, textarea:focus {
     color: var(--secondary-active);
 }
 
+/* NavBar */
+@media (min-width: 576px) { 
+    .flex-responsive {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+.bg-dark {
+    background-color: var(--secondary-active)!important;
+}
 
 /* Index Page */
 
