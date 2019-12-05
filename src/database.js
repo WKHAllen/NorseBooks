@@ -20,7 +20,9 @@ const hexLength = 64;
 const base64Length = 4;
 const passwordResetTimeout = 60 * 60 * 1000;
 const verifyTimeout = 60 * 60 * 1000;
+const reportTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
+const maxReports = 5;
 const booksPerPage = 24;
 
 // The database object
@@ -150,7 +152,15 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable]);
+    var reportTable = `
+        CREATE TABLE IF NOT EXISTS Report (
+            id SERIAL PRIMARY KEY,
+            bookId INT NOT NULL,
+            userId INT NOT NULL,
+            reportTimestamp INT NOT NULL
+        );
+    `;
+    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable]);
     // Populate static tables
     populateStaticTable('Department');
     populateStaticTable('Condition');
@@ -554,7 +564,7 @@ function validBook(bookId, callback) {
 
 // Get information on a book
 function getBookInfo(bookId, callback) {
-    var sql = `SELECT title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -584,10 +594,14 @@ function getNumBooks(userId, callback) {
 
 // Delete a book
 function deleteBook(userId, bookId, callback) {
-    var sql = `DELETE FROM Book WHERE bookId = ? AND userId = ?;`;
+    var sql = `DELETE FROM Book WHERE id = ? AND userId = ?;`;
     var params = [bookId, userId];
     mainDB.execute(sql, params, (rows) => {
-        if (callback) callback();
+        sql = `DELETE FROM Report WHERE bookId = ?;`;
+        params = [bookId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback();
+        });
     });
 }
 
@@ -609,6 +623,60 @@ function searchBooks(options, page, callback) {
         ${searchQuery} ORDER BY listedTimestamp DESC;`;
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows);
+    });
+}
+
+// Get the id of the person who listed a book
+function bookLister(bookId, callback) {
+    var sql = `SELECT userId FROM Book WHERE id = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].userid);
+    });
+}
+
+// Report a book
+function reportBook(userId, bookId, callback) {
+    var sql = `INSERT INTO Report (bookId, userId, reportTimestamp) VALUES (?, ?, ?);`;
+    var params = [bookId, userId, getTime()];
+    mainDB.execute(sql, params, (rows) => {
+        numBookReports(bookId, (reports) => {
+            bookLister(bookId, (listerId) => {
+                if (reports >= maxReports) {
+                    deleteBook(listerId, bookId);
+                    if (callback) callback(true);
+                } else {
+                    if (callback) callback(false);
+                }
+            });
+        });
+    });
+}
+
+// Check if a user has already reported a book
+function userReportedBook(userId, bookId, callback) {
+    var sql = `SELECT id FROM Report WHERE bookId = ? AND userId = ?;`;
+    var params = [bookId, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+// Check if a user has reported a book recently
+function userReportedRecently(userId, callback) {
+    var sql = `SELECT id FROM Report WHERE userId = ? AND reportTimestamp > ?;`;
+    var params = [userId, getTime() - Math.floor(reportTimeout / 1000)];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+// Get the number of reports on a book
+function numBookReports(bookId, callback) {
+    var sql = `SELECT id FROM Report WHERE bookId = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length);
     });
 }
 
@@ -711,6 +779,11 @@ module.exports = {
     'getNumBooks': getNumBooks,
     'deleteBook': deleteBook,
     'searchBooks': searchBooks,
+    'bookLister': bookLister,
+    'reportBook': reportBook,
+    'userReportedBook': userReportedBook,
+    'userReportedRecently': userReportedRecently,
+    'numBookReports': numBookReports,
     'getDepartments': getDepartments,
     'getDepartmentName': getDepartmentName,
     'validDepartment': validDepartment,

@@ -402,21 +402,26 @@ app.get('/book/:bookId', (req, res) => {
                     database.getDepartmentName(bookInfo.departmentid, (department) => {
                         database.getConditionName(bookInfo.conditionid, (condition) => {
                             database.getAuthUser(req.session.sessionId, (userId) => {
-                                renderPage(req, res, 'book', {
-                                    title: bookInfo.title,
-                                    author: bookInfo.author,
-                                    department: department,
-                                    courseNumber: bookInfo.coursenumber,
-                                    price: bookInfo.price,
-                                    condition: condition,
-                                    imageUrl: bookInfo.imageurl,
-                                    description: bookInfo.description,
-                                    firstname: userBookInfo.firstname,
-                                    lastname: userBookInfo.lastname,
-                                    contactPlatform: userBookInfo.contactplatform,
-                                    contactInfo: userBookInfo.contactinfo,
-                                    bookOwner: userId === userBookInfo.id,
-                                    bookId: req.params.bookId
+                                database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                                    database.userReportedRecently(userId, (reportedRecently) => {
+                                        renderPage(req, res, 'book', {
+                                            title: bookInfo.title,
+                                            author: bookInfo.author,
+                                            department: department,
+                                            courseNumber: bookInfo.coursenumber,
+                                            price: bookInfo.price,
+                                            condition: condition,
+                                            imageUrl: bookInfo.imageurl,
+                                            description: bookInfo.description,
+                                            firstname: userBookInfo.firstname,
+                                            lastname: userBookInfo.lastname,
+                                            contactPlatform: userBookInfo.contactplatform,
+                                            contactInfo: userBookInfo.contactinfo,
+                                            bookOwner: userId === userBookInfo.id,
+                                            bookId: req.params.bookId,
+                                            canReport: !alreadyReported && !reportedRecently
+                                        });
+                                    });
                                 });
                             });
                         });
@@ -432,8 +437,30 @@ app.get('/book/:bookId', (req, res) => {
 // Delete book event
 app.post('/deleteBook/:bookId', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
-        database.deleteBook(userId, req.params.bookId, () => {
-            res.redirect('/');
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.deleteBook(userId, bookInfo.id, () => {
+                res.redirect('/');
+            });
+        });
+    });
+});
+
+// Report book event
+app.post('/reportBook/:bookId', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                database.userReportedRecently(userId, (reportedRecently) => {
+                    if (!alreadyReported && !reportedRecently) {
+                        database.reportBook(userId, bookInfo.id, (deleted) => {
+                            if (deleted) res.redirect('/');
+                            else res.redirect(`/book/${req.params.bookId}`);
+                        });
+                    } else {
+                        res.redirect(`/book/${req.params.bookId}`);
+                    }
+                });
+            });
         });
     });
 });
