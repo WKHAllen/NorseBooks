@@ -144,7 +144,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* NavBar */
-@media (min-width: 576px) { 
+@media (min-width: 768px) { 
     .flex-responsive {
         display: flex;
         justify-content: space-between;
