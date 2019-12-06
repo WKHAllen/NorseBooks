@@ -1,94 +1,92 @@
 <h1 class="centered">New Book</h1>
 {{#if error}}
-    <div class="alert alert-danger" role="alert">{{error}}</div>
+<div class="alert alert-danger" role="alert">{{error}}</div>
 {{/if}}
-<p>Fill out the form below to list a book. All boxes must be filled out except course number and image URL, which are optional. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
 <form method="POST">
-    <div class="form-row">
+    <div class="row">
+        <p class="mx-3">Fill out the form below to list a book. All boxes must be filled out except course number and image URL, which are optional. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
         <!-- Title -->
-        <div class="form-group col-6">
+        <div class="form-group col-sm-6 col-md-4">
             <label for="title">Book title</label>
             {{#if form}}
-                <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}" required>
+            <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}" required>
             {{else}}
-                <input type="text" class="form-control" id="title" name="title" maxlength="128" required>
+            <input type="text" class="form-control" id="title" name="title" maxlength="128" required>
             {{/if}}
         </div>
         <!-- Author -->
-        <div class="form-group col-4">
+        <div class="form-group col-sm-6 col-md-4">
             <label for="author">Author</label>
             {{#if form}}
-                <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}" required>
+            <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}" required>
             {{else}}
-                <input type="text" class="form-control" id="author" name="author" maxlength="64" required>
+            <input type="text" class="form-control" id="author" name="author" maxlength="64" required>
             {{/if}}
         </div>
-        <!-- Price -->
-        <div class="form-group col-2">
-            <label for="price">Price (USD)</label>
-            {{#if form}}
-                <input type="text" class="form-control" id="price" name="price" maxlength="7" value="{{form.price}}" required>
-            {{else}}
-                <input type="text" class="form-control" id="price" name="price" maxlength="7" required>
-            {{/if}}
-        </div>
-    </div>
-    <div class="form-row">
+        
         <!-- Department -->
-        <div class="form-group col-4">
+        <div class="form-group col-6 col-sm-4">
             <label for="department">Department</label>
             <select class="form-control" id="department" name="department" required>
                 <option value="">Select...</option>
                 {{#each departments}}
-                    <option value="{{this.id}}">{{this.name}}</option>
+                <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
             {{#if form}}
-                <script type="text/javascript">
-                    document.getElementById('department').value = '{{form.department}}';
-                </script>
+            <script type="text/javascript">
+                document.getElementById('department').value = '{{form.department}}';
+            </script>
             {{/if}}
         </div>
         <!-- Course number -->
-        <div class="form-group col-2">
+        <div class="form-group col-6 col-sm-4">
             <label for="courseNumber">Course number</label>
             {{#if form}}
-                <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
+            <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
             {{else}}
-                <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3">
+            <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3">
             {{/if}}
         </div>
+        <!-- Price -->
+        <div class="form-group col-6 col-sm-4">
+                <label for="price">Price (USD)</label>
+                {{#if form}}
+                <input type="text" class="form-control" id="price" name="price" maxlength="7" value="{{form.price}}" required>
+                {{else}}
+                <input type="text" class="form-control" id="price" name="price" maxlength="7" required>
+                {{/if}}
+            </div>
         <!-- Condition -->
-        <div class="form-group col-2">
+        <div class="form-group col-6 col-md-4">
             <label for="condition">Book condition</label>
             <select class="form-control" id="condition" name="condition" required>
                 <option value="">Select...</option>
                 {{#each conditions}}
-                    <option value="{{this.id}}">{{this.name}}</option>
+                <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
             {{#if form}}
-                <script type="text/javascript">
-                    document.getElementById('condition').value = '{{form.condition}}';
-                </script>
+            <script type="text/javascript">
+                document.getElementById('condition').value = '{{form.condition}}';
+            </script>
             {{/if}}
         </div>
         <!-- Image URL -->
-        <div class="form-group col-4">
+        <div class="form-group col-6">
             <label for="imageUrl">Image URL</label>
             {{#if form}}
-                <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" value="{{form.imageUrl}}">
+            <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" value="{{form.imageUrl}}">
             {{else}}
-                <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256">
+            <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256">
             {{/if}}
         </div>
     </div>
-    <div class="form-row">
-        <!-- Description -->
-        <div class="form-group col-12">
-            <label for="description">Description</label>
-            <textarea type="text" class="form-control" id="description" name="description" maxlength="1024" rows="3" required>{{#if form}}{{form.description}}{{/if}}</textarea>
-        </div>
-    </div>
-    <button type="submit" class="btn btn-primary">List Book</button>
+</div>
+<!-- Description -->
+<div class="form-group col-12"  id="description-container">
+    <label for="description">Description</label>
+    <textarea type="text" class="form-control" id="description" name="description" maxlength="1024" rows="3" required>{{#if form}}{{form.description}}{{/if}}</textarea>
+</div>
+<button type="submit" class="btn btn-primary">List Book</button>
 </form>

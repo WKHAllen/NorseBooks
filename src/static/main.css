@@ -77,6 +77,10 @@ input:focus, select:focus, textarea:focus {
     text-align: center;
 }
 
+.even-spacing {
+    margin: 0 auto;
+}
+
 .justified {
     text-align: justify;
 }
@@ -92,11 +96,6 @@ input:focus, select:focus, textarea:focus {
     object-fit: contain;
 }
 
-#user-image {
-    width: 100%;
-    max-height: 100px;
-    object-fit: contain;
-}
 
 #img-circle {
     width: 30px;
@@ -117,6 +116,20 @@ input:focus, select:focus, textarea:focus {
     margin-bottom: 24px;
 }
 
+.space-between {
+    display: flex;
+    justify-content: space-between;
+}
+
+.flex-start {
+    display: flex;
+    justify-content: flex-start;
+}
+.flex-end {
+    display: flex;
+    align-items: flex-end;
+}
+
 .hidden {
     display: none;
 }
@@ -132,3 +145,64 @@ input:focus, select:focus, textarea:focus {
 .normal-link:active {
     color: var(--secondary-active);
 }
+
+/* NavBar */
+@media (min-width: 768px) { 
+    .flex-responsive {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+.bg-dark {
+    background-color: var(--secondary-active)!important;
+}
+
+/* Index Page */
+
+#index .card {
+    margin: 0 auto;
+    border: none;
+    padding: 0px 20px;
+}
+
+#index .thumbnail {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+}
+
+#index .card-price {
+    font-size: 1rem;
+    color: black;
+}
+
+#index .card-body {
+    color: black;
+}
+
+#index .card-info {
+    font-size: 1rem;
+}
+
+#index .title {
+    font-weight: 700;
+    color: var(--secondary-active);
+}
+
+/* New Book Page */
+#description-container {
+    padding: 0!important;
+}
+
+/* Profile Page */
+.image-circle {
+    border-radius: 50%;
+}
+
+#user-image {
+    display: block;
+    margin: 0 auto; 
+    object-fit: contain;
+}
+
