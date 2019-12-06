@@ -77,6 +77,10 @@ input:focus, select:focus, textarea:focus {
     text-align: center;
 }
 
+.even-spacing {
+    margin: 0 auto;
+}
+
 .justified {
     text-align: justify;
 }
@@ -125,6 +129,10 @@ input:focus, select:focus, textarea:focus {
 .flex-start {
     display: flex;
     justify-content: flex-start;
+}
+.flex-end {
+    display: flex;
+    align-items: flex-end;
 }
 
 .hidden {
