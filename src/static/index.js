@@ -20,12 +20,15 @@ function addBook(book) {
         var newCard = document.createElement('div');
         newCard.classList.add('card');
         newCard.style = 'width: 18rem;';
+        var imgLink = document.createElement('a');
+        imgLink.href = `/book/${book.bookid}`
+        newCard.appendChild(imgLink)
             // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
             var newImg = document.createElement('img');
             newImg.src = book.imageurl;
             newImg.classList.add('card-img-top', 'thumbnail');
             newImg.alt = '...';
-            newCard.appendChild(newImg);
+            imgLink.appendChild(newImg);
             // <div class="card-body">
             var cardBody = document.createElement('div');
             cardBody.classList.add('card-body');
