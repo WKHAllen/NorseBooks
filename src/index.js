@@ -554,12 +554,12 @@ app.get('/contact', (req, res) => {
 
 // Error 404 (not found)
 app.use((req, res) => {
-    return res.status(404).render('404', { title: 'Not found' });
+    renderPage(req, res, '404', { title: 'Not found' });
 });
 
 // Error 500 (internal server error)
 app.use((req, res) => {
-    return res.status(500).render('500', { title: 'Internal server error' });
+    renderPage(req, res, '500', { title: 'Internal server error' });
 });
 
 // Listen for connections
