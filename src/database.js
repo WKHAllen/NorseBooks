@@ -14,16 +14,19 @@ try {
 }
 
 const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
+const maxDBClients = 20;
 const saltRounds = 12;
 const hexLength = 64;
 const base64Length = 4;
 const passwordResetTimeout = 60 * 60 * 1000;
 const verifyTimeout = 60 * 60 * 1000;
+const reportTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
-const booksPerPage = 24;
+const maxReports = 5;
+const booksPerQuery = 24;
 
 // The database object
-var mainDB = new db.DB(dbURL, !debug);
+var mainDB = new db.DB(dbURL, !debug, maxDBClients);
 
 // Get the current time to the second
 function getTime() {
@@ -149,7 +152,15 @@ function init() {
             createTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable]);
+    var reportTable = `
+        CREATE TABLE IF NOT EXISTS Report (
+            id SERIAL PRIMARY KEY,
+            bookId INT NOT NULL,
+            userId INT NOT NULL,
+            reportTimestamp INT NOT NULL
+        );
+    `;
+    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable]);
     // Populate static tables
     populateStaticTable('Department');
     populateStaticTable('Condition');
@@ -459,10 +470,9 @@ function newPasswordResetId(email, callback) {
             } else {
                 sql = `INSERT INTO PasswordReset (email, resetId, createTimestamp) VALUES (?, ?, ?);`;
                 params = [email, resetId, getTime()];
-                var sqlAfter = `SELECT resetId FROM passwordReset ORDER BY id DESC LIMIT 1;`;
-                mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
-                    setTimeout(deletePasswordResetId, passwordResetTimeout, rows[0].resetid);
-                    if (callback) callback(rows[0].resetid);
+                mainDB.execute(sql, params, (rows) => {
+                    setTimeout(deletePasswordResetId, passwordResetTimeout, resetId);
+                    if (callback) callback(resetId);
                 });
             }
         });
@@ -534,9 +544,8 @@ function newBook(title, author, departmentId, courseNumber, condition, descripti
                 bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
         var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
-        var sqlAfter = `SELECT id FROM Book ORDER BY listedTimestamp DESC LIMIT 1;`;
-        mainDB.executeAfter(sql, params, null, sqlAfter, [], (rows) => {
-            if (callback) callback(rows[0].id, bookId);
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(bookId);
             sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
             params = [userId];
             mainDB.execute(sql, params);
@@ -555,7 +564,7 @@ function validBook(bookId, callback) {
 
 // Get information on a book
 function getBookInfo(bookId, callback) {
-    var sql = `SELECT title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -585,15 +594,19 @@ function getNumBooks(userId, callback) {
 
 // Delete a book
 function deleteBook(userId, bookId, callback) {
-    var sql = `DELETE FROM Book WHERE bookId = ? AND userId = ?;`;
+    var sql = `DELETE FROM Book WHERE id = ? AND userId = ?;`;
     var params = [bookId, userId];
     mainDB.execute(sql, params, (rows) => {
-        if (callback) callback();
+        sql = `DELETE FROM Report WHERE bookId = ?;`;
+        params = [bookId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback();
+        });
     });
 }
 
 // Get info on books searched
-function searchBooks(options, page, callback) {
+function searchBooks(options, lastBookId, callback) {
     var params = [];
     var searchQuery = '';
     if (Object.keys(options).length > 0) {
@@ -603,13 +616,86 @@ function searchBooks(options, page, callback) {
             params.push(options[option]);
         }
         searchQuery = ' WHERE' + searchOptions.join(' AND');
+        if (lastBookId) {
+            // Get books before specified book
+            searchQuery += `
+                AND listedTimestamp < (
+                    SELECT listedTimestamp FROM Book WHERE bookId = ?
+                )`;
+            params.push(lastBookId);
+        }
+    } else {
+        if (lastBookId) {
+            // Get books before specified book
+            searchQuery = `
+                WHERE listedTimestamp < (
+                    SELECT listedTimestamp FROM Book WHERE bookId = ?
+                )`;
+            params.push(lastBookId);
+        }
     }
     var sql = `
         SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl FROM Book
         JOIN Department ON Book.departmentId = Department.id
-        ${searchQuery} ORDER BY listedTimestamp DESC;`;
+        ${searchQuery} ORDER BY listedTimestamp DESC LIMIT ?;`;
+    // Limit the number of books queried
+    params.push(booksPerQuery);
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows);
+    });
+}
+
+// Get the id of the person who listed a book
+function bookLister(bookId, callback) {
+    var sql = `SELECT userId FROM Book WHERE id = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].userid);
+    });
+}
+
+// Report a book
+function reportBook(userId, bookId, callback) {
+    var sql = `INSERT INTO Report (bookId, userId, reportTimestamp) VALUES (?, ?, ?);`;
+    var params = [bookId, userId, getTime()];
+    mainDB.execute(sql, params, (rows) => {
+        numBookReports(bookId, (reports) => {
+            bookLister(bookId, (listerId) => {
+                if (reports >= maxReports) {
+                    deleteBook(listerId, bookId);
+                    if (callback) callback(true);
+                } else {
+                    if (callback) callback(false);
+                }
+            });
+        });
+    });
+}
+
+// Check if a user has already reported a book
+function userReportedBook(userId, bookId, callback) {
+    var sql = `SELECT id FROM Report WHERE bookId = ? AND userId = ?;`;
+    var params = [bookId, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+// Check if a user has reported a book recently
+function userReportedRecently(userId, callback) {
+    var sql = `SELECT id FROM Report WHERE userId = ? AND reportTimestamp > ?;`;
+    var params = [userId, getTime() - Math.floor(reportTimeout / 1000)];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length > 0);
+    });
+}
+
+// Get the number of reports on a book
+function numBookReports(bookId, callback) {
+    var sql = `SELECT id FROM Report WHERE bookId = ?;`;
+    var params = [bookId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length);
     });
 }
 
@@ -712,6 +798,11 @@ module.exports = {
     'getNumBooks': getNumBooks,
     'deleteBook': deleteBook,
     'searchBooks': searchBooks,
+    'bookLister': bookLister,
+    'reportBook': reportBook,
+    'userReportedBook': userReportedBook,
+    'userReportedRecently': userReportedRecently,
+    'numBookReports': numBookReports,
     'getDepartments': getDepartments,
     'getDepartmentName': getDepartmentName,
     'validDepartment': validDepartment,

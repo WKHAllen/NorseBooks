@@ -197,33 +197,42 @@ function renderPage(req, res, page, options) {
 
 // Main page
 app.get('/', (req, res) => {
-    var searched = true;
-    if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) searched = false;
-    var title = stripWhitespace(req.query.title);
-    var author = stripWhitespace(req.query.author);
-    var department = parseInt(stripWhitespace(req.query.department));
-    if (isNaN(department)) department = null;
-    var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
-    var searchOptions = {};
-    if (title.length > 0 && title.length <= 128) searchOptions.title = title;
-    if (author.length > 0 && author.length <= 64) searchOptions.author = author;
-    database.validDepartment(department, (valid) => {
-        if (valid) searchOptions.departmentId = department;
-        if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
-        database.getDepartments((departments) => {
-            database.searchBooks(searchOptions, 1, (rows) => {
-                if (!searched) {
-                    renderPage(req, res, 'index', { books: rows, departments: departments });
-                } else {
-                    renderPage(req, res, 'index', { books: rows, departments: departments, form: {
-                        title: title,
-                        author: author,
-                        department: department,
-                        courseNumber: courseNumber
-                    }});
-                }
+    database.getDepartments((departments) => {
+        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) {
+            renderPage(req, res, 'index', { departments: departments });
+        } else {
+            renderPage(req, res, 'index', { departments: departments, form: {
+                title: req.query.title,
+                author: req.query.author,
+                department: req.query.department,
+                courseNumber: req.query.courseNumber
+            }});
+        }
+    });
+});
+
+// Get more books to populate the index page
+app.get('/getBooks', (req, res) => {
+    database.validBook(req.query.lastBook, (exists) => {
+        if (exists || !req.query.lastBook) {
+            var title = stripWhitespace(req.query.title);
+            var author = stripWhitespace(req.query.author);
+            var department = parseInt(stripWhitespace(req.query.department));
+            if (isNaN(department)) department = null;
+            var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+            var searchOptions = {};
+            if (title.length > 0 && title.length <= 128) searchOptions.title = title;
+            if (author.length > 0 && author.length <= 64) searchOptions.author = author;
+            database.validDepartment(department, (valid) => {
+                if (valid) searchOptions.departmentId = department;
+                if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
+                database.searchBooks(searchOptions, req.query.lastBook, (rows) => {
+                    res.json({ books: rows });
+                });
             });
-        });
+        } else {
+            res.json({ err: 'Last book does not exist' });
+        }
     });
 });
 
@@ -370,7 +379,7 @@ app.post('/book', auth, (req, res) => {
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (id, bookId) => {
+                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (bookId) => {
                     res.redirect(`/book/${bookId}`);
                 });
             });
@@ -402,21 +411,26 @@ app.get('/book/:bookId', (req, res) => {
                     database.getDepartmentName(bookInfo.departmentid, (department) => {
                         database.getConditionName(bookInfo.conditionid, (condition) => {
                             database.getAuthUser(req.session.sessionId, (userId) => {
-                                renderPage(req, res, 'book', {
-                                    title: bookInfo.title,
-                                    author: bookInfo.author,
-                                    department: department,
-                                    courseNumber: bookInfo.coursenumber,
-                                    price: bookInfo.price,
-                                    condition: condition,
-                                    imageUrl: bookInfo.imageurl,
-                                    description: bookInfo.description,
-                                    firstname: userBookInfo.firstname,
-                                    lastname: userBookInfo.lastname,
-                                    contactPlatform: userBookInfo.contactplatform,
-                                    contactInfo: userBookInfo.contactinfo,
-                                    bookOwner: userId === userBookInfo.id,
-                                    bookId: req.params.bookId
+                                database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                                    database.userReportedRecently(userId, (reportedRecently) => {
+                                        renderPage(req, res, 'book', {
+                                            title: bookInfo.title,
+                                            author: bookInfo.author,
+                                            department: department,
+                                            courseNumber: bookInfo.coursenumber,
+                                            price: bookInfo.price,
+                                            condition: condition,
+                                            imageUrl: bookInfo.imageurl,
+                                            description: bookInfo.description,
+                                            firstname: userBookInfo.firstname,
+                                            lastname: userBookInfo.lastname,
+                                            contactPlatform: userBookInfo.contactplatform,
+                                            contactInfo: userBookInfo.contactinfo,
+                                            bookOwner: userId === userBookInfo.id,
+                                            bookId: req.params.bookId,
+                                            canReport: !alreadyReported && !reportedRecently
+                                        });
+                                    });
                                 });
                             });
                         });
@@ -432,8 +446,30 @@ app.get('/book/:bookId', (req, res) => {
 // Delete book event
 app.post('/deleteBook/:bookId', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
-        database.deleteBook(userId, req.params.bookId, () => {
-            res.redirect('/');
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.deleteBook(userId, bookInfo.id, () => {
+                res.redirect('/');
+            });
+        });
+    });
+});
+
+// Report book event
+app.post('/reportBook/:bookId', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                database.userReportedRecently(userId, (reportedRecently) => {
+                    if (!alreadyReported && !reportedRecently) {
+                        database.reportBook(userId, bookInfo.id, (deleted) => {
+                            if (deleted) res.redirect('/');
+                            else res.redirect(`/book/${req.params.bookId}`);
+                        });
+                    } else {
+                        res.redirect(`/book/${req.params.bookId}`);
+                    }
+                });
+            });
         });
     });
 });

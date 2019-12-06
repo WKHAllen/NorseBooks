@@ -10,15 +10,18 @@
     </div>
 </p>
 <p class="justified">{{description}}</p>
-{{#if bookOwner}}
-    <form method="POST">
+<form method="POST">
+    {{#if bookOwner}}
         <button type="submit" class="btn btn-primary" formaction="/deleteBook/{{bookId}}">Delete book</button>
         <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-    </form>
-{{else}}
-    <button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
-    <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-    <div id="contact-info" class="small-space-above hidden">
-        <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
-    </div>
-{{/if}}
+    {{else}}
+        <button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
+        <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
+        {{#if loggedIn}}
+            <button type="submit" class="btn btn-primary" formaction="/reportBook/{{bookId}}"{{#unless canReport}} disabled{{/unless}}>Report</button>
+        {{/if}}
+        <div id="contact-info" class="small-space-above hidden">
+            <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+        </div>
+    {{/if}}
+</form>
