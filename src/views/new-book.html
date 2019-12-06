@@ -4,7 +4,7 @@
 {{/if}}
 <form method="POST">
     <div class="row">
-        <p>Fill out the form below to list a book. All boxes must be filled out except course number and image URL, which are optional. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
+        <p class="mx-3">Fill out the form below to list a book. All boxes must be filled out except course number and image URL, which are optional. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
         <!-- Title -->
         <div class="form-group col-sm-6 col-md-4">
             <label for="title">Book title</label>
@@ -84,7 +84,7 @@
     </div>
 </div>
 <!-- Description -->
-<div class="form-group col-12">
+<div class="form-group col-12"  id="description-container">
     <label for="description">Description</label>
     <textarea type="text" class="form-control" id="description" name="description" maxlength="1024" rows="3" required>{{#if form}}{{form.description}}{{/if}}</textarea>
 </div>

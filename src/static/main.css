@@ -194,3 +194,8 @@ input:focus, select:focus, textarea:focus {
     font-weight: 700;
     color: var(--secondary-active);
 }
+
+/* New Book Page */
+#description-container {
+    padding: 0!important;
+}
