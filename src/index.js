@@ -197,33 +197,42 @@ function renderPage(req, res, page, options) {
 
 // Main page
 app.get('/', (req, res) => {
-    var searched = true;
-    if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) searched = false;
-    var title = stripWhitespace(req.query.title);
-    var author = stripWhitespace(req.query.author);
-    var department = parseInt(stripWhitespace(req.query.department));
-    if (isNaN(department)) department = null;
-    var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
-    var searchOptions = {};
-    if (title.length > 0 && title.length <= 128) searchOptions.title = title;
-    if (author.length > 0 && author.length <= 64) searchOptions.author = author;
-    database.validDepartment(department, (valid) => {
-        if (valid) searchOptions.departmentId = department;
-        if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
-        database.getDepartments((departments) => {
-            database.searchBooks(searchOptions, 1, (rows) => {
-                if (!searched) {
-                    renderPage(req, res, 'index', { books: rows, departments: departments });
-                } else {
-                    renderPage(req, res, 'index', { books: rows, departments: departments, form: {
-                        title: title,
-                        author: author,
-                        department: department,
-                        courseNumber: courseNumber
-                    }});
-                }
+    database.getDepartments((departments) => {
+        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) {
+            renderPage(req, res, 'index', { departments: departments });
+        } else {
+            renderPage(req, res, 'index', { departments: departments, form: {
+                title: req.query.title,
+                author: req.query.author,
+                department: req.query.department,
+                courseNumber: req.query.courseNumber
+            }});
+        }
+    });
+});
+
+// Get more books to populate the index page
+app.get('/getBooks', (req, res) => {
+    database.validBook(req.query.lastBook, (exists) => {
+        if (exists || !req.query.lastBook) {
+            var title = stripWhitespace(req.query.title);
+            var author = stripWhitespace(req.query.author);
+            var department = parseInt(stripWhitespace(req.query.department));
+            if (isNaN(department)) department = null;
+            var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+            var searchOptions = {};
+            if (title.length > 0 && title.length <= 128) searchOptions.title = title;
+            if (author.length > 0 && author.length <= 64) searchOptions.author = author;
+            database.validDepartment(department, (valid) => {
+                if (valid) searchOptions.departmentId = department;
+                if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
+                database.searchBooks(searchOptions, req.query.lastBook, (rows) => {
+                    res.json({ books: rows });
+                });
             });
-        });
+        } else {
+            res.json({ err: 'Last book does not exist' });
+        }
     });
 });
 

@@ -23,7 +23,7 @@ const verifyTimeout = 60 * 60 * 1000;
 const reportTimeout = 60 * 60 * 1000;
 const staticTablePath = 'tables';
 const maxReports = 5;
-const booksPerPage = 24;
+const booksPerQuery = 24;
 
 // The database object
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
@@ -606,7 +606,7 @@ function deleteBook(userId, bookId, callback) {
 }
 
 // Get info on books searched
-function searchBooks(options, page, callback) {
+function searchBooks(options, lastBookId, callback) {
     var params = [];
     var searchQuery = '';
     if (Object.keys(options).length > 0) {
@@ -616,11 +616,30 @@ function searchBooks(options, page, callback) {
             params.push(options[option]);
         }
         searchQuery = ' WHERE' + searchOptions.join(' AND');
+        if (lastBookId) {
+            // Get books before specified book
+            searchQuery += `
+                AND listedTimestamp < (
+                    SELECT listedTimestamp FROM Book WHERE bookId = ?
+                )`;
+            params.push(lastBookId);
+        }
+    } else {
+        if (lastBookId) {
+            // Get books before specified book
+            searchQuery = `
+                WHERE listedTimestamp < (
+                    SELECT listedTimestamp FROM Book WHERE bookId = ?
+                )`;
+            params.push(lastBookId);
+        }
     }
     var sql = `
         SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl FROM Book
         JOIN Department ON Book.departmentId = Department.id
-        ${searchQuery} ORDER BY listedTimestamp DESC;`;
+        ${searchQuery} ORDER BY listedTimestamp DESC LIMIT ?;`;
+    // Limit the number of books queried
+    params.push(booksPerQuery);
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows);
     });

@@ -1,3 +1,5 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="/index.js"></script>
 <h1 class="centered">NorseBooks</h1>
 <form class="space-below">
     <div class="form-row">
@@ -45,20 +47,7 @@
         <a class="btn btn-primary" href="/">Clear search</a>
     {{/if}}
 </form>
-<div class="card-columns">
-    {{#each books}}
-        <a href="/book/{{this.bookid}}" class="normal-link">
-            <div class="card">
-                <img src="{{this.imageurl}}" alt="" class="card-img-top">
-                <div class="card-body">
-                    <h5 class="card-title">{{this.title}}</h5>
-                    <p class="card-text">
-                        {{this.author}}<br>
-                        {{this.department}}{{#if this.coursenumber}} {{this.coursenumber}}{{/if}}<br>
-                        ${{this.price}}<br>
-                    </p>
-                </div>
-            </div>
-        </a>
-    {{/each}}
+<div class="container">
+    <div class="row" id="index"></div>
 </div>
+<p class="centered" id="status">Fetching books...</p>
