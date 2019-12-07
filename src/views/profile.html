@@ -1,15 +1,16 @@
-<div class="mt-5">
-    <div class="profile-summary mb-5">
+<div class="container">
+    <div class="mt-5">
+        <div class="profile-summary mb-5">
             <img class="image-circle mb-2" id="user-image" height="200px" src="{{imageUrl}}" alt="">
             <h2 class="centered mb-1">{{firstname}} {{lastname}}</h2>
             <h5 class="centered mb-1">{{email}}</h5>
             <h6 class="centered">Joined {{joined}}</h6>
-    </div>
-    {{#if error}}
+        </div>
+        {{#if error}}
         <div class="alert alert-danger" role="alert">{{error}}</div>
-    {{/if}}
-
-    <div class="mb-5">
+        {{/if}}
+        
+        <div class="mb-5">
             <form method="POST">
                 <h3>Set contact info</h3>
                 <div class="row">
@@ -36,40 +37,41 @@
                 
             </form>
         </div>
-    
-    <div class="mb-5">
-        <form method="POST">
-            <h3>Set image</h3>
-            <div class="row">
-                <div class="form-group col-8 col-md-10">
-                    <label for="imageUrl">Image URL</label>
-                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required value="{{imageUrl}}">
+        
+        <div class="mb-5">
+            <form method="POST">
+                <h3>Set image</h3>
+                <div class="row">
+                    <div class="form-group col-8 col-md-10">
+                        <label for="imageUrl">Image URL</label>
+                        <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required value="{{imageUrl}}">
+                    </div>
+                    <div class="col-4 col-md-2 flex-end">
+                        <button type="submit" class="btn btn-primary mb-3" formaction="/setImage">Set image</button>
+                    </div>
                 </div>
-                <div class="col-4 col-md-2 flex-end">
-                    <button type="submit" class="btn btn-primary mb-3" formaction="/setImage">Set image</button>
+                
+            </form>
+        </div>
+        <div class="mb-5">
+            <form method="POST">
+                <h3>Change password</h3>
+                <div class="row">
+                    <div class="form-group col-12 col-md-4">
+                        <label for="currentPassword">Current password</label>
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" maxlength="128" required>
+                    </div>
+                    <div class="form-group col-12 col-sm-6 col-md-4">
+                        <label for="newPassword">New password</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" maxlength="128" required>
+                    </div>
+                    <div class="form-group col-12 col-sm-6 col-md-4">
+                        <label for="confirmNewPassword">Confirm new password</label>
+                        <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
+                    </div>
                 </div>
-            </div>
-            
-        </form>
-    </div>
-    <div class="mb-5">
-        <form method="POST">
-            <h3>Change password</h3>
-            <div class="row">
-                <div class="form-group col-12 col-md-4">
-                    <label for="currentPassword">Current password</label>
-                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" maxlength="128" required>
-                </div>
-                <div class="form-group col-12 col-sm-6 col-md-4">
-                    <label for="newPassword">New password</label>
-                    <input type="password" class="form-control" id="newPassword" name="newPassword" maxlength="128" required>
-                </div>
-                <div class="form-group col-12 col-sm-6 col-md-4">
-                    <label for="confirmNewPassword">Confirm new password</label>
-                    <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
-        </form>
+                <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
+            </form>
+        </div>
     </div>
 </div>

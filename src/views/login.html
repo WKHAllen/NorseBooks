@@ -1,31 +1,34 @@
-<!-- {{#if error}}
-    <div class="alert alert-danger" role="alert">{{error}}</div>
-    {{/if}} -->
+
+<div class="container">
+    {{#if error}}
+        <div class="alert alert-danger mt-5" role="alert">{{error}}</div>
+    {{/if}}
     
-<div id="login-card">
-    <div class="centered mt-3 mb-5">
-        <img src="favicon.ico" alt="NorseBooks Logo" height="50px">
-        <h5 class="mt-4">Welcome back to <span id="brand">NorseBooks</span></h5>
-    </div>
-    <form action="/login" method="POST">
-        <div class="form-group">
-            <label for="username">Norse Email Address</label>
-            <div class="input-group">
-                <input id="username" name="email" autocomplete="username" type="text" class="form-control" aria-label="Recipient's username" aria-describedby="basic-addon2">
-                <div class="input-group-append">
-                    <span class="input-group-text" id="basic-addon2">@luther.com</span>
+    <div id="login-card">
+        <div class="centered mt-3 mb-5">
+            <img src="favicon.ico" alt="NorseBooks Logo" height="50px">
+            <h5 class="mt-4">Welcome back to <span id="brand">NorseBooks</span></h5>
+        </div>
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="username">Norse Email Address</label>
+                <div class="input-group">
+                    <input id="username" name="email" autocomplete="username" type="text" class="form-control" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="basic-addon2">@luther.com</span>
+                    </div>
+                    
                 </div>
-                
+                <small class="mb-5">We'll never share your info with anyone.</small>
             </div>
-            <small class="mb-5">We'll never share your info with anyone.</small>
-        </div>
-        <div class="form-group">
-            <label for="exampleInputPassword1">Password</label>
-            <input type="password" name="password" autocomplete="password" class="form-control" id="exampleInputPassword1">
-        </div>
-        <div class="space-between">
-            <a id="forgot-password" href="/password-reset">Forgot Password?</a>
-            <input id="login" type="submit" value="Login">
-        </div>
-    </form>
+            <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input type="password" name="password" autocomplete="password" class="form-control" id="exampleInputPassword1">
+            </div>
+            <div class="space-between">
+                <a id="forgot-password" href="/password-reset">Forgot Password?</a>
+                <input id="login" type="submit" value="Login">
+            </div>
+        </form>
+    </div>
 </div>
