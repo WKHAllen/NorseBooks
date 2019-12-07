@@ -37,14 +37,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/feedback"><i class="far fa-comments mr-1"></i> Provide Feedback</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout">Logout</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/profile">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/profile"><img src="{{userImageUrl}}" alt="" width="30" height="30" id="img-circle"></a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Hello, {{userFirstName}}<img src="{{userImageUrl}}" alt="" width="30" height="30" class="ml-2" id="img-circle"></a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="/profile">View Account</a>
+                            <a class="dropdown-item" href="#">View Your Listings</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Logout</a>
+                        </div>
                     </li>
                     {{else}}
                     <li class="nav-item">

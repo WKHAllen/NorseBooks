@@ -79,8 +79,8 @@
     }
 }
 
-.bg-dark {
-    background-color: var(--secondary-active)!important;
+.navbar .dropdown-menu {
+    margin-top: 15px;
 }
 
 /* Index Page */

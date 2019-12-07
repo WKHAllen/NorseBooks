@@ -297,11 +297,13 @@ function setContactInfo(userId, contactPlatform, contactInfo, callback) {
 // Get the info necessary for rendering the navbar
 function getNavInfo(sessionId, callback) {
     var sql = `
-        SELECT id, imageUrl FROM NBUser WHERE id = (
+        SELECT id, imageUrl, firstname FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
         );`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
+        console.log(rows)
+        console.log(rows[0])
         if (callback) callback(rows[0]);
     });
 }

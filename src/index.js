@@ -189,6 +189,7 @@ function renderPage(req, res, page, options) {
             } else {
                 options.loggedIn = true;
                 options.userImageUrl = result.imageurl;
+                options.userFirstName = result.firstname;
                 res.render(page, options);
             }
         });
