@@ -612,8 +612,13 @@ function searchBooks(options, lastBookId, callback) {
     if (Object.keys(options).length > 0) {
         var searchOptions = [];
         for (var option in options) {
-            searchOptions.push(` ${option} = ?`);
-            params.push(options[option]);
+            if (option === 'title' || option === 'author') {
+                searchOptions.push(` LOWER(${option}) LIKE LOWER(?)`);
+                params.push(`%${options[option]}%`);
+            } else {
+                searchOptions.push(` ${option} = ?`);
+                params.push(options[option]);
+            }
         }
         searchQuery = ' WHERE' + searchOptions.join(' AND');
         if (lastBookId) {
