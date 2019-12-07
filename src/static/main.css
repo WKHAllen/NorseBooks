@@ -135,6 +135,18 @@ body {
     object-fit: contain;
 }
 
+.profile-summary h5 {
+    font-size: 1rem;
+    font-style: italic;
+}
+
+.profile-summary small {
+    color: lightgray;
+    font-size: .75rem;
+    display: block;
+    margin:0 auto;
+}
+
 /* Login Page */
 #login-card {
     border: 1px solid rgb(233, 233, 233);
