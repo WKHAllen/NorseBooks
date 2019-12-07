@@ -302,8 +302,6 @@ function getNavInfo(sessionId, callback) {
         );`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
-        console.log(rows)
-        console.log(rows[0])
         if (callback) callback(rows[0]);
     });
 }
