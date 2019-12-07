@@ -1,5 +1,17 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+.content {
+    /* sticky footer */
+    flex: 1 0 auto;
+}
+
 body {
     font-family: 'Raleway', sans-serif;
+    /* for sticky footer */
+    display: flex;
+    flex-direction: column;
 }
 
 .centered {
@@ -85,6 +97,27 @@ body {
 
 .navbar .dropdown-menu {
     margin-top: 15px;
+}
+
+
+/* Footer */
+footer {
+    flex-shrink: 0; /* for sticky footer */
+    background-color: rgb(42, 42, 46);
+    color: rgb(82, 82, 88);
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+footer h6 {
+    text-align: center;
+    font-weight: 800;
+}
+
+footer .footer-list-link {
+    text-align: center;
+    display: block;
+    color: rgb(82, 82, 88);
 }
 
 /* Index Page */
