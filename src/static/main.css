@@ -124,6 +124,19 @@ body {
     padding: 0!important;
 }
 
+#new-book-card {
+    border: 1px solid rgb(233, 233, 233);
+    border-radius: 14px;
+    padding: 30px 40px;
+    margin-top: 3rem;
+    box-shadow: 5px 5px 20px rgb(233, 233, 233);
+}
+
+#new-book-card p#small {
+    font-size: .9rem;
+    color: red;
+}
+
 /* Profile Page */
 .image-circle {
     border-radius: 50%;
