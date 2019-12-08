@@ -21,6 +21,7 @@ const base64Length = 4;
 const passwordResetTimeout = 60 * 60 * 1000; // one hour
 const verifyTimeout = 60 * 60 * 1000; // one hour
 const reportTimeout = 60 * 60 * 1000; // one hour
+const sessionTimeout = 14 * 24 * 60 * 60 * 1000; // two weeks
 const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
 const maxReports = 5;
@@ -181,6 +182,14 @@ function init() {
         for (var row of rows) {
             timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
             setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
+        }
+    });
+    // Prune old sessions
+    sql = `SELECT id, createTimestamp FROM Session;`;
+    mainDB.execute(sql, [], (rows) => {
+        for (var row of rows) {
+            timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
+            setTimeout(deleteSession, timeRemaining * 1000, row.id);
         }
     });
 }
@@ -399,6 +408,7 @@ function newSessionId(email, callback) {
                         );`;
                     params = [sessionId, email, getTime()];
                     mainDB.execute(sql, params, (rows) => {
+                        setTimeout(deleteSession, sessionTimeout, sessionId);
                         if (callback) callback(sessionId);
                     });
                 }
