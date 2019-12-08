@@ -1,76 +1,17 @@
-:root {
-    --primary-color: white;
-    --primary-hover: #d7d7ef;
-    --primary-active: #cfcfdf;
-    --secondary-color: #0f2f9f;
-    --secondary-hover: #071f8f;
-    --secondary-active: #000f7f;
-    --secondary-light: #1f4fcf;
-}
-
 html, body {
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
+    height: 100%;
+    margin: 0;
+}
+.content {
+    /* sticky footer */
+    flex: 1 0 auto;
 }
 
-header {
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
-}
-
-header a, header a:link, header a:visited {
-    color: var(--primary-color);
-}
-
-header a:hover {
-    color: var(--primary-hover);
-}
-
-header a:active {
-    color: var(--primary-active);
-}
-
-main {
-    padding: 20px;
-    margin: auto;
-    max-width: 1000px;
-}
-
-footer {
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
-    padding: 20px;
-    text-align: center;
-}
-
-h1 {
-    margin-bottom: 24px;
-}
-
-h2, h3 {
-    margin-bottom: 20px;
-}
-
-h4, h5, h6 {
-    margin-bottom: 16px;
-}
-
-.btn-primary, .btn-primary:visited, .btn-primary:focus {
-    background-color: var(--secondary-color);
-}
-
-.btn-primary:hover {
-    background-color: var(--secondary-hover);
-}
-
-.btn-primary:active {
-    background-color: var(--secondary-active) !important;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--secondary-light) !important;
-    box-shadow: 0 0 2pt var(--secondary-light) !important;
-    outline: 0 none;
+body {
+    font-family: 'Raleway', sans-serif;
+    /* for sticky footer */
+    display: flex;
+    flex-direction: column;
 }
 
 .centered {
@@ -88,6 +29,10 @@ input:focus, select:focus, textarea:focus {
 .thin {
     margin: 0 auto;
     max-width: 600px;
+}
+
+.bold {
+    font-weight: 600;
 }
 
 #book-image {
@@ -154,8 +99,29 @@ input:focus, select:focus, textarea:focus {
     }
 }
 
-.bg-dark {
-    background-color: var(--secondary-active)!important;
+.navbar .dropdown-menu {
+    margin-top: 15px;
+}
+
+
+/* Footer */
+footer {
+    flex-shrink: 0; /* for sticky footer */
+    background-color: rgb(42, 42, 46);
+    color: rgb(82, 82, 88);
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+footer h6 {
+    text-align: center;
+    font-weight: 800;
+}
+
+footer .footer-list-link {
+    text-align: center;
+    display: block;
+    color: rgb(82, 82, 88);
 }
 
 /* Index Page */
@@ -190,9 +156,58 @@ input:focus, select:focus, textarea:focus {
     color: var(--secondary-active);
 }
 
+.hero-image {
+    background-image:url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1753&q=80");
+    height: 400PX;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+  }
+  
+  .hero-text {
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-shadow: 0px 0px 15px black;
+}
+
+.hero-text p {
+    background-color: black;
+    color: white;
+    padding: 2px 8px;
+}
+
+.card {
+    background-color: rgb(248, 248, 248);
+    border-radius: 0;
+    box-shadow: 5px 5px 20px rgb(223, 222, 222);
+    transition: all .2s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.03);
+}
+
 /* New Book Page */
 #description-container {
     padding: 0!important;
+}
+
+#new-book-card {
+    border: 1px solid rgb(233, 233, 233);
+    border-radius: 14px;
+    padding: 30px 40px;
+    margin-top: 3rem;
+    box-shadow: 5px 5px 20px rgb(233, 233, 233);
+}
+
+#new-book-card p#small {
+    font-size: .9rem;
+    color: red;
 }
 
 /* Profile Page */
@@ -204,4 +219,95 @@ input:focus, select:focus, textarea:focus {
     display: block;
     margin: 0 auto; 
     object-fit: contain;
+}
+
+.profile-summary h5 {
+    font-size: 1rem;
+    font-style: italic;
+}
+
+.profile-summary small {
+    color: lightgray;
+    font-size: .75rem;
+    display: block;
+    margin:0 auto;
+}
+
+/* Login Page */
+#login-card {
+    border: 1px solid rgb(233, 233, 233);
+    border-radius: 14px;
+    width: 450px;
+    margin:0 auto;
+    padding: 30px 40px;
+    margin-top: 1rem;
+    box-shadow: 5px 5px 20px rgb(70, 39, 39);
+    color: black;
+    background-color: white;
+} 
+
+
+#login-card span#brand {
+    color: var(--secondary-hover);
+    font-weight: 600;
+}
+
+#login-card small {
+    color: gray;
+}
+
+#login-card #forgot-password {
+    color: #0f2f9f;
+    font-weight: 600;
+}
+
+#login-card #login {
+    background: #0f2f9f;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 5px;
+    outline: none;
+}
+
+#login-card .space-between {
+    align-items: center;
+}
+
+#login-card #register {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.login {
+    background-image: url("https://images.unsplash.com/photo-1553941884-f8947df6e0ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=728&q=80");
+}
+
+/* Register */
+.register-card {
+    border: 1px solid rgb(233, 233, 233);
+    border-radius: 14px;
+    padding: 30px 40px;
+    margin-top: 3rem;
+    box-shadow: 5px 5px 20px black;
+    width: fit-content;
+    margin: 0 auto;
+    background-color: white;
+}
+
+.register-card small{
+    color:gray
+}
+
+.register {
+    background-image: url("https://images.unsplash.com/photo-1537202108838-e7072bad1927?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=770&q=80");
+}
+
+.modal-image {
+    background-size: auto;
+    background-position-y: center;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+
 }

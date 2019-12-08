@@ -1,41 +1,52 @@
-<h1 class="centered">Register</h1>
-<div class="thin">
-    {{#if error}}
-        <div class="alert alert-danger" role="alert">{{error}}</div>
-    {{/if}}
-    <p class="justified">Please fill in all the boxes in the form below. Once you have registered, you will receive a verification email. You will have one hour to verify your email before the email will expire. If you already have an account, please <a href="/login">log in here</a>.</p>
-    <form method="POST">
-        <div class="form-row">
-            <div class="form-group col-12">
-                <label for="email">Luther email address</label>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="email" name="email" maxlength="64" placeholder="yasiro01" required>
-                    <div class="input-group-append">
-                        <span class="input-group-text">@luther.edu</span>
+<div class="modal-image register">
+    <div class="register-card">
+        <h1 class="centered mb-4">Register</h1>
+        <div class="thin">
+            {{#if error}}
+            <div class="alert alert-danger" role="alert">{{error}}</div>
+            {{/if}}
+            <p class="justified">Please fill in all the boxes in the form below. Once you have registered, you will receive a verification email. You will have one hour to verify your email before the email will expire. If you already have an account, please <a href="/login">log in here</a>.</p>
+            <form method="POST">
+                <div class="form-row">
+                    <div class="form-group col-12">
+                        <label for="email">Luther email address</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="email" name="email" maxlength="64" placeholder="yasiro01" required>
+                            <div class="input-group-append">
+                                <span class="input-group-text">@luther.edu</span>
+                            </div>
+                        </div>
+                        <small class="mb-5">We'll never share your info with anyone.</small>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-6">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" maxlength="128" placeholder="{{passwordExample}}" required>
-            </div>
-            <div class="form-group col-6">
-                <label for="passwordConfirm">Confirm password</label>
-                <input type="password" class="form-control" id="passwordConfirm" name="passwordConfirm" maxlength="128" placeholder="{{passwordExample}}" required>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-6">
-                <label for="firstname">First name</label>
-                <input type="text" class="form-control" id="firstname" name="firstname" maxlength="64" placeholder="Roman" required>
-            </div>
-            <div class="form-group col-6">
-                <label for="lastname">Last name</label>
-                <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" required>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Register</button>
-    </form>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" maxlength="128" placeholder="{{passwordExample}}" required>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="passwordConfirm">Confirm password</label>
+                        <input type="password" class="form-control" id="passwordConfirm" name="passwordConfirm" maxlength="128" placeholder="{{passwordExample}}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="firstname">First name</label>
+                        <input type="text" class="form-control" id="firstname" name="firstname" maxlength="64" placeholder="Roman" required>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="lastname">Last name</label>
+                        <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" required>
+                    </div>
+                </div>
+                <div>
+                    <input type="checkbox" required id="TaC">
+                    <label for="TaC" class="ml-1">I have read and agree to the <a href="/termsandconditions">terms and conditions.</a></label>
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+        </div>        
+    </div>
+    <div class="benefits">
+    </div>
 </div>
