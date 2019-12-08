@@ -1,27 +1,29 @@
-<script type="text/javascript" src="/main.js"></script>
-<h1 class="centered">{{title}}</h1>
-<img id="book-image" src="{{imageUrl}}" alt="">
-<p>
-    <div class="d-flex justify-content-between">
-        <span><b>Author</b> {{author}}</span>
-        <span><b>Price</b> ${{price}}</span>
-        <span><b>Condition</b> {{condition}}</span>
-        <span><b>Department</b> {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</span>
-    </div>
-</p>
-<p class="justified">{{description}}</p>
-<form method="POST">
-    {{#if bookOwner}}
+<div class="container">
+    <h1 class="centered">{{title}}</h1>
+    <img id="book-image" src="{{imageUrl}}" alt="">
+    <p>
+        <div class="d-flex justify-content-between">
+            <span><b>Author</b> {{author}}</span>
+            <span><b>Price</b> ${{price}}</span>
+            <span><b>Condition</b> {{condition}}</span>
+            <span><b>Department</b> {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</span>
+        </div>
+    </p>
+    <p class="justified">{{description}}</p>
+    <form method="POST">
+        {{#if bookOwner}}
         <button type="submit" class="btn btn-primary" formaction="/deleteBook/{{bookId}}">Delete book</button>
         <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-    {{else}}
+        {{else}}
         <button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
         <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
         {{#if loggedIn}}
-            <button type="submit" class="btn btn-primary" formaction="/reportBook/{{bookId}}"{{#unless canReport}} disabled{{/unless}}>Report</button>
+        <button type="submit" class="btn btn-primary" formaction="/reportBook/{{bookId}}"{{#unless canReport}} disabled{{/unless}}>Report</button>
         {{/if}}
         <div id="contact-info" class="small-space-above hidden">
             <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
         </div>
-    {{/if}}
-</form>
+        {{/if}}
+    </form>
+</div>
+<script type="text/javascript" src="/main.js"></script>
