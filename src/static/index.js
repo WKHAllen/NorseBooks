@@ -26,7 +26,7 @@ function addBook(book) {
             // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
             var newImg = document.createElement('img');
             newImg.src = book.imageurl;
-            newImg.classList.add('card-img-top', 'thumbnail');
+            newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
             newImg.alt = '...';
             imgLink.appendChild(newImg);
             // <div class="card-body">

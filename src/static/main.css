@@ -31,6 +31,10 @@ body {
     max-width: 600px;
 }
 
+.bold {
+    font-weight: 600;
+}
+
 #book-image {
     width: 100%;
     max-height: 300px;
@@ -150,6 +154,42 @@ footer .footer-list-link {
 #index .title {
     font-weight: 700;
     color: var(--secondary-active);
+}
+
+.hero-image {
+    background-image:url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1753&q=80");
+    height: 400PX;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+  }
+  
+  .hero-text {
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-shadow: 0px 0px 15px black;
+}
+
+.hero-text p {
+    background-color: black;
+    color: white;
+    padding: 2px 8px;
+}
+
+.card {
+    background-color: rgb(248, 248, 248);
+    border-radius: 0;
+    box-shadow: 5px 5px 20px rgb(223, 222, 222);
+    transition: all .2s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.03);
 }
 
 /* New Book Page */
