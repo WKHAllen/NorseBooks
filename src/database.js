@@ -18,9 +18,10 @@ const maxDBClients = 20;
 const saltRounds = 12;
 const hexLength = 64;
 const base64Length = 4;
-const passwordResetTimeout = 60 * 60 * 1000;
-const verifyTimeout = 60 * 60 * 1000;
-const reportTimeout = 60 * 60 * 1000;
+const passwordResetTimeout = 60 * 60 * 1000; // one hour
+const verifyTimeout = 60 * 60 * 1000; // one hour
+const reportTimeout = 60 * 60 * 1000; // one hour
+const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
 const maxReports = 5;
 const booksPerQuery = 24;
@@ -98,7 +99,8 @@ function init() {
             joinTimestamp INT NOT NULL,
             lastLogin INT,
             itemsListed INT NOT NULL,
-            verified INT NOT NULL
+            verified INT NOT NULL,
+            lastFeedbackTimestamp INT
         );
     `;
     var departmentTable = `
@@ -203,13 +205,13 @@ function auth(sessionId, callback) {
 // Get the id of an authenticated user by the session ID
 function getAuthUser(sessionId, callback) {
     var sql = `
-        SELECT id FROM NBUser WHERE id = (
+        SELECT id, firstname, lastname FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
         );`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) {
-            if (rows.length > 0) callback(rows[0].id);
+            if (rows.length > 0) callback(rows[0].id, rows[0].firstname, rows[0].lastname);
             else callback(null);
         }
     });
@@ -765,6 +767,24 @@ function validCondition(conditionId, callback) {
     });
 }
 
+// Check if a user can provide feedback
+function canProvideFeedback(userId, callback) {
+    var sql = `SELECT id FROM NBUser WHERE id = ? AND (lastFeedbackTimestamp < ? OR lastFeedbackTimestamp IS NULL);`;
+    var params = [userId, getTime() - Math.floor(feedbackTimeout / 1000)];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
+// Update a user's feedback timestamp to the current time
+function updateFeedbackTimestamp(userId, callback) {
+    var sql = `UPDATE NBUser SET lastFeedbackTimestamp = ? WHERE id = ?;`;
+    var params = [getTime(), userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
 // Initialize the database on import
 init();
 
@@ -814,5 +834,7 @@ module.exports = {
     'getConditions': getConditions,
     'getConditionName': getConditionName,
     'validCondition': validCondition,
+    'canProvideFeedback': canProvideFeedback,
+    'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'mainDB': mainDB
 };

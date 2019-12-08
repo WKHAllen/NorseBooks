@@ -45,5 +45,6 @@ function sendEmail(emailTo, subject, html) {
 }
 
 module.exports = {
-    'sendEmail': sendEmail
+    'sendEmail': sendEmail,
+    'emailAddress': emailAddress
 };

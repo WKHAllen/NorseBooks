@@ -80,7 +80,7 @@ function sendEmailVerification(email, hostname) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
         emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email',
-            `Hello,\n\nWelcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.\n\n${hostname}/verify/${verifyId}\n\nIf you did not register for Norse Books, or you have already verified your email, please disregard this email, and do not click on the above link.\n\nSincerely,\nThe Norse Books Dev Team`
+            `Hello,<br><br>Welcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.<br><br>${hostname}/verify/${verifyId}<br><br>If you did not register for Norse Books, or you have already verified your email, please disregard this email, and do not click on the above link.<br><br>Sincerely,<br>The Norse Books Dev Team`
         );
     });
 }
@@ -90,7 +90,7 @@ function sendPasswordResetEmail(email, hostname) {
     email = email.toLowerCase();
     database.newPasswordResetId(email, (passwordResetId) => {
         emailer.sendEmail(email + '@luther.edu', 'Norse Books - Password Reset',
-            `Hello,\n\nA password reset request was sent. To reset your password, please click on the link below.\n\n${hostname}/password-reset/${passwordResetId}\n\nIf you did not request to reset your password, please disregard this email. Do not share the above link with anyone.\n\nSincerely,\nThe Norse Books Dev Team`
+            `Hello,<br><br>A password reset request was sent. To reset your password, please click on the link below.<br><br>${hostname}/password-reset/${passwordResetId}<br><br>If you did not request to reset your password, please disregard this email. Do not share the above link with anyone.<br><br>Sincerely,<br>The Norse Books Dev Team`
         );
     });
 }
@@ -550,6 +550,30 @@ app.get('/about', (req, res) => {
 // Contact page
 app.get('/contact', (req, res) => {
     renderPage(req, res, 'contact', { title: 'Contact Us' });
+});
+
+// Feedback form
+app.get('/feedback', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.canProvideFeedback(userId, (can) => {
+            renderPage(req, res, 'feedback', { title: 'Provide Feedback', canProvideFeedback: can });
+        });
+    });
+});
+
+// Feedback provided
+app.post('/feedback', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId, firstname, lastname) => {
+        database.canProvideFeedback(userId, (can) => {
+            if (can) {
+                var feedback = stripWhitespace(req.body.feedback);
+                while (feedback.includes('\n')) feedback = feedback.replace('\n', '<br>');
+                emailer.sendEmail(emailer.emailAddress, 'User Feedback', `${firstname} ${lastname} provided the following feedback:<br><br>${feedback}<br><br>Sincerely,<br>The Norse Books Dev Team`);
+                database.updateFeedbackTimestamp(userId);
+            }
+            res.redirect('/');
+        });
+    });
 });
 
 // Error 404 (not found)
