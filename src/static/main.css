@@ -247,7 +247,21 @@ footer .footer-list-link {
     border-radius: 14px;
     padding: 30px 40px;
     margin-top: 3rem;
-    box-shadow: 5px 5px 20px rgb(233, 233, 233);
+    box-shadow: 5px 5px 20px black;
     width: fit-content;
-    margin: 3rem auto;
+    margin: 0 auto;
+    background-color: white;
+}
+
+.register-card small{
+    color:gray
+}
+
+.modal-image {
+    background-image: url("https://images.unsplash.com/photo-1537202108838-e7072bad1927?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=770&q=80");
+    background-size: auto;
+    background-position-y: center;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+
 }

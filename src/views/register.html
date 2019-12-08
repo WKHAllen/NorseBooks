@@ -1,6 +1,6 @@
-<div class="container">
+<div class="modal-image">
     <div class="register-card">
-        <h1 class="centered">Register</h1>
+        <h1 class="centered mb-4">Register</h1>
         <div class="thin">
             {{#if error}}
             <div class="alert alert-danger" role="alert">{{error}}</div>
@@ -39,11 +39,14 @@
                         <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" required>
                     </div>
                 </div>
+                <div>
+                    <input type="checkbox" required id="TaC">
+                    <label for="TaC" class="ml-1">I have read and agree to the <a href="/termsandconditions">terms and conditions.</a></label>
+                </div>
                 <button type="submit" class="btn btn-primary">Register</button>
             </form>
         </div>        
     </div>
     <div class="benefits">
-
     </div>
 </div>
