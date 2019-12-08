@@ -200,13 +200,12 @@ footer .footer-list-link {
     width: 450px;
     margin:0 auto;
     padding: 30px 40px;
-    margin-top: 3rem;
-    box-shadow: 5px 5px 20px rgb(233, 233, 233);
-}
-
-#login-card {
+    margin-top: 1rem;
+    box-shadow: 5px 5px 20px rgb(70, 39, 39);
     color: black;
-}
+    background-color: white;
+} 
+
 
 #login-card span#brand {
     color: var(--secondary-hover);
@@ -241,6 +240,10 @@ footer .footer-list-link {
     margin-top: 1rem;
 }
 
+.login {
+    background-image: url("https://images.unsplash.com/photo-1553941884-f8947df6e0ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=728&q=80");
+}
+
 /* Register */
 .register-card {
     border: 1px solid rgb(233, 233, 233);
@@ -257,8 +260,11 @@ footer .footer-list-link {
     color:gray
 }
 
-.modal-image {
+.register {
     background-image: url("https://images.unsplash.com/photo-1537202108838-e7072bad1927?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=770&q=80");
+}
+
+.modal-image {
     background-size: auto;
     background-position-y: center;
     padding-top: 3rem;
