@@ -250,7 +250,7 @@ app.get('/getBooks', (req, res) => {
             // course number
             var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
             // ISBN
-            var ISBN = minISBN(stripWhitespace(form.ISBN.toUpperCase()));
+            var ISBN = minISBN(stripWhitespace(req.query.ISBN).toUpperCase());
             var searchOptions = {};
             // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
