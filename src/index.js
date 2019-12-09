@@ -311,7 +311,7 @@ app.post('/register', (req, res) => {
                     if (result.errors.length === 0) {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
-                            res.redirect('/login');
+                            res.redirect('/register-success');
                             sendEmailVerification(email, getHostname(req));
                         } else {
                             renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
@@ -337,6 +337,11 @@ app.get('/logout', (req, res) => {
         req.session.destroy();
         res.redirect('/login');
     });
+});
+
+// After registering
+app.get('/register-success', (req, res) => {
+    renderPage(req, res, 'register-success', { title: 'Successfully registered' });
 });
 
 // Verify email address page
