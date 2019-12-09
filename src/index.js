@@ -222,14 +222,15 @@ function renderPage(req, res, page, options) {
 // Main page
 app.get('/', (req, res) => {
     database.getDepartments((departments) => {
-        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) {
+        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN) {
             renderPage(req, res, 'index', { departments: departments });
         } else {
             renderPage(req, res, 'index', { departments: departments, form: {
                 title: req.query.title,
                 author: req.query.author,
                 department: req.query.department,
-                courseNumber: req.query.courseNumber
+                courseNumber: req.query.courseNumber,
+                ISBN: req.query.ISBN
             }});
         }
     });
@@ -239,17 +240,29 @@ app.get('/', (req, res) => {
 app.get('/getBooks', (req, res) => {
     database.validBook(req.query.lastBook, (exists) => {
         if (exists || !req.query.lastBook) {
+            // title
             var title = stripWhitespace(req.query.title);
+            // author
             var author = stripWhitespace(req.query.author);
+            // department
             var department = parseInt(stripWhitespace(req.query.department));
             if (isNaN(department)) department = null;
+            // course number
             var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+            // ISBN
+            var ISBN = minISBN(stripWhitespace(form.ISBN.toUpperCase()));
             var searchOptions = {};
+            // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
+            // Check author
             if (author.length > 0 && author.length <= 64) searchOptions.author = author;
+            // Check department
             database.validDepartment(department, (valid) => {
                 if (valid) searchOptions.departmentId = department;
+                // Check course number
                 if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
+                // Check ISBN
+                if (validISBN(ISBN)) searchOptions.ISBN = ISBN;
                 database.searchBooks(searchOptions, req.query.lastBook, (rows) => {
                     res.json({ books: rows });
                 });
