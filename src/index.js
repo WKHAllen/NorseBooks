@@ -520,9 +520,23 @@ app.post('/reportBook/:bookId', auth, (req, res) => {
 app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
-            var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-            renderPage(req, res, 'profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email + '@luther.edu', imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
-            req.session.errorMsg = undefined;
+            database.getUserBooks(userId, (booksListed) => {
+                var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
+                renderPage(req, res, 'profile', {
+                    title: 'Your profile',
+                    error: req.session.errorMsg || undefined,
+                    firstname: userInfo.firstname,
+                    lastname: userInfo.lastname,
+                    email: userInfo.email + '@luther.edu',
+                    imageUrl: userInfo.imageurl,
+                    joined: joinTimestamp,
+                    books: userInfo.itemslisted,
+                    contactPlatform: userInfo.contactplatform,
+                    contactInfo: userInfo.contactinfo,
+                    booksListed: booksListed
+                });
+                req.session.errorMsg = undefined;
+            });
         });
     });
 });

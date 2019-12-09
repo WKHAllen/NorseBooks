@@ -306,6 +306,23 @@ function setContactInfo(userId, contactPlatform, contactInfo, callback) {
     });
 }
 
+// Get a user's currently listed books
+function getUserBooks(userId, callback) {
+    var sql = `
+        SELECT
+            Book.id AS id, bookId, title, author, departmentId,
+            Department.name AS department, courseNumber, conditionId,
+            Condition.name AS condition, description, price, imageUrl, ISBN
+        FROM Book
+        JOIN Department ON Book.departmentId = Department.id
+        JOIN Condition ON Book.conditionId = Condition.id
+        WHERE userId = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
 // Get the info necessary for rendering the navbar
 function getNavInfo(sessionId, callback) {
     var sql = `
@@ -811,6 +828,7 @@ module.exports = {
     'setUserPassword': setUserPassword,
     'hasContactInfo': hasContactInfo,
     'setContactInfo': setContactInfo,
+    'getUserBooks': getUserBooks,
     'getNavInfo': getNavInfo,
     'newVerifyId': newVerifyId,
     'checkVerifyId': checkVerifyId,
