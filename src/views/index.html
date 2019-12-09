@@ -57,9 +57,7 @@
             <!-- Submit -->
             <div class="col-lg-2 col-sm-12 mb-3 flex-end">
                 <button type="submit" class="btn btn-primary mr-1 no-expand">Search</button>
-                {{#if form}}
-                <a class="btn btn-primary" href="/">Clear</a>
-                {{/if}}
+                <button type="button" class="btn btn-primary" onclick="window.location.href = '/';"{{#unless form}} disabled{{/unless}}>Clear</a>
             </div>
         </div>
     </div>

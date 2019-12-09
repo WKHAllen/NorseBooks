@@ -18,9 +18,11 @@ const maxDBClients = 20;
 const saltRounds = 12;
 const hexLength = 64;
 const base64Length = 4;
-const passwordResetTimeout = 60 * 60 * 1000;
-const verifyTimeout = 60 * 60 * 1000;
-const reportTimeout = 60 * 60 * 1000;
+const passwordResetTimeout = 60 * 60 * 1000; // one hour
+const verifyTimeout = 60 * 60 * 1000; // one hour
+const reportTimeout = 60 * 60 * 1000; // one hour
+const sessionTimeout = 14 * 24 * 60 * 60 * 1000; // two weeks
+const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
 const maxReports = 5;
 const booksPerQuery = 24;
@@ -98,7 +100,8 @@ function init() {
             joinTimestamp INT NOT NULL,
             lastLogin INT,
             itemsListed INT NOT NULL,
-            verified INT NOT NULL
+            verified INT NOT NULL,
+            lastFeedbackTimestamp INT
         );
     `;
     var departmentTable = `
@@ -181,6 +184,14 @@ function init() {
             setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
         }
     });
+    // Prune old sessions
+    sql = `SELECT id, createTimestamp FROM Session;`;
+    mainDB.execute(sql, [], (rows) => {
+        for (var row of rows) {
+            timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
+            setTimeout(deleteSession, timeRemaining * 1000, row.id);
+        }
+    });
 }
 
 // Authorize/authenticate a user
@@ -203,13 +214,13 @@ function auth(sessionId, callback) {
 // Get the id of an authenticated user by the session ID
 function getAuthUser(sessionId, callback) {
     var sql = `
-        SELECT id FROM NBUser WHERE id = (
+        SELECT id, firstname, lastname FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
         );`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) {
-            if (rows.length > 0) callback(rows[0].id);
+            if (rows.length > 0) callback(rows[0].id, rows[0].firstname, rows[0].lastname);
             else callback(null);
         }
     });
@@ -397,6 +408,7 @@ function newSessionId(email, callback) {
                         );`;
                     params = [sessionId, email, getTime()];
                     mainDB.execute(sql, params, (rows) => {
+                        setTimeout(deleteSession, sessionTimeout, sessionId);
                         if (callback) callback(sessionId);
                     });
                 }
@@ -612,8 +624,13 @@ function searchBooks(options, lastBookId, callback) {
     if (Object.keys(options).length > 0) {
         var searchOptions = [];
         for (var option in options) {
-            searchOptions.push(` ${option} = ?`);
-            params.push(options[option]);
+            if (option === 'title' || option === 'author') {
+                searchOptions.push(` LOWER(${option}) LIKE LOWER(?)`);
+                params.push(`%${options[option]}%`);
+            } else {
+                searchOptions.push(` ${option} = ?`);
+                params.push(options[option]);
+            }
         }
         searchQuery = ' WHERE' + searchOptions.join(' AND');
         if (lastBookId) {
@@ -760,6 +777,24 @@ function validCondition(conditionId, callback) {
     });
 }
 
+// Check if a user can provide feedback
+function canProvideFeedback(userId, callback) {
+    var sql = `SELECT id FROM NBUser WHERE id = ? AND (lastFeedbackTimestamp < ? OR lastFeedbackTimestamp IS NULL);`;
+    var params = [userId, getTime() - Math.floor(feedbackTimeout / 1000)];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
+// Update a user's feedback timestamp to the current time
+function updateFeedbackTimestamp(userId, callback) {
+    var sql = `UPDATE NBUser SET lastFeedbackTimestamp = ? WHERE id = ?;`;
+    var params = [getTime(), userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
 // Initialize the database on import
 init();
 
@@ -809,5 +844,7 @@ module.exports = {
     'getConditions': getConditions,
     'getConditionName': getConditionName,
     'validCondition': validCondition,
+    'canProvideFeedback': canProvideFeedback,
+    'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'mainDB': mainDB
 };
