@@ -577,7 +577,7 @@ function validBook(bookId, callback) {
 
 // Get information on a book
 function getBookInfo(bookId, callback) {
-    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl, ISBN FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -653,7 +653,7 @@ function searchBooks(options, lastBookId, callback) {
         }
     }
     var sql = `
-        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl FROM Book
+        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl, ISBN FROM Book
         JOIN Department ON Book.departmentId = Department.id
         ${searchQuery} ORDER BY listedTimestamp DESC LIMIT ?;`;
     // Limit the number of books queried
