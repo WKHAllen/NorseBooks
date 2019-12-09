@@ -129,7 +129,8 @@ function init() {
             conditionId INT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
-            imageUrl TEXT
+            imageUrl TEXT,
+            ISBN VARCHAR(13)
         );
     `;
     var passwordResetTable = `
@@ -549,13 +550,13 @@ function newBookId(callback, length) {
 }
 
 // Add a new book
-function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, callback) {
+function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, ISBN, callback) {
     newBookId((bookId) => {
         var sql = `
             INSERT INTO Book (
-                bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
+                bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl, ISBN
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl, ISBN];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(bookId);
             sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
