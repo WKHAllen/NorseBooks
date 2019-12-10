@@ -158,7 +158,7 @@ function validBook(form, callback) {
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
                                             // Check ISBN
-                                            if (!ISBN || !validISBN(ISBN)) {
+                                            if (ISBN.length > 0 && !validISBN(ISBN)) {
                                                 callback(false, 'Please enter a valid ISBN.');
                                             } else {
                                                 callback(true, null, {
