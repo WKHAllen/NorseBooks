@@ -648,6 +648,11 @@ app.post('/feedback', auth, (req, res) => {
     });
 });
 
+// Help out page
+app.get('/help-out', (req, res) => {
+    renderPage(req, res, 'help-out', { title: 'Help out' });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     renderPage(req, res, '404', { title: 'Not found' });
