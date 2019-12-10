@@ -277,7 +277,7 @@ footer .footer-list-link {
     align-items: center;
 }
 
-#login-card #register {
+.centered-small {
     display: block;
     width: 100%;
     text-align: center;
