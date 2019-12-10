@@ -10,7 +10,31 @@
         <div class="alert alert-danger" role="alert">{{error}}</div>
         {{/if}}
         
-        <div class="mb-5">
+        <div id="your-listings">
+        <h3>Your Listings</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Department</th>
+                        <th scope="col">Condition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each booksListed}}
+                    <tr>
+                        <td><a href="/books/{{this.bookid}}">{{this.title}}</a></td>
+                        <td>{{this.author}}</td>
+                        <td>{{this.department}}</td>
+                        <td>{{this.condition}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="my-5">
             <form method="POST">
                 <h3>Set contact info</h3>
                 <div class="row">
