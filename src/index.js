@@ -8,6 +8,28 @@ const randomPassword = require('secure-random-password');
 const database = require('./database');
 const emailer = require('./emailer');
 
+var multer = require('multer');
+var storage = multer.diskStorage({
+  filename: function(req, file, callback) {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+var imageFilter = function (req, file, cb) {
+    // accept image files only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+var upload = multer({ storage: storage, fileFilter: imageFilter})
+
+var cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'norsebooks', 
+  api_key: 454559543485832, 
+  api_secret: "2ZXUwz5o4lHzGr6o2jlZvcohWKA"
+});
+
 var debug = true;
 
 try {
@@ -418,31 +440,34 @@ app.get('/book', auth, (req, res) => {
 });
 
 // List new book event
-app.post('/book', auth, (req, res) => {
-    validBook(req.body, (valid, err, values) => {
-        if (valid) {
-            database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, values.ISBN || null, (bookId) => {
-                    res.redirect(`/book/${bookId}`);
+app.post('/book', auth, upload.single('image'), (req, res) => {
+    cloudinary.uploader.upload(req.file.path, function(result) {
+        console.log(result)
+        validBook(req.body, (valid, err, values) => {
+            if (valid) {
+                database.getAuthUser(req.session.sessionId, (userId) => {
+                    database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN || null, (bookId) => {
+                        res.redirect(`/book/${bookId}`);
+                    });
                 });
-            });
-        } else {
-            database.getDepartments((departments) => {
-                database.getConditions((conditions) => {
-                    renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
-                        title: req.body.title,
-                        author: req.body.author,
-                        department: req.body.department,
-                        courseNumber: req.body.courseNumber,
-                        price: req.body.price,
-                        condition: req.body.condition,
-                        ISBN: req.body.ISBN,
-                        imageUrl: req.body.imageUrl,
-                        description: req.body.description
-                    }});
+            } else {
+                database.getDepartments((departments) => {
+                    database.getConditions((conditions) => {
+                        renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                            title: req.body.title,
+                            author: req.body.author,
+                            department: req.body.department,
+                            courseNumber: req.body.courseNumber,
+                            price: req.body.price,
+                            condition: req.body.condition,
+                            ISBN: req.body.ISBN,
+                            imageUrl: req.body.imageUrl,
+                            description: req.body.description
+                        }});
+                    });
                 });
-            });
-        }
+            }
+        });
     });
 });
 
