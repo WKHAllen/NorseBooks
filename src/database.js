@@ -129,7 +129,8 @@ function init() {
             conditionId INT NOT NULL,
             description TEXT,
             listedTimestamp INT NOT NULL,
-            imageUrl TEXT
+            imageUrl TEXT,
+            ISBN VARCHAR(13)
         );
     `;
     var passwordResetTable = `
@@ -302,6 +303,23 @@ function setContactInfo(userId, contactPlatform, contactInfo, callback) {
     var params = [contactPlatform, contactInfo, userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
+    });
+}
+
+// Get a user's currently listed books
+function getUserBooks(userId, callback) {
+    var sql = `
+        SELECT
+            Book.id AS id, bookId, title, author, departmentId,
+            Department.name AS department, courseNumber, conditionId,
+            Condition.name AS condition, description, price, imageUrl, ISBN
+        FROM Book
+        JOIN Department ON Book.departmentId = Department.id
+        JOIN Condition ON Book.conditionId = Condition.id
+        WHERE userId = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows);
     });
 }
 
@@ -549,13 +567,13 @@ function newBookId(callback, length) {
 }
 
 // Add a new book
-function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, callback) {
+function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, ISBN, callback) {
     newBookId((bookId) => {
         var sql = `
             INSERT INTO Book (
-                bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl];
+                bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl, ISBN
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl, ISBN];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(bookId);
             sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
@@ -576,7 +594,7 @@ function validBook(bookId, callback) {
 
 // Get information on a book
 function getBookInfo(bookId, callback) {
-    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl FROM Book WHERE bookId = ?;`;
+    var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl, ISBN FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -652,7 +670,7 @@ function searchBooks(options, lastBookId, callback) {
         }
     }
     var sql = `
-        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl FROM Book
+        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl, ISBN FROM Book
         JOIN Department ON Book.departmentId = Department.id
         ${searchQuery} ORDER BY listedTimestamp DESC LIMIT ?;`;
     // Limit the number of books queried
@@ -810,6 +828,7 @@ module.exports = {
     'setUserPassword': setUserPassword,
     'hasContactInfo': hasContactInfo,
     'setContactInfo': setContactInfo,
+    'getUserBooks': getUserBooks,
     'getNavInfo': getNavInfo,
     'newVerifyId': newVerifyId,
     'checkVerifyId': checkVerifyId,

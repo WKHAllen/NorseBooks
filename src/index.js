@@ -20,6 +20,7 @@ var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 
 const maxNumBooks = 8;
+const ISBNChars = '0123456789X';
 
 // The app object
 var app = express();
@@ -95,6 +96,21 @@ function sendPasswordResetEmail(email, hostname) {
     });
 }
 
+// Remove unnecessary characters from an ISBN
+function minISBN(ISBN) {
+    while (ISBN.includes('-')) ISBN = ISBN.replace('-', '');
+    return ISBN;
+}
+
+// Check if an ISBN is valid
+function validISBN(ISBN) {
+    if (ISBN.length !== 10 && ISBN.length !== 13) return false;
+    for (var char of ISBN)
+        if (!ISBNChars.includes(char))
+            return false;
+    return true;
+}
+
 // Check if a book form is valid
 function validBook(form, callback) {
     var title = stripWhitespace(form.title);
@@ -105,6 +121,7 @@ function validBook(form, callback) {
     var condition = stripWhitespace(form.condition);
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
+    var ISBN = minISBN(stripWhitespace(form.ISBN.toUpperCase()));
     // Check title
     if (title.length === 0 || title.length > 128) {
         callback(false, 'Please enter the title of the book. It must be at most 128 characters long.');
@@ -139,16 +156,22 @@ function validBook(form, callback) {
                                         if (description.length === 0 || description.length > 1024) {
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
-                                            callback(true, null, {
-                                                title: title,
-                                                author: author,
-                                                department: department,
-                                                courseNumber: courseNumber,
-                                                price: price,
-                                                condition: condition,
-                                                imageUrl: imageUrl,
-                                                description: description
-                                            });
+                                            // Check ISBN
+                                            if (validISBN(ISBN)) {
+                                                callback(false, 'Please enter a valid ISBN.');
+                                            } else {
+                                                callback(true, null, {
+                                                    title: title,
+                                                    author: author,
+                                                    department: department,
+                                                    courseNumber: courseNumber,
+                                                    price: price,
+                                                    condition: condition,
+                                                    imageUrl: imageUrl,
+                                                    description: description,
+                                                    ISBN: ISBN
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -199,14 +222,15 @@ function renderPage(req, res, page, options) {
 // Main page
 app.get('/', (req, res) => {
     database.getDepartments((departments) => {
-        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber) {
+        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN) {
             renderPage(req, res, 'index', { departments: departments });
         } else {
             renderPage(req, res, 'index', { departments: departments, form: {
                 title: req.query.title,
                 author: req.query.author,
                 department: req.query.department,
-                courseNumber: req.query.courseNumber
+                courseNumber: req.query.courseNumber,
+                ISBN: req.query.ISBN
             }});
         }
     });
@@ -216,17 +240,29 @@ app.get('/', (req, res) => {
 app.get('/getBooks', (req, res) => {
     database.validBook(req.query.lastBook, (exists) => {
         if (exists || !req.query.lastBook) {
+            // title
             var title = stripWhitespace(req.query.title);
+            // author
             var author = stripWhitespace(req.query.author);
+            // department
             var department = parseInt(stripWhitespace(req.query.department));
             if (isNaN(department)) department = null;
+            // course number
             var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+            // ISBN
+            var ISBN = minISBN(stripWhitespace(req.query.ISBN).toUpperCase());
             var searchOptions = {};
+            // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
+            // Check author
             if (author.length > 0 && author.length <= 64) searchOptions.author = author;
+            // Check department
             database.validDepartment(department, (valid) => {
                 if (valid) searchOptions.departmentId = department;
+                // Check course number
                 if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
+                // Check ISBN
+                if (validISBN(ISBN)) searchOptions.ISBN = ISBN;
                 database.searchBooks(searchOptions, req.query.lastBook, (rows) => {
                     res.json({ books: rows });
                 });
@@ -275,7 +311,7 @@ app.post('/register', (req, res) => {
                     if (result.errors.length === 0) {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
                             database.register(email, req.body.password, fname, lname);
-                            res.redirect('/login');
+                            res.redirect('/register-success');
                             sendEmailVerification(email, getHostname(req));
                         } else {
                             renderPage(req, res, 'register', { title: 'Register', error: 'Please enter a valid name', passwordExample: newRandomPassword() });
@@ -301,6 +337,11 @@ app.get('/logout', (req, res) => {
         req.session.destroy();
         res.redirect('/login');
     });
+});
+
+// After registering
+app.get('/register-success', (req, res) => {
+    renderPage(req, res, 'register-success', { title: 'Successfully registered' });
 });
 
 // Verify email address page
@@ -380,7 +421,7 @@ app.post('/book', auth, (req, res) => {
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, (bookId) => {
+                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, values.ISBN || null, (bookId) => {
                     res.redirect(`/book/${bookId}`);
                 });
             });
@@ -479,9 +520,23 @@ app.post('/reportBook/:bookId', auth, (req, res) => {
 app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
-            var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-            renderPage(req, res, 'profile', { title: 'Your profile', error: req.session.errorMsg || undefined, firstname: userInfo.firstname, lastname: userInfo.lastname, email: userInfo.email + '@luther.edu', imageUrl: userInfo.imageurl, joined: joinTimestamp, books: userInfo.itemslisted, contactPlatform: userInfo.contactplatform, contactInfo: userInfo.contactinfo });
-            req.session.errorMsg = undefined;
+            database.getUserBooks(userId, (booksListed) => {
+                var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
+                renderPage(req, res, 'profile', {
+                    title: 'Your profile',
+                    error: req.session.errorMsg || undefined,
+                    firstname: userInfo.firstname,
+                    lastname: userInfo.lastname,
+                    email: userInfo.email + '@luther.edu',
+                    imageUrl: userInfo.imageurl,
+                    joined: joinTimestamp,
+                    books: userInfo.itemslisted,
+                    contactPlatform: userInfo.contactplatform,
+                    contactInfo: userInfo.contactinfo,
+                    booksListed: booksListed
+                });
+                req.session.errorMsg = undefined;
+            });
         });
     });
 });
