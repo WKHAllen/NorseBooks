@@ -99,6 +99,7 @@ function sendPasswordResetEmail(email, hostname) {
 // Remove unnecessary characters from an ISBN
 function minISBN(ISBN) {
     while (ISBN.includes('-')) ISBN = ISBN.replace('-', '');
+    while (ISBN.includes(' ')) ISBN = ISBN.replace(' ', '');
     return ISBN;
 }
 
@@ -121,7 +122,7 @@ function validBook(form, callback) {
     var condition = stripWhitespace(form.condition);
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
-    var ISBN = minISBN(stripWhitespace(form.ISBN.toUpperCase()));
+    var ISBN = minISBN(stripWhitespace(form.ISBN).toUpperCase());
     // Check title
     if (title.length === 0 || title.length > 128) {
         callback(false, 'Please enter the title of the book. It must be at most 128 characters long.');
@@ -157,7 +158,7 @@ function validBook(form, callback) {
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
                                             // Check ISBN
-                                            if (validISBN(ISBN)) {
+                                            if (ISBN.length > 0 && !validISBN(ISBN)) {
                                                 callback(false, 'Please enter a valid ISBN.');
                                             } else {
                                                 callback(true, null, {
