@@ -453,25 +453,27 @@ app.get('/book/:bookId', (req, res) => {
                 database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
                     database.getDepartmentName(bookInfo.departmentid, (department) => {
                         database.getConditionName(bookInfo.conditionid, (condition) => {
-                            database.getAuthUser(req.session.sessionId, (userId) => {
-                                database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
-                                    database.userReportedRecently(userId, (reportedRecently) => {
-                                        renderPage(req, res, 'book', {
-                                            title: bookInfo.title,
-                                            author: bookInfo.author,
-                                            department: department,
-                                            courseNumber: bookInfo.coursenumber,
-                                            price: bookInfo.price,
-                                            condition: condition,
-                                            imageUrl: bookInfo.imageurl,
-                                            description: bookInfo.description,
-                                            firstname: userBookInfo.firstname,
-                                            lastname: userBookInfo.lastname,
-                                            contactPlatform: userBookInfo.contactplatform,
-                                            contactInfo: userBookInfo.contactinfo,
-                                            bookOwner: userId === userBookInfo.id,
-                                            bookId: req.params.bookId,
-                                            canReport: !alreadyReported && !reportedRecently
+                            database.getPlatformName(userBookInfo.contactplatformid, (platform) => {
+                                database.getAuthUser(req.session.sessionId, (userId) => {
+                                    database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                                        database.userReportedRecently(userId, (reportedRecently) => {
+                                            renderPage(req, res, 'book', {
+                                                title: bookInfo.title,
+                                                author: bookInfo.author,
+                                                department: department,
+                                                courseNumber: bookInfo.coursenumber,
+                                                price: bookInfo.price,
+                                                condition: condition,
+                                                imageUrl: bookInfo.imageurl,
+                                                description: bookInfo.description,
+                                                firstname: userBookInfo.firstname,
+                                                lastname: userBookInfo.lastname,
+                                                contactPlatform: platform,
+                                                contactInfo: userBookInfo.contactinfo,
+                                                bookOwner: userId === userBookInfo.id,
+                                                bookId: req.params.bookId,
+                                                canReport: !alreadyReported && !reportedRecently
+                                            });
                                         });
                                     });
                                 });
@@ -521,22 +523,32 @@ app.post('/reportBook/:bookId', auth, (req, res) => {
 app.get('/profile', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
-            database.getUserBooks(userId, (booksListed) => {
-                var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-                renderPage(req, res, 'profile', {
-                    title: 'Your profile',
-                    error: req.session.errorMsg || undefined,
-                    firstname: userInfo.firstname,
-                    lastname: userInfo.lastname,
-                    email: userInfo.email + '@luther.edu',
-                    imageUrl: userInfo.imageurl,
-                    joined: joinTimestamp,
-                    books: userInfo.itemslisted,
-                    contactPlatform: userInfo.contactplatform,
-                    contactInfo: userInfo.contactinfo,
-                    booksListed: booksListed
+            database.getContactInfo(userId, (userContactInfo) => {
+                database.getPlatforms((platforms) => {
+                    database.getUserBooks(userId, (booksListed) => {
+                        var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
+                        var contactPlatform = userContactInfo.contactplatformid;
+                        if (contactPlatform === null) contactPlatform = '';
+                        var contactInfo = userContactInfo.contactinfo;
+                        if (contactInfo === null) contactInfo = '';
+                        renderPage(req, res, 'profile', {
+                            title: 'Your profile',
+                            error: req.session.errorMsg || undefined,
+                            firstname: userInfo.firstname,
+                            lastname: userInfo.lastname,
+                            email: userInfo.email + '@luther.edu',
+                            imageUrl: userInfo.imageurl,
+                            joined: joinTimestamp,
+                            books: userInfo.itemslisted,
+                            platforms: platforms,
+                            contactInfoExists: contactPlatform !== '' && contactInfo !== '',
+                            contactPlatform: contactPlatform,
+                            contactInfo: contactInfo,
+                            booksListed: booksListed
+                        });
+                        req.session.errorMsg = undefined;
+                    });
                 });
-                req.session.errorMsg = undefined;
             });
         });
     });
@@ -580,23 +592,26 @@ app.post('/changePassword', auth, (req, res) => {
 
 // Set preferred contact info
 app.post('/setContactInfo', auth, (req, res) => {
-    var contactPlatform = stripWhitespace(req.body.contactPlatform);
+    var contactPlatform = parseInt(stripWhitespace(req.body.contactPlatform));
+    if (isNaN(contactPlatform)) contactPlatform = -1;
     var contactInfo = stripWhitespace(req.body.contactInfo);
-    if (contactPlatform.length > 0 && contactPlatform.length <= 32) {
-        if (contactInfo.length > 0 && contactInfo.length <= 128) {
-            database.getAuthUser(req.session.sessionId, (userId) => {
-                database.setContactInfo(userId, contactPlatform, contactInfo, () => {
-                    res.redirect('/profile');
+    database.validPlatform(contactPlatform, (valid) => {
+        if (valid) {
+            if (contactInfo.length > 0 && contactInfo.length <= 128) {
+                database.getAuthUser(req.session.sessionId, (userId) => {
+                    database.setContactInfo(userId, contactPlatform, contactInfo, () => {
+                        res.redirect('/profile');
+                    });
                 });
-            });
+            } else {
+                req.session.errorMsg = 'Contact info must be less than 128 characters.';
+                res.redirect('/profile');
+            }
         } else {
-            req.session.errorMsg = 'Contact info must be less than 128 characters';
+            req.session.errorMsg = 'Please select a valid contact platform.';
             res.redirect('/profile');
         }
-    } else {
-        req.session.errorMsg = 'Contact platform must be less than 32 characters';
-        res.redirect('/profile');
-    }
+    });
 });
 
 // About page
