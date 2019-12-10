@@ -168,9 +168,9 @@ function validBook(form, callback) {
                                                     courseNumber: courseNumber,
                                                     price: price,
                                                     condition: condition,
+                                                    ISBN: ISBN,
                                                     imageUrl: imageUrl,
-                                                    description: description,
-                                                    ISBN: ISBN
+                                                    description: description
                                                 });
                                             }
                                         }
@@ -436,6 +436,7 @@ app.post('/book', auth, (req, res) => {
                         courseNumber: req.body.courseNumber,
                         price: req.body.price,
                         condition: req.body.condition,
+                        ISBN: req.body.ISBN,
                         imageUrl: req.body.imageUrl,
                         description: req.body.description
                     }});
@@ -464,6 +465,7 @@ app.get('/book/:bookId', (req, res) => {
                                                 courseNumber: bookInfo.coursenumber,
                                                 price: bookInfo.price,
                                                 condition: condition,
+                                                ISBN: bookInfo.isbn,
                                                 imageUrl: bookInfo.imageurl,
                                                 description: bookInfo.description,
                                                 firstname: userBookInfo.firstname,

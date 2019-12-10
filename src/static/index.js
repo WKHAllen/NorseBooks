@@ -81,6 +81,7 @@ function loadMoreBooks() {
     if (params.get('author')) query.author = params.get('author');
     if (params.get('department')) query.department = params.get('department');
     if (params.get('courseNumber')) query.courseNumber = params.get('courseNumber');
+    if (params.get('ISBN')) query.ISBN = params.get('ISBN');
     query.lastBook = lastBookId;
     $.ajax({
         url: '/getBooks',

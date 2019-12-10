@@ -7,6 +7,9 @@
             <span><b>Price</b> ${{price}}</span>
             <span><b>Condition</b> {{condition}}</span>
             <span><b>Department</b> {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</span>
+            {{#if ISBN}}
+            <span><b>ISBN</b> {{ISBN}}</span>
+            {{/if}}
         </div>
     </p>
     <p class="justified">{{description}}</p>
