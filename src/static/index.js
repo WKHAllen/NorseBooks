@@ -81,6 +81,7 @@ function loadMoreBooks() {
     if (params.get('author')) query.author = params.get('author');
     if (params.get('department')) query.department = params.get('department');
     if (params.get('courseNumber')) query.courseNumber = params.get('courseNumber');
+    if (params.get('ISBN')) query.ISBN = params.get('ISBN');
     query.lastBook = lastBookId;
     $.ajax({
         url: '/getBooks',
@@ -89,9 +90,12 @@ function loadMoreBooks() {
         dataType: 'json',
         success: (data) => {
             if (data.books) {
-                document.getElementById('status').classList.add('hidden');
-                for (var book of data.books)
-                    addBook(book);
+                if (data.books.length > 0) {
+                    document.getElementById('status').classList.add('hidden');
+                    for (var book of data.books) addBook(book);
+                } else {
+                    document.getElementById('status').innerHTML = 'No books found ¯\\_(ツ)_/¯';
+                }
             } else if (data.err) {
                 deleteLastBook();
                 loadMoreBooks();

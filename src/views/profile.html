@@ -16,18 +16,24 @@
                 <div class="row">
                     <div class="form-group col-4 col-md-3">
                         <label for="contactPlatform">Contact platform</label>
-                        {{#if contactPlatform}}
-                        <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Phone, Facebook, Snapchat" value="{{contactPlatform}}" required>
-                        {{else}}
-                        <input type="text" class="form-control" id="contactPlatform" name="contactPlatform" maxlength="32" placeholder="i.e. Email, Phone, Facebook, Snapchat" required>
+                        <select class="form-control" id="contactPlatform" name="contactPlatform" required>
+                            <option value="">Select...</option>
+                            {{#each platforms}}
+                            <option value="{{this.id}}">{{this.name}}</option>
+                            {{/each}}
+                        </select>
+                        {{#if contactInfoExists}}
+                        <script type="text/javascript">
+                            document.getElementById('contactPlatform').value = '{{contactPlatform}}';
+                        </script>
                         {{/if}}
                     </div>
                     <div class="form-group col-8 col-md-6 col-lg-7">
                         <label for="contactInfo">Contact info</label>
                         {{#if contactInfo}}
-                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu, (505) 503-4455" value="{{contactInfo}}" required>
+                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" value="{{contactInfo}}" required>
                         {{else}}
-                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu, (505) 503-4455" required>
+                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" required>
                         {{/if}}
                     </div>
                     <div class="col-12 col-md-3 col-lg-2 flex-end even-spacing">

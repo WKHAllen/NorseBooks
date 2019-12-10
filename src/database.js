@@ -95,7 +95,7 @@ function init() {
             email TEXT NOT NULL,
             password TEXT NOT NULL,
             imageUrl TEXT,
-            contactPlatform TEXT,
+            contactPlatformId INT,
             contactInfo TEXT,
             joinTimestamp INT NOT NULL,
             lastLogin INT,
@@ -112,6 +112,12 @@ function init() {
     `;
     var conditionTable = `
         CREATE TABLE IF NOT EXISTS Condition (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL
+        );
+    `;
+    var platformTable = `
+        CREATE TABLE IF NOT EXISTS Platform (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL
         );
@@ -164,34 +170,36 @@ function init() {
             reportTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable]);
-    // Populate static tables
-    populateStaticTable('Department');
-    populateStaticTable('Condition');
-    // Remove expired password resets
-    var timeRemaining;
-    var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
-    mainDB.execute(sql, [], (rows) => {
-        for (var row of rows) {
-            timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
-            setTimeout(deletePasswordResetId, timeRemaining * 1000, row.resetid);
-        }
-    });
-    // Remove expired verification entries
-    sql = `SELECT verifyId, createTimestamp FROM Verify;`;
-    mainDB.execute(sql, [], (rows) => {
-        for (var row of rows) {
-            timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
-            setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
-        }
-    });
-    // Prune old sessions
-    sql = `SELECT id, createTimestamp FROM Session;`;
-    mainDB.execute(sql, [], (rows) => {
-        for (var row of rows) {
-            timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
-            setTimeout(deleteSession, timeRemaining * 1000, row.id);
-        }
+    mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable], null, () => {
+        // Populate static tables
+        populateStaticTable('Department');
+        populateStaticTable('Condition');
+        populateStaticTable('Platform');
+        // Remove expired password resets
+        var timeRemaining;
+        var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
+        mainDB.execute(sql, [], (rows) => {
+            for (var row of rows) {
+                timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
+                setTimeout(deletePasswordResetId, timeRemaining * 1000, row.resetid);
+            }
+        });
+        // Remove expired verification entries
+        sql = `SELECT verifyId, createTimestamp FROM Verify;`;
+        mainDB.execute(sql, [], (rows) => {
+            for (var row of rows) {
+                timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
+                setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
+            }
+        });
+        // Prune old sessions
+        sql = `SELECT id, createTimestamp FROM Session;`;
+        mainDB.execute(sql, [], (rows) => {
+            for (var row of rows) {
+                timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
+                setTimeout(deleteSession, timeRemaining * 1000, row.id);
+            }
+        });
     });
 }
 
@@ -251,7 +259,7 @@ function checkPassword(userId, password, callback) {
 
 // Get the info of a user by session ID
 function getUserInfo(userId, callback) {
-    var sql = `SELECT firstname, lastname, email, imageUrl, contactPlatform, contactInfo, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
+    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -290,17 +298,26 @@ function setUserPassword(userId, password, callback) {
 
 // Check if a user has set their contact information
 function hasContactInfo(userId, callback) {
-    var sql = `SELECT contactPlatform, contactInfo FROM NBUser WHERE id = ?;`;
+    var sql = `SELECT contactPlatformId, contactInfo FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(rows[0].contactplatform !== null && rows[0].contactinfo !== null);
+        if (callback) callback(rows[0].contactplatformid !== null && rows[0].contactinfo !== null);
+    });
+}
+
+// Get a user's contact information
+function getContactInfo(userId, callback) {
+    var sql = `SELECT contactPlatformId, contactInfo FROM NBUser WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0]);
     });
 }
 
 // Set a user's contact information
-function setContactInfo(userId, contactPlatform, contactInfo, callback) {
-    var sql = `UPDATE NBUser SET contactPlatform = ?, contactInfo = ? WHERE id = ?;`;
-    var params = [contactPlatform, contactInfo, userId];
+function setContactInfo(userId, contactPlatformId, contactInfo, callback) {
+    var sql = `UPDATE NBUser SET contactPlatformId = ?, contactInfo = ? WHERE id = ?;`;
+    var params = [contactPlatformId, contactInfo, userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
@@ -604,7 +621,7 @@ function getBookInfo(bookId, callback) {
 // Get information on the user who listed a book
 function getUserBookInfo(bookId, callback) {
     var sql = `
-        SELECT id, firstname, lastname, contactPlatform, contactInfo FROM NBUser WHERE id = (
+        SELECT id, firstname, lastname, contactPlatformId, contactInfo FROM NBUser WHERE id = (
             SELECT userId FROM Book WHERE bookId = ?
         );`;
     var params = [bookId];
@@ -795,6 +812,32 @@ function validCondition(conditionId, callback) {
     });
 }
 
+// Get all available contact platforms
+function getPlatforms(callback) {
+    var sql = `SELECT id, name FROM Platform ORDER BY id;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get the name of a contact platform by ID
+function getPlatformName(platformId, callback) {
+    var sql = `SELECT name FROM Platform WHERE id = ?;`;
+    var params = [platformId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].name);
+    });
+}
+
+// Check if a contact platform is valid
+function validPlatform(platformId, callback) {
+    var sql = `SELECT id FROM Platform WHERE id = ?;`;
+    var params = [platformId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
 // Check if a user can provide feedback
 function canProvideFeedback(userId, callback) {
     var sql = `SELECT id FROM NBUser WHERE id = ? AND (lastFeedbackTimestamp < ? OR lastFeedbackTimestamp IS NULL);`;
@@ -827,6 +870,7 @@ module.exports = {
     'setUserImage': setUserImage,
     'setUserPassword': setUserPassword,
     'hasContactInfo': hasContactInfo,
+    'getContactInfo': getContactInfo,
     'setContactInfo': setContactInfo,
     'getUserBooks': getUserBooks,
     'getNavInfo': getNavInfo,
@@ -863,6 +907,9 @@ module.exports = {
     'getConditions': getConditions,
     'getConditionName': getConditionName,
     'validCondition': validCondition,
+    'getPlatforms': getPlatforms,
+    'getPlatformName': getPlatformName,
+    'validPlatform': validPlatform,
     'canProvideFeedback': canProvideFeedback,
     'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'mainDB': mainDB
