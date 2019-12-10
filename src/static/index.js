@@ -89,9 +89,12 @@ function loadMoreBooks() {
         dataType: 'json',
         success: (data) => {
             if (data.books) {
-                document.getElementById('status').classList.add('hidden');
-                for (var book of data.books)
-                    addBook(book);
+                if (data.books.length > 0) {
+                    document.getElementById('status').classList.add('hidden');
+                    for (var book of data.books) addBook(book);
+                } else {
+                    document.getElementById('status').innerHTML = 'No books found ¯\\_(ツ)_/¯';
+                }
             } else if (data.err) {
                 deleteLastBook();
                 loadMoreBooks();
