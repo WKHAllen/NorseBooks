@@ -22,7 +22,7 @@ var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
 var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
 var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
-var cloudinaryApiSecret = process.env.CLODINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
+var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
 
 const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
