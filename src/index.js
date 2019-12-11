@@ -5,6 +5,8 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const owasp = require('owasp-password-strength-test');
 const randomPassword = require('secure-random-password');
+const multer = require('multer');
+const cloudinary = require('cloudinary');
 const database = require('./database');
 const emailer = require('./emailer');
 
@@ -18,9 +20,26 @@ try {
 
 var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
+var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
+var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
+var cloudinaryApiSecret = process.env.CLODINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
 
 const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
+
+var storage = multer.diskStorage({
+    filename: function(req, file, callback) {
+        callback(null, Date.now() + file.originalname);
+    }
+});
+
+var upload = multer({ storage: storage });
+
+cloudinary.config({
+    cloud_name: cloudinaryName,
+    api_key: cloudinaryApiKey,
+    api_secret: cloudinaryApiSecret
+});
 
 // The app object
 var app = express();
@@ -418,31 +437,33 @@ app.get('/book', auth, (req, res) => {
 });
 
 // List new book event
-app.post('/book', auth, (req, res) => {
-    validBook(req.body, (valid, err, values) => {
-        if (valid) {
-            database.getAuthUser(req.session.sessionId, (userId) => {
-                database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, values.imageUrl || null, values.ISBN || null, (bookId) => {
-                    res.redirect(`/book/${bookId}`);
+app.post('/book', auth, upload.single('image'), (req, res) => {
+    cloudinary.uploader.upload(req.file.path, function(result) {
+        validBook(req.body, (valid, err, values) => {
+            if (valid) {
+                database.getAuthUser(req.session.sessionId, (userId) => {
+                    database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN || null, (bookId) => {
+                        res.redirect(`/book/${bookId}`);
+                    });
                 });
-            });
-        } else {
-            database.getDepartments((departments) => {
-                database.getConditions((conditions) => {
-                    renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
-                        title: req.body.title,
-                        author: req.body.author,
-                        department: req.body.department,
-                        courseNumber: req.body.courseNumber,
-                        price: req.body.price,
-                        condition: req.body.condition,
-                        ISBN: req.body.ISBN,
-                        imageUrl: req.body.imageUrl,
-                        description: req.body.description
-                    }});
+            } else {
+                database.getDepartments((departments) => {
+                    database.getConditions((conditions) => {
+                        renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                            title: req.body.title,
+                            author: req.body.author,
+                            department: req.body.department,
+                            courseNumber: req.body.courseNumber,
+                            price: req.body.price,
+                            condition: req.body.condition,
+                            ISBN: req.body.ISBN,
+                            imageUrl: req.body.imageUrl,
+                            description: req.body.description
+                        }});
+                    });
                 });
-            });
-        }
+            }
+        });
     });
 });
 
