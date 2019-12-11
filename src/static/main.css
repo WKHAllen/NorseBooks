@@ -260,19 +260,6 @@ footer .footer-list-link {
     color: gray;
 }
 
-#login-card #forgot-password {
-    color: #0f2f9f;
-    font-weight: 600;
-}
-
-#login-card #login {
-    background: #0f2f9f;
-    color: white;
-    padding: 8px 20px;
-    border-radius: 5px;
-    outline: none;
-}
-
 #login-card .space-between {
     align-items: center;
 }
