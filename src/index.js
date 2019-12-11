@@ -5,24 +5,10 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const owasp = require('owasp-password-strength-test');
 const randomPassword = require('secure-random-password');
+const multer = require('multer');
+const cloudinary = require('cloudinary');
 const database = require('./database');
 const emailer = require('./emailer');
-
-var multer = require('multer');
-var storage = multer.diskStorage({
-  filename: function(req, file, callback) {
-    callback(null, Date.now() + file.originalname);
-  }
-});
-
-var upload = multer({ storage: storage})
-
-var cloudinary = require('cloudinary');
-cloudinary.config({ 
-  cloud_name: 'norsebooks', 
-  api_key: 454559543485832, 
-  api_secret: "2ZXUwz5o4lHzGr6o2jlZvcohWKA"
-});
 
 var debug = true;
 
@@ -34,9 +20,26 @@ try {
 
 var port = process.env.PORT || processenv.PORT;
 var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
+var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
+var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
+var cloudinaryApiSecret = process.env.CLODINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
 
 const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
+
+var storage = multer.diskStorage({
+    filename: function(req, file, callback) {
+        callback(null, Date.now() + file.originalname);
+    }
+});
+
+var upload = multer({ storage: storage });
+
+cloudinary.config({
+    cloud_name: cloudinaryName,
+    api_key: cloudinaryApiKey,
+    api_secret: cloudinaryApiSecret
+});
 
 // The app object
 var app = express();
@@ -436,7 +439,6 @@ app.get('/book', auth, (req, res) => {
 // List new book event
 app.post('/book', auth, upload.single('image'), (req, res) => {
     cloudinary.uploader.upload(req.file.path, function(result) {
-        console.log(result)
         validBook(req.body, (valid, err, values) => {
             if (valid) {
                 database.getAuthUser(req.session.sessionId, (userId) => {
