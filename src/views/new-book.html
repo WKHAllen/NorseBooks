@@ -4,7 +4,7 @@
         {{#if error}}
         <div class="alert alert-danger" role="alert">{{error}}</div>
         {{/if}}
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <p class="">Fill out the form below to list a book. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
             <p id="small">* = required</p>
             <div class="row">
@@ -86,12 +86,11 @@
                 </div>
                 <!-- Image URL -->
                 <div class="form-group col-12 col-md-8">
-                    <label for="imageUrl">Image URL</label>
-                    {{#if form}}
-                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" value="{{form.imageUrl}}">
-                    {{else}}
-                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256">
-                    {{/if}}
+                    <label for="imageDiv">Image*</label>
+                    <div class="custom-file" id="imageDiv">
+                        <input type="file" class="custom-file-input" id="image" name="image" accept=".jpg, .jpeg, .png" required>
+                        <label class="custom-file-label" for="image">Choose file</label>
+                    </div>
                 </div>
             </div>
             <!-- Description -->
@@ -103,3 +102,13 @@
         </form>
     </div>    
 </div>
+
+<script>
+        $('#image').on('change',function(){
+            //get the file name
+            var fileName = $(this).val().replace("C:\\fakepath\\", "");
+            //replace the "Choose a file" label
+
+            $(this).next('.custom-file-label').html(fileName);
+        })
+    </script>
