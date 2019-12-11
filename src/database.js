@@ -55,9 +55,17 @@ function populateStaticTable(tableName) {
             fs.createReadStream(getStaticTablePath(tableName))
                 .pipe(csv.parse({ headers: true }))
                 .on('data', (row) => {
-                    var sql = `INSERT INTO ${tableName} (id, name) VALUES (?, ?);`;
-                    var params = [row.id, row.name];
-                    mainDB.execute(sql, params);
+                    // keys
+                    var keys = Object.keys(row);
+                    var colKeys = keys.join(', ');
+                    // values
+                    var values = Object.values(row);
+                    var colValues = [];
+                    for (var i = 0; i < values.length; i++) colValues.push('?');
+                    colValues = colValues.join(', ');
+                    // sql
+                    var sql = `INSERT INTO ${tableName} (${colKeys}) VALUES (${colValues});`;
+                    mainDB.execute(sql, values);
                 });
         }
     });
@@ -170,36 +178,47 @@ function init() {
             reportTimestamp INT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable], null, () => {
-        // Populate static tables
-        populateStaticTable('Department');
-        populateStaticTable('Condition');
-        populateStaticTable('Platform');
-        // Remove expired password resets
-        var timeRemaining;
-        var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
-        mainDB.execute(sql, [], (rows) => {
-            for (var row of rows) {
-                timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
-                setTimeout(deletePasswordResetId, timeRemaining * 1000, row.resetid);
-            }
-        });
-        // Remove expired verification entries
-        sql = `SELECT verifyId, createTimestamp FROM Verify;`;
-        mainDB.execute(sql, [], (rows) => {
-            for (var row of rows) {
-                timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
-                setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
-            }
-        });
-        // Prune old sessions
-        sql = `SELECT id, createTimestamp FROM Session;`;
-        mainDB.execute(sql, [], (rows) => {
-            for (var row of rows) {
-                timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
-                setTimeout(deleteSession, timeRemaining * 1000, row.id);
-            }
-        });
+    var searchSortTable = `
+        CREATE TABLE IF NOT EXISTS SearchSort (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            query TEXT NOT NULL
+        );
+    `;
+    mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable, searchSortTable], null, () => {
+        // Crash occurs unless wait
+        setTimeout(() => {
+            // Populate static tables
+            populateStaticTable('Department');
+            populateStaticTable('Condition');
+            populateStaticTable('Platform');
+            populateStaticTable('SearchSort');
+            // Remove expired password resets
+            var timeRemaining;
+            var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
+            mainDB.execute(sql, [], (rows) => {
+                for (var row of rows) {
+                    timeRemaining = row.createtimestamp + Math.floor(passwordResetTimeout / 1000) - getTime();
+                    setTimeout(deletePasswordResetId, timeRemaining * 1000, row.resetid);
+                }
+            });
+            // Remove expired verification entries
+            sql = `SELECT verifyId, createTimestamp FROM Verify;`;
+            mainDB.execute(sql, [], (rows) => {
+                for (var row of rows) {
+                    timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
+                    setTimeout(pruneUnverified, timeRemaining * 1000, row.verifyid);
+                }
+            });
+            // Prune old sessions
+            sql = `SELECT id, createTimestamp FROM Session;`;
+            mainDB.execute(sql, [], (rows) => {
+                for (var row of rows) {
+                    timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
+                    setTimeout(deleteSession, timeRemaining * 1000, row.id);
+                }
+            });
+        }, 1000);
     });
 }
 
@@ -653,7 +672,7 @@ function deleteBook(userId, bookId, callback) {
 }
 
 // Get info on books searched
-function searchBooks(options, lastBookId, callback) {
+function searchBooks(options, sort, lastBookId, callback) {
     var params = [];
     var searchQuery = '';
     if (Object.keys(options).length > 0) {
@@ -686,14 +705,20 @@ function searchBooks(options, lastBookId, callback) {
             params.push(lastBookId);
         }
     }
-    var sql = `
-        SELECT bookId, title, author, departmentId, Department.name AS department, courseNumber, price, imageUrl, ISBN FROM Book
-        JOIN Department ON Book.departmentId = Department.id
-        ${searchQuery} ORDER BY listedTimestamp DESC LIMIT ?;`;
-    // Limit the number of books queried
-    params.push(booksPerQuery);
-    mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(rows);
+    getSearchSortQuery(sort, (sortQuery) => {
+        var sortQuery = sortQuery || 'listedTimestamp DESC';
+        var sql = `
+            SELECT
+                bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                price, conditionId, imageUrl, ISBN
+            FROM Book
+            JOIN Department ON Book.departmentId = Department.id
+            ${searchQuery} ORDER BY ${sortQuery} LIMIT ?;`;
+        // Limit the number of books queried
+        params.push(booksPerQuery);
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows);
+        });
     });
 }
 
@@ -838,6 +863,44 @@ function validPlatform(platformId, callback) {
     });
 }
 
+// Get all available search sorting options
+function getSearchSortOptions(callback) {
+    var sql = `SELECT id, name FROM SearchSort ORDER BY id;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get the name of a search sorting option by ID
+function getSearchSortName(searchSortId, callback) {
+    var sql = `SELECT name FROM SearchSort WHERE id = ?;`;
+    var params = [searchSortId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows[0].name);
+    });
+}
+
+// Get the ORDER BY section of a search query by ID
+function getSearchSortQuery(searchSortId, callback) {
+    var sql = `SELECT query FROM SearchSort WHERE id = ?;`;
+    var params = [searchSortId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) {
+            if (rows.length > 0) callback(rows[0].query);
+            else callback(null);
+        }
+    });
+}
+
+// Check if a search sorting option is valid
+function validSearchSortOption(searchSortId, callback) {
+    var sql = `SELECT id FROM SearchSort WHERE id = ?;`;
+    var params = [searchSortId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
 // Check if a user can provide feedback
 function canProvideFeedback(userId, callback) {
     var sql = `SELECT id FROM NBUser WHERE id = ? AND (lastFeedbackTimestamp < ? OR lastFeedbackTimestamp IS NULL);`;
@@ -910,6 +973,10 @@ module.exports = {
     'getPlatforms': getPlatforms,
     'getPlatformName': getPlatformName,
     'validPlatform': validPlatform,
+    'getSearchSortOptions': getSearchSortOptions,
+    'getSearchSortName': getSearchSortName,
+    'getSearchSortQuery': getSearchSortQuery,
+    'validSearchSortOption': validSearchSortOption,
     'canProvideFeedback': canProvideFeedback,
     'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'mainDB': mainDB

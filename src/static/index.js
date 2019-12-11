@@ -82,6 +82,7 @@ function loadMoreBooks() {
     if (params.get('department')) query.department = params.get('department');
     if (params.get('courseNumber')) query.courseNumber = params.get('courseNumber');
     if (params.get('ISBN')) query.ISBN = params.get('ISBN');
+    if (params.get('sort')) query.sort = params.get('sort');
     query.lastBook = lastBookId;
     $.ajax({
         url: '/getBooks',

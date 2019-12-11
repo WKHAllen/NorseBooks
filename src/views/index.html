@@ -13,7 +13,7 @@
     <div class="form-row">
         <div class="row even-spacing">
             <!-- Title -->
-            <div class="col-lg-2 col-md-6 col-sm-6 mb-3">
+            <div class="col-lg-3 col-md-3 col-sm-6 mb-3">
                 <label for="title">Book title</label>
                 {{#if form.title}}
                 <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}">
@@ -22,7 +22,7 @@
                 {{/if}}
             </div>
             <!-- Author -->
-            <div class="col-lg-2 col-md-6 col-sm-6 mb-2">
+            <div class="col-lg-3 col-md-3 col-sm-6 mb-2">
                 <label for="author">Author</label>
                 {{#if form.author}}
                 <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}">
@@ -31,7 +31,7 @@
                 {{/if}}
             </div>
             <!-- Dept -->
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-3 col-md-3 col-sm-6 mb-3">
                 <label for="department">Department</label>
                 <select class="form-control" id="department" name="department">
                     <option value="">Select...</option>
@@ -46,7 +46,7 @@
                 {{/if}}
             </div>
             <!-- Course Number -->
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-3 col-md-3 col-sm-6 mb-3">
                 <label for="courseNumber">Course number</label>
                 {{#if form.courseNumber}}
                 <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
@@ -55,7 +55,7 @@
                 {{/if}}
             </div>
             <!-- ISBN -->
-            <div class="col-lg-2 col-md-4 col-sm-12 mb-3">
+            <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
                 <label for="ISBN">ISBN</label>
                 {{#if form.ISBN}}
                 <input type="text" class="form-control" id="ISBN" name="ISBN" maxlength="13" value="{{form.ISBN}}">
@@ -63,8 +63,22 @@
                 <input type="text" class="form-control" id="ISBN" name="ISBN" maxlength="13">
                 {{/if}}
             </div>
+            <!-- Sort -->
+            <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <label for="sort">Sort</label>
+                <select class="form-control" id="sort" name="sort" required>
+                    {{#each sortOptions}}
+                    <option value="{{this.id}}">{{this.name}}</option>
+                    {{/each}}
+                </select>
+                {{#if form.sort}}
+                <script type="text/javascript">
+                    document.getElementById('sort').value = '{{form.sort}}';
+                </script>
+                {{/if}}
+            </div>
             <!-- Submit -->
-            <div class="col-lg-2 col-sm-12 mb-3 flex-end">
+            <div class="col-lg-4 col-md-4 col-sm-12 mb-3 flex-end">
                 <button type="submit" class="btn btn-primary mr-1 no-expand">Search</button>
                 <button type="button" class="btn btn-primary" onclick="window.location.href = '/';"{{#unless form}} disabled{{/unless}}>Clear</a>
             </div>
