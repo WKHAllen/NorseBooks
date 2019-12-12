@@ -620,6 +620,26 @@ function newBook(title, author, departmentId, courseNumber, condition, descripti
     });
 }
 
+// Edit an existing book
+function editBook(bookId, title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, ISBN10, ISBN13, callback) {
+    var params = [title, author, departmentId, courseNumber, condition, description, price, ISBN10, ISBN13];
+    var image = '';
+    if (imageUrl !== null) {
+        image = ', imageUrl = ?';
+        params.push(imageUrl);
+    }
+    params.push(bookId);
+    params.push(userId);
+    var sql = `
+        UPDATE Book
+            SET title = ?, author = ?, departmentId = ?, courseNumber = ?, conditionId = ?,
+            description = ?, price = ?, ISBN10 = ?, ISBN13 = ?${image}
+        WHERE bookId = ? AND userId = ?;`;
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
 // Check if a book is valid
 function validBook(bookId, callback) {
     var sql = `SELECT id FROM Book WHERE bookId = ?;`;
@@ -958,6 +978,7 @@ module.exports = {
     'passwordResetExists': passwordResetExists,
     'newBookId': newBookId,
     'newBook': newBook,
+    'editBook': editBook,
     'validBook': validBook,
     'getBookInfo': getBookInfo,
     'getUserBookInfo': getUserBookInfo,

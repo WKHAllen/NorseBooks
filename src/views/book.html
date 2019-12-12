@@ -18,6 +18,7 @@
     <p class="justified">{{description}}</p>
     <form method="POST">
         {{#if bookOwner}}
+        <a href="/edit/{{bookId}}" class="btn btn-primary">Edit book</a>
         <button type="submit" class="btn btn-primary" formaction="/deleteBook/{{bookId}}">Delete book</button>
         <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
         {{else}}
