@@ -440,7 +440,7 @@ app.get('/book', auth, (req, res) => {
                     if (hasInfo) {
                         database.getDepartments((departments) => {
                             database.getConditions((conditions) => {
-                                renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions });
+                                renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
                             });
                         });
                     } else {
@@ -467,7 +467,7 @@ app.post('/book', auth, upload.single('image'), (req, res) => {
             } else {
                 database.getDepartments((departments) => {
                     database.getConditions((conditions) => {
-                        renderPage(req, res, 'new-book', { title: 'New Book', departments: departments, conditions: conditions, error: err, form: {
+                        renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions, error: err, form: {
                             title: req.body.title,
                             author: req.body.author,
                             department: req.body.department,
@@ -527,6 +527,84 @@ app.get('/book/:bookId', (req, res) => {
             });
         } else {
             renderPage(req, res, 'book-not-found', { title: 'Book not found' });
+        }
+    });
+});
+
+// Edit book page
+app.get('/edit/:bookId', auth, (req, res) => {
+    database.validBook(req.params.bookId, (valid) => {
+        if (valid) {
+            database.getAuthUser(req.session.sessionId, (userId) => {
+                database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
+                    if (userId === userBookInfo.id) {
+                        database.getBookInfo(req.params.bookId, (bookInfo) => {
+                            database.getDepartments((departments) => {
+                                database.getConditions((conditions) => {
+                                    renderPage(req, res, 'edit', { title: 'Edit book', departments: departments, conditions: conditions, form: {
+                                        bookId: req.params.bookId,
+                                        title: bookInfo.title,
+                                        author: bookInfo.author,
+                                        department: bookInfo.departmentid,
+                                        courseNumber: bookInfo.coursenumber,
+                                        price: bookInfo.price,
+                                        condition: bookInfo.conditionid,
+                                        ISBN10: bookInfo.isbn10,
+                                        ISBN13: bookInfo.isbn13,
+                                        imageUrl: bookInfo.imageurl,
+                                        description: bookInfo.description
+                                    }});
+                                });
+                            });
+                        });
+                    } else {
+                        renderPage(req, res, 'unable-to-edit', { title: 'Unable to edit book' });
+                    }
+                });
+            });
+        } else {
+            renderPage(req, res, 'book-not-found', { title: 'Book not found' });
+        }
+    });
+});
+
+// Edit book event
+app.post('/edit/:bookId', auth, upload.single('image'), (req, res) => {
+    validBook(req.body, (valid, err, values) => {
+        if (valid) {
+            if (req.file) {
+                cloudinary.uploader.upload(req.file.path, function(result) {
+                    database.getAuthUser(req.session.sessionId, (userId) => {
+                        database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                            res.redirect(`/book/${req.params.bookId}`);
+                        });
+                    });
+                });
+            } else {
+                database.getAuthUser(req.session.sessionId, (userId) => {
+                    database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                        res.redirect(`/book/${req.params.bookId}`);
+                    });
+                });
+            }
+        } else {
+            database.getDepartments((departments) => {
+                database.getConditions((conditions) => {
+                    renderPage(req, res, 'edit', { title: 'Edit book', departments: departments, conditions: conditions, error: err, form: {
+                        bookId: req.params.bookId,
+                        title: req.body.title,
+                        author: req.body.author,
+                        department: req.body.department,
+                        courseNumber: req.body.courseNumber,
+                        price: req.body.price,
+                        condition: req.body.condition,
+                        ISBN10: req.body.ISBN10,
+                        ISBN13: req.body.ISBN13,
+                        imageUrl: req.body.imageUrl,
+                        description: req.body.description
+                    }});
+                });
+            });
         }
     });
 });

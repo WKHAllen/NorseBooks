@@ -1,75 +1,37 @@
 <div class="container">
     <div id="new-book-card" class="mb-5">
-        <h1 class="centered my-4">New Book</h1>
+        <h1 class="centered my-4">Edit Book</h1>
         {{#if error}}
         <div class="alert alert-danger" role="alert">{{error}}</div>
         {{/if}}
         <form method="POST" enctype="multipart/form-data">
-            <p class="">Fill out the form below to list a book. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
-            
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="search-addon"><i class="fas fa-search"></i></span>
-                </div>
-                <input type="text" class="form-control" placeholder="Search for a book..." aria-label="Search for a book" aria-describedby="search-addon" id="search-google-api">
-            </div>
-            <div class="list-group mb-5" id="result-list-container">
-                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
-                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
-                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
-                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
-                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
-            </div>
-    
-            <hr class="mt-4">
-
             <p id="small">* = required</p>
             <div class="row">
                 <!-- Title -->
                 <div class="form-group col-sm-6 col-lg-4">
                     <label for="title">Book title*</label>
-                    {{#if form}}
                     <input type="text" class="form-control" id="title" name="title" maxlength="128" value="{{form.title}}" required>
-                    {{else}}
-                    <input type="text" class="form-control" id="title" name="title" maxlength="128" required>
-                    {{/if}}
                 </div>
                 <!-- Author -->
                 <div class="form-group col-sm-6 col-lg-4">
                     <label for="author">Author*</label>
-                    {{#if form}}
                     <input type="text" class="form-control" id="author" name="author" maxlength="64" value="{{form.author}}" required>
-                    {{else}}
-                    <input type="text" class="form-control" id="author" name="author" maxlength="64" required>
-                    {{/if}}
                 </div>
                 <!-- Price -->
                 <div class="form-group col-sm-12 col-md-4">
                     <label for="price">Price (USD)*</label>
-                    {{#if form}}
                     <input type="text" class="form-control" id="price" name="price" maxlength="7" value="{{form.price}}" required>
-                    {{else}}
-                    <input type="text" class="form-control" id="price" name="price" maxlength="7" required>
-                    {{/if}}
                 </div>
                 
                 <!-- ISBN-10 -->
                 <div class="form-group col-6 col-md-4">
                     <label for="ISBN10">ISBN-10</label>
-                    {{#if form}}
                     <input type="text" class="form-control" id="ISBN10" name="ISBN10" maxlength="10" value="{{form.ISBN10}}">
-                    {{else}}
-                    <input type="text" class="form-control" id="ISBN10" name="ISBN10" maxlength="10">
-                    {{/if}}
                 </div>
                 <!-- ISBN-13 -->
                 <div class="form-group col-6 col-md-4">
                     <label for="ISBN13">ISBN-13</label>
-                    {{#if form}}
                     <input type="text" class="form-control" id="ISBN13" name="ISBN13" maxlength="13" value="{{form.ISBN13}}">
-                    {{else}}
-                    <input type="text" class="form-control" id="ISBN13" name="ISBN13" maxlength="13">
-                    {{/if}}
                 </div>
                 <!-- Condition -->
                 <div class="form-group col-12 col-lg-4">
@@ -80,11 +42,9 @@
                         <option value="{{this.id}}">{{this.name}}</option>
                         {{/each}}
                     </select>
-                    {{#if form}}
                     <script type="text/javascript">
                         document.getElementById('condition').value = '{{form.condition}}';
                     </script>
-                    {{/if}}
                 </div>
                 
                 <!-- Department -->
@@ -96,26 +56,20 @@
                         <option value="{{this.id}}">{{this.name}}</option>
                         {{/each}}
                     </select>
-                    {{#if form}}
                     <script type="text/javascript">
                         document.getElementById('department').value = '{{form.department}}';
                     </script>
-                    {{/if}}
                 </div>
                 <!-- Course number -->
                 <div class="form-group col-6 col-lg-4">
                     <label for="courseNumber">Course number</label>
-                    {{#if form}}
                     <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3" value="{{form.courseNumber}}">
-                    {{else}}
-                    <input type="number" class="form-control" id="courseNumber" name="courseNumber" maxlength="3">
-                    {{/if}}
                 </div>
                 <!-- Image -->
                 <div class="form-group col-12 col-lg-4">
-                    <label for="imageDiv">Image*</label>
+                    <label for="imageDiv">Image</label>
                     <div class="custom-file" id="imageDiv">
-                        <input type="file" class="custom-file-input" id="image" name="image" accept=".jpg, .jpeg, .png" required>
+                        <input type="file" class="custom-file-input" id="image" name="image" accept=".jpg, .jpeg, .png">
                         <label class="custom-file-label" for="image">Choose file</label>
                     </div>
                 </div>
@@ -123,9 +77,10 @@
             <!-- Description -->
             <div class="form-group col-12"  id="description-container">
                 <label for="description">Description*</label>
-                <textarea type="text" class="form-control" id="description" name="description" maxlength="1024" rows="3" required>{{#if form}}{{form.description}}{{/if}}</textarea>
+                <textarea type="text" class="form-control" id="description" name="description" maxlength="1024" rows="3" required>{{form.description}}</textarea>
             </div>
-            <button type="submit" class="btn btn-primary">List book</button>
+            <button type="submit" class="btn btn-primary">Edit book</button>
+            <a href="/book/{{form.bookId}}" class="btn btn-primary">Cancel</a>
         </form>
     </div>    
 </div>
@@ -139,4 +94,3 @@
         $(this).next('.custom-file-label').html(fileName);
     })
 </script>
-<script type="text/javascript" src="/js/new-book.js"></script>
