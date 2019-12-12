@@ -1,0 +1,13 @@
+id,name,query
+0,Newest,listedTimestamp DESC
+1,Oldest,listedTimestamp ASC
+2,Author (A-Z),author ASC
+3,Author (Z-A),author DESC
+4,Department (A-Z),department ASC
+5,Department (Z-A),department DESC
+6,Course number ascending,courseNumber ASC
+7,Course number descending,courseNumber DESC
+8,Price ascending,price ASC
+9,Price descending,price DESC
+10,Condition (good-poor),conditionId ASC
+11,Condition (poor-good),conditionId DESC

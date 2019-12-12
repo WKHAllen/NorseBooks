@@ -82,6 +82,7 @@ function loadMoreBooks() {
     if (params.get('department')) query.department = params.get('department');
     if (params.get('courseNumber')) query.courseNumber = params.get('courseNumber');
     if (params.get('ISBN')) query.ISBN = params.get('ISBN');
+    if (params.get('sort')) query.sort = params.get('sort');
     query.lastBook = lastBookId;
     $.ajax({
         url: '/getBooks',
@@ -91,6 +92,15 @@ function loadMoreBooks() {
         success: (data) => {
             if (data.books) {
                 if (data.books.length > 0) {
+                    // If this is the first time loading books
+                    if (document.getElementById('index').children.length === 0) {
+                        // Load more books when scrolled to the bottom of the page
+                        window.onscroll = () => {
+                            if (Math.round(window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+                                loadMoreBooks();
+                            }
+                        };
+                    }
                     document.getElementById('status').classList.add('hidden');
                     for (var book of data.books) addBook(book);
                 } else {
@@ -107,11 +117,7 @@ function loadMoreBooks() {
     });
 }
 
-// Load more books when scrolled to the bottom of the page
-window.onscroll = () => {
-    if (Math.round(window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-        loadMoreBooks();
-    }
+// Load books once the page is loaded
+window.onload = () => {
+    loadMoreBooks();
 };
-
-window.onload = loadMoreBooks;

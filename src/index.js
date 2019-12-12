@@ -242,17 +242,20 @@ function renderPage(req, res, page, options) {
 // Main page
 app.get('/', (req, res) => {
     database.getDepartments((departments) => {
-        if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN) {
-            renderPage(req, res, 'index', { departments: departments });
-        } else {
-            renderPage(req, res, 'index', { departments: departments, form: {
-                title: req.query.title,
-                author: req.query.author,
-                department: req.query.department,
-                courseNumber: req.query.courseNumber,
-                ISBN: req.query.ISBN
-            }});
-        }
+        database.getSearchSortOptions((searchSortOptions) => {
+            if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN && !req.query.sort) {
+                renderPage(req, res, 'index', { departments: departments, sortOptions: searchSortOptions });
+            } else {
+                renderPage(req, res, 'index', { departments: departments, sortOptions: searchSortOptions, form: {
+                    title: req.query.title,
+                    author: req.query.author,
+                    department: req.query.department,
+                    courseNumber: req.query.courseNumber,
+                    ISBN: req.query.ISBN,
+                    sort: req.query.sort
+                }});
+            }
+        });
     });
 });
 
@@ -271,6 +274,9 @@ app.get('/getBooks', (req, res) => {
             var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
             // ISBN
             var ISBN = minISBN(stripWhitespace(req.query.ISBN).toUpperCase());
+            // sort
+            var sort = parseInt(stripWhitespace(req.query.sort));
+            if (isNaN(sort)) sort = null;
             var searchOptions = {};
             // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
@@ -283,8 +289,13 @@ app.get('/getBooks', (req, res) => {
                 if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
                 // Check ISBN
                 if (validISBN(ISBN)) searchOptions.ISBN = ISBN;
-                database.searchBooks(searchOptions, req.query.lastBook, (rows) => {
-                    res.json({ books: rows });
+                // Check sort
+                database.validSearchSortOption(sort, (valid) => {
+                    if (!valid) sort = null;
+                    // Perform search
+                    database.searchBooks(searchOptions, sort, req.query.lastBook, (rows) => {
+                        res.json({ books: rows });
+                    });
                 });
             });
         } else {
