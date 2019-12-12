@@ -51,8 +51,11 @@ function populateBookInfo(volumeId) {
             var authorField = document.querySelector('input#author');
             var isbnField = document.querySelector('input#ISBN');
             titleField.value = responseText.volumeInfo.title;
+            titleField.classList.add("autofill-success")
             authorField.value = responseText.volumeInfo.authors[0];
+            authorField.classList.add("autofill-success")
             isbnField.value = responseText.volumeInfo.industryIdentifiers[1].identifier;
+            isbnField.classList.add("autofill-success")
             console.log(responseText);
             // MAKE FIELDS GREEN!
         }

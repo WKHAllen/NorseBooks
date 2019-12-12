@@ -225,6 +225,15 @@ footer .footer-list-link {
     font-style: italic;
 }
 
+.autofill-success {
+    border: 2px solid rgb(13, 163, 13);
+    background: rgb(234, 250, 234);
+}
+
+.autofill-fail {
+    border: 2px solid red;
+}
+
 /* Profile Page */
 .image-circle {
     border-radius: 50%;
