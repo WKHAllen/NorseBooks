@@ -186,6 +186,16 @@ footer .footer-list-link {
     padding: 2px 8px;
 }
 
+.photo-creds {
+    font-style: italic;
+    color: white;
+}
+
+.photo-creds a {
+    color: white;
+    text-decoration: underline;
+}
+
 .card {
     background-color: rgb(248, 248, 248);
     border-radius: 0;
