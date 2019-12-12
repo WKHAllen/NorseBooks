@@ -11,3 +11,7 @@ function copyToClipboard(text) {
     document.execCommand('copy');
     document.body.removeChild(copyText);
 }
+
+function submitForm(id) {
+    document.getElementById(id).submit()
+}
