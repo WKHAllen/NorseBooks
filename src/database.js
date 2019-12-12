@@ -371,7 +371,7 @@ function getUserBooks(userId, callback) {
 // Get the info necessary for rendering the navbar
 function getNavInfo(sessionId, callback) {
     var sql = `
-        SELECT id, imageUrl, firstname FROM NBUser WHERE id = (
+        SELECT id, imageUrl, firstname, admin FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
         );`;
     var params = [sessionId];
