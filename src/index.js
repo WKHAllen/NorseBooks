@@ -7,6 +7,7 @@ const owasp = require('owasp-password-strength-test');
 const randomPassword = require('secure-random-password');
 const multer = require('multer');
 const cloudinary = require('cloudinary');
+const remarkable = require('remarkable');
 const database = require('./database');
 const emailer = require('./emailer');
 
@@ -26,6 +27,8 @@ var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDI
 
 const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
+
+var md = new remarkable.Remarkable();
 
 var storage = multer.diskStorage({
     filename: function(req, file, callback) {
@@ -214,13 +217,30 @@ function validBook(form, callback) {
 // Authorize/authenticate
 var auth = (req, res, next) => {
     if (!req.session || !req.session.sessionId) {
-        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
     } else {
         database.auth(req.session.sessionId, (valid) => {
-            if (valid)
-                next();
-            else
-                return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+            if (valid) next();
+            return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+        });
+    }
+}
+
+var adminAuth = (req, res, next) => {
+    if (!req.session || !req.session.sessionId) {
+        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+    } else {
+        database.auth(req.session.sessionId, (valid) => {
+            if (valid) {
+                database.getAuthUser(req.session.sessionId, (userId) => {
+                    database.isAdmin(userId, (admin) => {
+                        if (admin) next();
+                        else renderPage(req, res, 'not-admin', { title: 'Permission denied' });
+                    });
+                });
+            } else {
+                return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+            }
         });
     }
 }
@@ -776,12 +796,32 @@ app.get('/help-out', (req, res) => {
 
 // Terms and conditions page
 app.get('/terms-and-conditions', (req, res) => {
-    renderPage(req, res, 'terms-and-conditions', { title: 'Terms and conditions' });
+    database.getTermsAndConditions((termsAndConditions) => {
+        termsAndConditions = md.render(termsAndConditions);
+        renderPage(req, res, 'terms-and-conditions', {
+            title: 'Terms and conditions',
+            termsAndConditions: termsAndConditions
+        });
+    });
 });
 
-// Privacy policy page
-app.get('/privacy-policy', (req, res) => {
-    renderPage(req, res, 'privacy-policy', { title: 'Privacy policy' });
+// Admin main page
+app.get('/admin', adminAuth, (req, res) => {
+    renderPage(req, res, 'admin', { title: 'Admin' });
+});
+
+// Edit terms and conditions page
+app.get('/admin/terms-and-conditions', adminAuth, (req, res) => {
+    database.getTermsAndConditions((termsAndConditions) => {
+        renderPage(req, res, 'admin-tac', { title: 'Edit terms and conditions', termsAndConditions: termsAndConditions });
+    });
+});
+
+// Edit terms and conditions event
+app.post('/admin/terms-and-conditions', adminAuth, (req, res) => {
+    database.setTermsAndConditions(req.body.tac, () => {
+        res.redirect('/admin/terms-and-conditions');
+    });
 });
 
 // Error 404 (not found)

@@ -109,7 +109,8 @@ function init() {
             lastLogin INT,
             itemsListed INT NOT NULL,
             verified INT NOT NULL,
-            lastFeedbackTimestamp INT
+            lastFeedbackTimestamp INT,
+            admin INT NOT NULL
         );
     `;
     var departmentTable = `
@@ -186,7 +187,14 @@ function init() {
             query TEXT NOT NULL
         );
     `;
-    mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable, searchSortTable], null, () => {
+    var metaTable = `
+        CREATE TABLE IF NOT EXISTS Meta (
+            id SERIAL PRIMARY KEY,
+            key TEXT NOT NULL,
+            value TEXT NOT NULL
+        );
+    `;
+    mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable, searchSortTable, metaTable], null, () => {
         // Crash occurs unless wait
         setTimeout(() => {
             // Populate static tables
@@ -513,10 +521,10 @@ function register(email, password, firstname, lastname, callback) {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `
-            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, verified) VALUES (
-                ?, ?, ?, ?, ?, ?, ?
+            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, verified, admin) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?
             );`;
-        var params = [email, hash, firstname, lastname, getTime(), 0, 0];
+        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
@@ -944,6 +952,32 @@ function updateFeedbackTimestamp(userId, callback) {
     });
 }
 
+// Check if a user is an admin
+function isAdmin(userId, callback) {
+    var sql = `SELECT id FROM NBUser WHERE id = ? AND admin = 1;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(rows.length === 1);
+    });
+}
+
+// Get the terms and conditions
+function getTermsAndConditions(callback) {
+    var sql = `SELECT value FROM Meta WHERE key = 'Terms and Conditions'`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].value);
+    });
+}
+
+// Set the terms and conditions
+function setTermsAndConditions(termsAndCondtions, callback) {
+    var sql = `UPDATE Meta SET value = ? WHERE key = 'Terms and Conditions';`;
+    var params = [termsAndCondtions];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
 // Initialize the database on import
 init();
 
@@ -1005,5 +1039,8 @@ module.exports = {
     'validSearchSortOption': validSearchSortOption,
     'canProvideFeedback': canProvideFeedback,
     'updateFeedbackTimestamp': updateFeedbackTimestamp,
+    'isAdmin': isAdmin,
+    'getTermsAndConditions': getTermsAndConditions,
+    'setTermsAndConditions': setTermsAndConditions,
     'mainDB': mainDB
 };

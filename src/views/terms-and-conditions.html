@@ -1,0 +1,9 @@
+<div class="container">
+    <h1 class="centered">Terms and Conditions</h1>
+    <div class="justified" id="tac"></div>
+    <div class="hidden" id="tacText">{{termsAndConditions}}</div>
+</div>
+<script type="text/javascript">
+    var tac = document.getElementById('tacText').innerText;
+    document.getElementById('tac').innerHTML = tac;
+</script>

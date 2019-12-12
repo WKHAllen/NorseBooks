@@ -317,3 +317,27 @@ footer .footer-list-link {
     padding-bottom: 3rem;
 
 }
+
+#tac h1 {
+    font-size: 2rem;
+}
+
+#tac h2 {
+    font-size: 1.85rem;
+}
+
+#tac h3 {
+    font-size: 1.7rem;
+}
+
+#tac h4 {
+    font-size: 1.55rem;
+}
+
+#tac h5 {
+    font-size: 1.4rem;
+}
+
+#tac h6 {
+    font-size: 1.25rem;
+}
