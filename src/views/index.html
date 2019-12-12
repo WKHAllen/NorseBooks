@@ -5,7 +5,11 @@
     <div class="hero-text">
         <h1 style="font-size:50px">Welcome to <span class="bold">NorseBooks</span></h1>
         <p>Get more money out of your old textbooks by selling them directly to other students.</p>
-        <a href="/register" class="btn btn-primary">Sell a book</a>
+        {{#if loggedIn}}
+        <a href="/book" class="btn btn-primary">Sell a book</a>
+        {{else}}
+        <a href="/login" class="btn btn-primary">Sell a book</a>
+        {{/if}}
     </div>
 </div>
 

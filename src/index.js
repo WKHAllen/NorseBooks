@@ -687,6 +687,16 @@ app.get('/help-out', (req, res) => {
     renderPage(req, res, 'help-out', { title: 'Help out' });
 });
 
+// Terms and conditions page
+app.get('/terms-and-conditions', (req, res) => {
+    renderPage(req, res, 'terms-and-conditions', { title: 'Terms and conditions' });
+});
+
+// Privacy policy page
+app.get('/privacy-policy', (req, res) => {
+    renderPage(req, res, 'privacy-policy', { title: 'Privacy policy' });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     renderPage(req, res, '404', { title: 'Not found' });
