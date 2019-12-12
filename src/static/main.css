@@ -113,7 +113,7 @@ body {
 footer {
     flex-shrink: 0; /* for sticky footer */
     background-color: rgb(42, 42, 46);
-    color: rgb(82, 82, 88);
+    color: rgb(102, 102, 108);
     padding-top: 3rem;
     padding-bottom: 3rem;
 }
@@ -126,7 +126,7 @@ footer h6 {
 footer .footer-list-link {
     text-align: center;
     display: block;
-    color: rgb(82, 82, 88);
+    color: rgb(102, 102, 108);
 }
 
 /* Index Page */
