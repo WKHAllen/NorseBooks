@@ -261,6 +261,7 @@ function renderPage(req, res, page, options) {
                 options.loggedIn = true;
                 options.userImageUrl = result.imageurl;
                 options.userFirstName = result.firstname;
+                options.admin = result.admin;
                 res.render(page, options);
             }
         });
