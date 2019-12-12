@@ -4,6 +4,8 @@
     <div class="hidden" id="tacText">{{termsAndConditions}}</div>
 </div>
 <script type="text/javascript">
-    var tac = document.getElementById('tacText').innerText;
-    document.getElementById('tac').innerHTML = tac;
+    var tacText = document.getElementById('tacText');
+    var tac = document.getElementById('tac');
+    tac.innerHTML = tacText.innerText;
+    tacText.parentNode.removeChild(tacText);
 </script>
