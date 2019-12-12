@@ -49,13 +49,16 @@ function populateBookInfo(volumeId) {
             var responseText = JSON.parse(xhr.responseText);
             var titleField = document.querySelector('input#title');
             var authorField = document.querySelector('input#author');
-            var isbnField = document.querySelector('input#ISBN');
+            var isbn10Field = document.querySelector('#ISBN10');
+            var isbn13Field = document.querySelector('#ISBN13');
             titleField.value = responseText.volumeInfo.title;
             titleField.classList.add("autofill-success")
             authorField.value = responseText.volumeInfo.authors[0];
             authorField.classList.add("autofill-success")
-            isbnField.value = responseText.volumeInfo.industryIdentifiers[1].identifier;
-            isbnField.classList.add("autofill-success")
+            isbn10Field.value = responseText.volumeInfo.industryIdentifiers[0].identifier;
+            isbn13Field.value = responseText.volumeInfo.industryIdentifiers[1].identifier;
+            isbn10Field.classList.add("autofill-success")
+            isbn13Field.classList.add("autofill-success")
             console.log(responseText);
             // MAKE FIELDS GREEN!
         }
