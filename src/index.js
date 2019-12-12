@@ -141,7 +141,8 @@ function validBook(form, callback) {
     var condition = stripWhitespace(form.condition);
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
-    var ISBN = minISBN(stripWhitespace(form.ISBN).toUpperCase());
+    var ISBN10 = minISBN(stripWhitespace(form.ISBN10).toUpperCase());
+    var ISBN13 = minISBN(stripWhitespace(form.ISBN13).toUpperCase());
     // Check title
     if (title.length === 0 || title.length > 128) {
         callback(false, 'Please enter the title of the book. It must be at most 128 characters long.');
@@ -176,21 +177,27 @@ function validBook(form, callback) {
                                         if (description.length === 0 || description.length > 1024) {
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
-                                            // Check ISBN
-                                            if (ISBN.length > 0 && !validISBN(ISBN)) {
-                                                callback(false, 'Please enter a valid ISBN.');
+                                            // Check ISBN10
+                                            if (ISBN10.length > 0 && !validISBN(ISBN10)) {
+                                                callback(false, 'Please enter a valid ISBN-10.');
                                             } else {
-                                                callback(true, null, {
-                                                    title: title,
-                                                    author: author,
-                                                    department: department,
-                                                    courseNumber: courseNumber,
-                                                    price: price,
-                                                    condition: condition,
-                                                    ISBN: ISBN,
-                                                    imageUrl: imageUrl,
-                                                    description: description
-                                                });
+                                                // Check ISBN13
+                                                if (ISBN13.length > 0 && !validISBN(ISBN13)) {
+                                                    callback(false, 'Please enter a valid ISBN-13.');
+                                                } else {
+                                                    callback(true, null, {
+                                                        title: title,
+                                                        author: author,
+                                                        department: department,
+                                                        courseNumber: courseNumber,
+                                                        price: price,
+                                                        condition: condition,
+                                                        ISBN10: ISBN10,
+                                                        ISBN13: ISBN13,
+                                                        imageUrl: imageUrl,
+                                                        description: description
+                                                    });
+                                                }
                                             }
                                         }
                                     }
@@ -453,7 +460,7 @@ app.post('/book', auth, upload.single('image'), (req, res) => {
         validBook(req.body, (valid, err, values) => {
             if (valid) {
                 database.getAuthUser(req.session.sessionId, (userId) => {
-                    database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN || null, (bookId) => {
+                    database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, (bookId) => {
                         res.redirect(`/book/${bookId}`);
                     });
                 });
@@ -467,7 +474,8 @@ app.post('/book', auth, upload.single('image'), (req, res) => {
                             courseNumber: req.body.courseNumber,
                             price: req.body.price,
                             condition: req.body.condition,
-                            ISBN: req.body.ISBN,
+                            ISBN10: req.body.ISBN10,
+                            ISBN13: req.body.ISBN13,
                             imageUrl: req.body.imageUrl,
                             description: req.body.description
                         }});
@@ -497,7 +505,8 @@ app.get('/book/:bookId', (req, res) => {
                                                 courseNumber: bookInfo.coursenumber,
                                                 price: bookInfo.price,
                                                 condition: condition,
-                                                ISBN: bookInfo.isbn,
+                                                ISBN10: bookInfo.isbn10,
+                                                ISBN13: bookInfo.isbn13,
                                                 imageUrl: bookInfo.imageurl,
                                                 description: bookInfo.description,
                                                 firstname: userBookInfo.firstname,

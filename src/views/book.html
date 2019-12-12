@@ -7,8 +7,11 @@
             <span><b>Price</b> ${{price}}</span>
             <span><b>Condition</b> {{condition}}</span>
             <span><b>Department</b> {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</span>
-            {{#if ISBN}}
-            <span><b>ISBN</b> {{ISBN}}</span>
+            {{#if ISBN10}}
+            <span><b>ISBN-10</b> {{ISBN10}}</span>
+            {{/if}}
+            {{#if ISBN13}}
+            <span><b>ISBN-13</b> {{ISBN13}}</span>
             {{/if}}
         </div>
     </p>
