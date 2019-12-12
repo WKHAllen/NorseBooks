@@ -217,29 +217,30 @@ function validBook(form, callback) {
 // Authorize/authenticate
 var auth = (req, res, next) => {
     if (!req.session || !req.session.sessionId) {
-        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
         database.auth(req.session.sessionId, (valid) => {
             if (valid) next();
-            return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+            else return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
         });
     }
 }
 
+// Authenticate an admin
 var adminAuth = (req, res, next) => {
     if (!req.session || !req.session.sessionId) {
-        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
         database.auth(req.session.sessionId, (valid) => {
             if (valid) {
                 database.getAuthUser(req.session.sessionId, (userId) => {
                     database.isAdmin(userId, (admin) => {
                         if (admin) next();
-                        else renderPage(req, res, 'not-admin', { title: 'Permission denied' });
+                        else return res.status(401).render('not-admin', { title: 'Permission denied', after: req.originalUrl });
                     });
                 });
             } else {
-                return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl });
+                return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
             }
         });
     }
