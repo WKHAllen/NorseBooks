@@ -214,6 +214,16 @@ footer .footer-list-link {
     font-size: .9rem;
     color: red;
 }
+#result-list-container {
+    display: none;
+}
+#result-list-container .title {
+    font-weight: 600;
+}
+#result-list-container .author {
+    margin-left: .6rem;
+    font-style: italic;
+}
 
 /* Profile Page */
 .image-circle {
