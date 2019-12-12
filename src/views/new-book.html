@@ -6,6 +6,23 @@
         {{/if}}
         <form method="POST" enctype="multipart/form-data">
             <p class="">Fill out the form below to list a book. After you list a book, your name and specified contact information will be made available to those who see your book. They will contact you using this provided information.</p>
+            
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="search-addon"><i class="fas fa-search"></i></span>
+                </div>
+                <input type="text" class="form-control" placeholder="Search for a book..." aria-label="Search for a book" aria-describedby="search-addon" id="search-google-api">
+            </div>
+            <div class="list-group mb-5" id="result-list-container">
+                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
+                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
+                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
+                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
+                <button type="button" class="list-group-item list-group-item-action search-result-link"></button>
+            </div>
+    
+            <hr class="mt-4">
+
             <p id="small">* = required</p>
             <div class="row">
                 <!-- Title -->
@@ -104,11 +121,12 @@
 </div>
 
 <script>
-        $('#image').on('change',function(){
-            //get the file name
-            var fileName = $(this).val().replace("C:\\fakepath\\", "");
-            //replace the "Choose a file" label
+    $('#image').on('change',function(){
+        //get the file name
+        var fileName = $(this).val().replace("C:\\fakepath\\", "");
+        //replace the "Choose a file" label
 
-            $(this).next('.custom-file-label').html(fileName);
-        })
-    </script>
+        $(this).next('.custom-file-label').html(fileName);
+    })
+</script>
+<script type="text/javascript" src="/js/new-book.js"></script>
