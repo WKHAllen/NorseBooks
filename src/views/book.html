@@ -1,36 +1,61 @@
-<div class="container">
-    <h1 class="centered">{{title}}</h1>
-    <img id="book-image" src="{{imageUrl}}" alt="">
-    <p>
-        <div class="d-flex justify-content-between">
-            <span><b>Author</b> {{author}}</span>
-            <span><b>Price</b> ${{price}}</span>
-            <span><b>Condition</b> {{condition}}</span>
-            <span><b>Department</b> {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</span>
-            {{#if ISBN10}}
-            <span><b>ISBN-10</b> {{ISBN10}}</span>
-            {{/if}}
-            {{#if ISBN13}}
-            <span><b>ISBN-13</b> {{ISBN13}}</span>
-            {{/if}}
+<div class="background-image" id="show">
+    <div class="container">
+        <div class="content-card">
+            <div class="row">
+                <!-- Image -->
+                <div class="col-md-3">
+                    <img src="{{imageUrl}}" width="100%" alt="">
+                </div>
+                <div class="col-md-9 mt-3 mt-md-0">
+                    <h1>{{title}}</h1>
+                    <h5 class="bold">${{price}}</h5>
+                    <h6 class="bold">Condition: {{condition}}</h6>
+                    <h6 class="faint">Department: {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</h6>
+                    <h6 class="mt-4">Description:</h6>
+                    <p>{{description}}</p>
+                    <div id="options">
+                        {{#if bookOwner}}
+                        <a href="/edit/{{bookId}}" class="btn btn-outline-dark"><i class="fas fa-pen"></i> Edit</a>
+                        <button class="btn btn-outline-danger" onclick="showModal('delete')"><i class="fas fa-trash-alt"></i> Delete</button>
+                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                        {{else if loggedIn}}
+                        <button class="btn btn-success" onclick="showModal('request')"><i class="far fa-handshake"></i> Request to purchase</button>
+                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                        <a href="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
+                        {{else}}
+                        <a href="/login?after=/book/{{bookId}}" onclick="showModal('request') class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
+                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                        <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
         </div>
-    </p>
-    <p class="justified">{{description}}</p>
-    <form method="POST">
-        {{#if bookOwner}}
-        <a href="/edit/{{bookId}}" class="btn btn-primary">Edit book</a>
-        <button type="submit" class="btn btn-primary" formaction="/deleteBook/{{bookId}}">Delete book</button>
-        <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-        {{else}}
-        <button type="button" class="btn btn-primary" onclick="showHidden('contact-info');">Request to purchase</button>
-        <button type="button" class="btn btn-primary" onclick="copyToClipboard(window.location.href);">Copy page link</button>
-        {{#if loggedIn}}
-        <button type="submit" class="btn btn-primary" formaction="/reportBook/{{bookId}}"{{#unless canReport}} disabled{{/unless}}>Report</button>
-        {{/if}}
-        <div id="contact-info" class="small-space-above hidden">
-            <p>You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+        
+    </div>
+    <div id="blur">
+            
+    </div>
+    <div class="blurred-modal" id="request">
+        <div class="space-between">
+            <h5>Request to buy</h5>
+            <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
-        {{/if}}
-    </form>
+        <p class="mb-0">You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+    </div>
+    <div class="blurred-modal" id="delete">
+        <div class="space-between">
+            <h5>Are you sure you want to delete this listing?</h5>
+            <span><button class="close-modal" onclick="hideModal('delete')"><i class="fas fa-times"></i></button></span>
+        </div>
+        <p>Once you delete a listing, you cannot retrieve it.</p>
+        <div class="flex-end-content">
+            <form method="POST">
+                <button type="submit" class="btn btn-danger" formaction="/deleteBook/{{bookId}}">Delete book</button>
+            </form>
+        </div>
+        
+    </div>
 </div>
+
 <script type="text/javascript" src="/main.js"></script>
