@@ -408,6 +408,7 @@ footer .footer-list-link {
     box-shadow: 5px 5px 20px gray;
     z-index: 2;
     display: none;
+    min-width: 400px;
 }
 
 .close-modal {
@@ -419,5 +420,10 @@ footer .footer-list-link {
     .blurred-modal {
         width: 90%;
         left: 50%;
+        min-width: 0;
     }
+}
+
+#contact-link {
+    font-weight: bold;
 }

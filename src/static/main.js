@@ -32,5 +32,28 @@ function hideModal(id) {
 }
 
 function makeContactInfoDynamic() {
-    var type = document.getElementById()
+    var platformType = document.getElementById('platform').innerText;
+    var contactLink  = document.getElementById('contact-link')
+    if (platformType === "Email") {
+        contactLink.innerHTML = "<i class='fas fa-envelope'></i> " + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "mailto:" + document.getElementById('contact-value').innerText)
+    } else if (platformType === "Phone") {
+        contactLink.innerHTML = "<i class='fas fa-phone-alt'></i> " + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "tel:" + document.getElementById('contact-value').innerText)
+    } else  if (platformType === "Facebook") {
+        contactLink.innerHTML = "<i class='fab fa-facebook-f'></i> " + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "https://www.facebook.com/" + document.getElementById('contact-value').innerText)
+    } else if (platformType === "Twitter") {
+        contactLink.innerHTML = "<i class='fab fa-twitter'></i> " + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "https://twitter.com/" + document.getElementById('contact-value').innerText)
+    } else if (platformType === "Instagram") {
+        contactLink.innerHTML = '<i class="fab fa-instagram"></i> ' + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "https://www.instagram.com/" + document.getElementById('contact-value').innerText)
+    } else if (platformType === "Snapchat") {
+        contactLink.innerHTML = '<i class="fab fa-snapchat-ghost"></i> ' + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "https://www.snapchat.com/add/" + document.getElementById('contact-value').innerText)
+    } else if (platformType === "WhatsApp") {
+        contactLink.innerHTML = '<i class="fab fa-whatsapp"></i> ' + contactLink.innerHTML
+        document.getElementById('contact-link').setAttribute("href", "https:/wa.me/" + document.getElementById('contact-value').innerText)
+    }
 }
