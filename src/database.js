@@ -25,7 +25,7 @@ const sessionTimeout = 14 * 24 * 60 * 60 * 1000; // two weeks
 const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
 const maxReports = 5;
-const booksPerQuery = 6;
+const booksPerQuery = 24;
 
 // The database object
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
