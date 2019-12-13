@@ -19,11 +19,11 @@
                         <button class="btn btn-outline-danger" onclick="showModal('delete')"><i class="fas fa-trash-alt"></i> Delete</button>
                         <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
                         {{else if loggedIn}}
-                        <button class="btn btn-success" onclick="showModal('request')"><i class="far fa-handshake"></i> Request to purchase</button>
+                        <button class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
                         <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
                         <a href="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
                         {{else}}
-                        <a href="/login?after=/book/{{bookId}}" onclick="showModal('request')" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
+                        <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
                         <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
                         <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
                         {{/if}}
@@ -41,8 +41,10 @@
             <h5>Request to buy</h5>
             <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
-        <p class="mb-0">You can contact <b>{{firstname}} {{lastname}}</b> via <b>{{contactPlatform}}</b>: <b>{{contactInfo}}</b></p>
+        <h6>You can contact <b>{{firstname}} {{lastname}}</b> via:</h6>
+            <a class="btn btn-outline-info ml-3" id="contact-link" href=""><span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span></a>
     </div>
+
     <div class="blurred-modal" id="delete">
         <div class="space-between">
             <h5>Are you sure you want to delete this listing?</h5>
