@@ -15,3 +15,22 @@ function copyToClipboard(text) {
 function submitForm(id) {
     document.getElementById(id).submit()
 }
+
+$('#copy-to-clipboard').on('click', function() {
+    console.log("event hit")
+    $('#copy-to-clipboard').html("<i class='fas fa-link'></i> Copied!")
+})
+
+function showModal(id) {
+    document.getElementById('blur').style.display = "block"
+    document.getElementById(id).style.display = "block"
+}
+
+function hideModal(id) {
+    document.getElementById('blur').style.display = "none"
+    document.getElementById(id).style.display = "none"
+}
+
+function makeContactInfoDynamic() {
+    var type = document.getElementById()
+}
