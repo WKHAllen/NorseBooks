@@ -24,8 +24,6 @@ const reportTimeout = 60 * 60 * 1000; // one hour
 const sessionTimeout = 14 * 24 * 60 * 60 * 1000; // two weeks
 const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
-const maxReports = 5;
-const booksPerQuery = 24;
 
 // The database object
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
@@ -739,18 +737,20 @@ function searchBooks(options, sort, lastBookId, callback) {
         }
     }
     getSearchSortQuery(sort, (sortQuery) => {
-        var sortQuery = sortQuery || 'listedTimestamp DESC';
-        var sql = `
-            SELECT
-                bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                price, conditionId, imageUrl, ISBN10, ISBN13
-            FROM Book
-            JOIN Department ON Book.departmentId = Department.id
-            ${searchQuery} ORDER BY ${sortQuery} LIMIT ?;`;
-        // Limit the number of books queried
-        params.push(booksPerQuery);
-        mainDB.execute(sql, params, (rows) => {
-            if (callback) callback(rows);
+        getMeta('Books per query', (booksPerQuery) => {
+            sortQuery = sortQuery || 'listedTimestamp DESC';
+            var sql = `
+                SELECT
+                    bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                    price, conditionId, imageUrl, ISBN10, ISBN13
+                FROM Book
+                JOIN Department ON Book.departmentId = Department.id
+                ${searchQuery} ORDER BY ${sortQuery} LIMIT ?;`;
+            // Limit the number of books queried
+            params.push(booksPerQuery);
+            mainDB.execute(sql, params, (rows) => {
+                if (callback) callback(rows);
+            });
         });
     });
 }
@@ -771,12 +771,14 @@ function reportBook(userId, bookId, callback) {
     mainDB.execute(sql, params, (rows) => {
         numBookReports(bookId, (reports) => {
             bookLister(bookId, (listerId) => {
-                if (reports >= maxReports) {
-                    deleteBook(listerId, bookId);
-                    if (callback) callback(true);
-                } else {
-                    if (callback) callback(false);
-                }
+                getMeta('Max reports', (maxReports) => {
+                    if (reports >= maxReports) {
+                        deleteBook(listerId, bookId);
+                        if (callback) callback(true);
+                    } else {
+                        if (callback) callback(false);
+                    }
+                });
             });
         });
     });
@@ -961,18 +963,17 @@ function isAdmin(userId, callback) {
     });
 }
 
-// Get the terms and conditions
-function getTermsAndConditions(callback) {
-    var sql = `SELECT value FROM Meta WHERE key = 'Terms and Conditions'`;
-    mainDB.execute(sql, [], (rows) => {
-        if (callback) callback(rows[0].value);
+function getMeta(key, callback) {
+    var sql = `SELECT value FROM Meta WHERE key = ?;`;
+    var params = [key];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback(parseFloat(rows[0].value) || rows[0].value);
     });
 }
 
-// Set the terms and conditions
-function setTermsAndConditions(termsAndCondtions, callback) {
-    var sql = `UPDATE Meta SET value = ? WHERE key = 'Terms and Conditions';`;
-    var params = [termsAndCondtions];
+function setMeta(key, value, callback) {
+    var sql = `UPDATE Meta SET value = ? WHERE key = ?;`;
+    var params = [value, key];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
     });
@@ -1040,7 +1041,7 @@ module.exports = {
     'canProvideFeedback': canProvideFeedback,
     'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'isAdmin': isAdmin,
-    'getTermsAndConditions': getTermsAndConditions,
-    'setTermsAndConditions': setTermsAndConditions,
+    'getMeta': getMeta,
+    'setMeta': setMeta,
     'mainDB': mainDB
 };
