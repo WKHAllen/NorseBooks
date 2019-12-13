@@ -92,17 +92,9 @@ function loadMoreBooks() {
         success: (data) => {
             if (data.books) {
                 if (data.books.length > 0) {
-                    // If this is the first time loading books
-                    if (document.getElementById('index').children.length === 0) {
-                        // Load more books when scrolled to the bottom of the page
-                        window.onscroll = () => {
-                            if (Math.round(window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-                                loadMoreBooks();
-                            }
-                        };
-                    }
                     document.getElementById('status').classList.add('hidden');
                     for (var book of data.books) addBook(book);
+                    enableScrollAction();
                 } else {
                     document.getElementById('status').innerHTML = 'No books found ¯\\_(ツ)_/¯';
                 }
@@ -115,6 +107,22 @@ function loadMoreBooks() {
             document.getElementById('status').innerHTML = 'Failed to fetch books. <a href="/">Click here to refresh the page.</a>';
         }
     });
+}
+
+// Load more books when scrolled to the bottom of the page
+function enableScrollAction() {
+    var footer = document.getElementsByTagName('footer')[0];
+    window.onscroll = () => {
+        if (window.innerHeight + window.scrollY >= document.body.scrollHeight - footer.scrollHeight) {
+            disableScrollAction();
+            loadMoreBooks();
+        }
+    };
+}
+
+// Disable scrolling action
+function disableScrollAction() {
+    window.onscroll = null;
 }
 
 // Load books once the page is loaded
