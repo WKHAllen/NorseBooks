@@ -23,7 +23,7 @@
                         <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
                         <a href="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
                         {{else}}
-                        <a href="/login?after=/book/{{bookId}}" onclick="showModal('request') class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
+                        <a href="/login?after=/book/{{bookId}}" onclick="showModal('request')" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
                         <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
                         <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
                         {{/if}}
