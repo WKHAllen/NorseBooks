@@ -14,23 +14,26 @@
                     <h6 class="mt-4">Description:</h6>
                     <p>{{description}}</p>
                     <div id="options">
-                        {{#if bookOwner}}
-                        <a href="/edit/{{bookId}}" class="btn btn-outline-dark"><i class="fas fa-pen"></i> Edit</a>
-                        <button class="btn btn-outline-danger" onclick="showModal('delete')"><i class="fas fa-trash-alt"></i> Delete</button>
-                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
-                        {{else if loggedIn}}
-                        <button class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
-                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
-                        <a href="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
-                        {{else}}
-                        <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
-                        <button class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
-                        <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
-                        {{/if}}
+                        <form method="POST">
+                            {{#if bookOwner}}
+                            <a href="/edit/{{bookId}}" class="btn btn-outline-dark"><i class="fas fa-pen"></i> Edit</a>
+                            <button type="button" class="btn btn-outline-danger" onclick="showModal('delete')"><i class="fas fa-trash-alt"></i> Delete</button>
+                            <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                            {{else if loggedIn}}
+                            <button type="button" class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
+                            <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                            <button type="submit" formaction="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
+                            {{else}}
+                            <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
+                            <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyToClipboard(window.location.href);"><i class="fas fa-link"></i> Copy Link</button>
+                            <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
+                            {{/if}}
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
+        <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@henry_be" target="_blank">Henry Be</a> via <a href="https://unsplash.com/photos/lc7xcWebECc" target="_blank">Unsplash</a></small>
         
     </div>
     <div id="blur">
