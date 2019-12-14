@@ -738,6 +738,7 @@ function searchBooks(options, sort, lastBookId, callback) {
     }
     getSearchSortQuery(sort, (sortQuery) => {
         getMeta('Books per query', (booksPerQuery) => {
+            booksPerQuery = parseInt(booksPerQuery);
             sortQuery = sortQuery || 'listedTimestamp DESC';
             var sql = `
                 SELECT
@@ -772,6 +773,7 @@ function reportBook(userId, bookId, callback) {
         numBookReports(bookId, (reports) => {
             bookLister(bookId, (listerId) => {
                 getMeta('Max reports', (maxReports) => {
+                    maxReports = parseInt(maxReports);
                     if (reports >= maxReports) {
                         deleteBook(listerId, bookId);
                         if (callback) callback(true);
@@ -967,7 +969,7 @@ function getMeta(key, callback) {
     var sql = `SELECT value FROM Meta WHERE key = ?;`;
     var params = [key];
     mainDB.execute(sql, params, (rows) => {
-        if (callback) callback(parseFloat(rows[0].value) || rows[0].value);
+        if (callback) callback(rows[0].value);
     });
 }
 

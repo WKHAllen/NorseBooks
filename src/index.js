@@ -248,23 +248,26 @@ var adminAuth = (req, res, next) => {
 // Render a page
 function renderPage(req, res, page, options) {
     options = options || {};
-    if (!req.session || !req.session.sessionId) {
-        options.loggedIn = false;
-        res.render(page, options);
-    } else {
-        database.getNavInfo(req.session.sessionId, (result) => {
-            if (!result) {
-                options.loggedIn = false;
-                res.render(page, options);
-            } else {
-                options.loggedIn = true;
-                options.userImageUrl = result.imageurl;
-                options.userFirstName = result.firstname;
-                options.admin = result.admin;
-                res.render(page, options);
-            }
-        });
-    }
+    database.getMeta('Version', (version) => {
+        options.version = version;
+        if (!req.session || !req.session.sessionId) {
+            options.loggedIn = false;
+            res.render(page, options);
+        } else {
+            database.getNavInfo(req.session.sessionId, (result) => {
+                if (!result) {
+                    options.loggedIn = false;
+                    res.render(page, options);
+                } else {
+                    options.loggedIn = true;
+                    options.userImageUrl = result.imageurl;
+                    options.userFirstName = result.firstname;
+                    options.admin = result.admin;
+                    res.render(page, options);
+                }
+            });
+        }
+    });
 }
 
 // Main page
@@ -457,6 +460,7 @@ app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getNumBooks(userId, (numBooks) => {
             database.getMeta('Max books', (maxNumBooks) => {
+                maxNumBooks = parseInt(maxNumBooks);
                 if (numBooks < maxNumBooks) {
                     database.hasContactInfo(userId, (hasInfo) => {
                         if (hasInfo) {
