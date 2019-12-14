@@ -703,6 +703,7 @@ function deleteBook(userId, bookId, callback) {
 // Get info on books searched
 function searchBooks(options, sort, lastBookId, callback) {
     var params = [];
+    var extraParams = [];
     var searchQuery = '';
     if (Object.keys(options).length > 0) {
         var searchOptions = [];
@@ -710,45 +711,61 @@ function searchBooks(options, sort, lastBookId, callback) {
             if (option === 'title' || option === 'author') {
                 searchOptions.push(` LOWER(${option}) LIKE LOWER(?)`);
                 params.push(`%${options[option]}%`);
+                if (lastBookId) extraParams.push(`%${options[option]}%`);
             } else if (option === 'ISBN') {
                 searchOptions.push(' (ISBN10 = ? OR ISBN13 = ?)');
                 params.push(options[option]);
                 params.push(options[option]);
+                if (lastBookId) {
+                    extraParams.push(options[option]);
+                    extraParams.push(options[option]);
+                }
             } else {
                 searchOptions.push(` ${option} = ?`);
                 params.push(options[option]);
+                if (lastBookId) extraParams.push(options[option]);
             }
         }
+        for (var extraParam of extraParams) params.push(extraParam);
         searchQuery = ' WHERE' + searchOptions.join(' AND');
-        if (lastBookId) {
-            // Get books before specified book
-            searchQuery += `
-                AND listedTimestamp < (
-                    SELECT listedTimestamp FROM Book WHERE bookId = ?
-                )`;
-            params.push(lastBookId);
-        }
-    } else {
-        if (lastBookId) {
-            // Get books before specified book
-            searchQuery = `
-                WHERE listedTimestamp < (
-                    SELECT listedTimestamp FROM Book WHERE bookId = ?
-                )`;
-            params.push(lastBookId);
-        }
     }
     getSearchSortQuery(sort, (sortQuery) => {
         var sortQuery = sortQuery || 'listedTimestamp DESC';
-        var sql = `
+        var sql;
+        if (lastBookId) {
+            sql = `
+                SELECT * FROM (
+                    SELECT
+                        bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                        price, conditionId, imageUrl, ISBN10, ISBN13,
+                        ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
+                    FROM Book
+                    JOIN Department ON Book.departmentId = Department.id
+                    ${searchQuery}
+                ) search1 WHERE index > (
+                    SELECT index FROM (
+                        SELECT
+                            bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                            price, conditionId, imageUrl, ISBN10, ISBN13,
+                            ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
+                        FROM Book
+                        JOIN Department ON Book.departmentId = Department.id
+                        ${searchQuery}
+                    ) search2 WHERE bookId = ?
+                ) LIMIT ?;`;
+            params.push(lastBookId);
+            params.push(booksPerQuery);
+        } else {
+            sql = `
             SELECT
                 bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                price, conditionId, imageUrl, ISBN10, ISBN13
+                price, conditionId, imageUrl, ISBN10, ISBN13,
+                ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
             FROM Book
             JOIN Department ON Book.departmentId = Department.id
-            ${searchQuery} ORDER BY ${sortQuery} LIMIT ?;`;
-        // Limit the number of books queried
-        params.push(booksPerQuery);
+            ${searchQuery} LIMIT ?;`;
+            params.push(booksPerQuery);
+        }
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(rows);
         });

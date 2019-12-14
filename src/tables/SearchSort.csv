@@ -3,11 +3,7 @@ id,name,query
 1,Oldest,listedTimestamp ASC
 2,Author (A-Z),author ASC
 3,Author (Z-A),author DESC
-4,Department (A-Z),department ASC
-5,Department (Z-A),department DESC
-6,Course number (low-high),courseNumber ASC
-7,Course number (high-low),courseNumber DESC
-8,Price (low-high),price ASC
-9,Price (high-low),price DESC
-10,Condition (good-poor),conditionId ASC
-11,Condition (poor-good),conditionId DESC
+4,Price (low-high),price ASC
+5,Price (high-low),price DESC
+6,Condition (good-poor),conditionId ASC
+7,Condition (poor-good),conditionId DESC
