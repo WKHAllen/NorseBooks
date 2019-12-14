@@ -25,7 +25,6 @@ var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
 var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
 var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
 
-const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
 
 var md = new remarkable.Remarkable();
@@ -249,23 +248,26 @@ var adminAuth = (req, res, next) => {
 // Render a page
 function renderPage(req, res, page, options) {
     options = options || {};
-    if (!req.session || !req.session.sessionId) {
-        options.loggedIn = false;
-        res.render(page, options);
-    } else {
-        database.getNavInfo(req.session.sessionId, (result) => {
-            if (!result) {
-                options.loggedIn = false;
-                res.render(page, options);
-            } else {
-                options.loggedIn = true;
-                options.userImageUrl = result.imageurl;
-                options.userFirstName = result.firstname;
-                options.admin = result.admin;
-                res.render(page, options);
-            }
-        });
-    }
+    database.getMeta('Version', (version) => {
+        options.version = version;
+        if (!req.session || !req.session.sessionId) {
+            options.loggedIn = false;
+            res.render(page, options);
+        } else {
+            database.getNavInfo(req.session.sessionId, (result) => {
+                if (!result) {
+                    options.loggedIn = false;
+                    res.render(page, options);
+                } else {
+                    options.loggedIn = true;
+                    options.userImageUrl = result.imageurl;
+                    options.userFirstName = result.firstname;
+                    options.admin = result.admin;
+                    res.render(page, options);
+                }
+            });
+        }
+    });
 }
 
 // Main page
@@ -457,21 +459,24 @@ app.post('/password-reset/:passwordResetId', (req, res) => {
 app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getNumBooks(userId, (numBooks) => {
-            if (numBooks < maxNumBooks) {
-                database.hasContactInfo(userId, (hasInfo) => {
-                    if (hasInfo) {
-                        database.getDepartments((departments) => {
-                            database.getConditions((conditions) => {
-                                renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
+            database.getMeta('Max books', (maxNumBooks) => {
+                maxNumBooks = parseInt(maxNumBooks);
+                if (numBooks < maxNumBooks) {
+                    database.hasContactInfo(userId, (hasInfo) => {
+                        if (hasInfo) {
+                            database.getDepartments((departments) => {
+                                database.getConditions((conditions) => {
+                                    renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
+                                });
                             });
-                        });
-                    } else {
-                        renderPage(req, res, 'no-contact-info', { title: 'No contact info' });
-                    }
-                });
-            } else {
-                renderPage(req, res, 'max-books', { title: 'Too many books' });
-            }
+                        } else {
+                            renderPage(req, res, 'no-contact-info', { title: 'No contact info' });
+                        }
+                    });
+                } else {
+                    renderPage(req, res, 'max-books', { title: 'Too many books' });
+                }
+            });
         });
     });
 });
@@ -798,7 +803,7 @@ app.get('/help-out', (req, res) => {
 
 // Terms and conditions page
 app.get('/terms-and-conditions', (req, res) => {
-    database.getTermsAndConditions((termsAndConditions) => {
+    database.getMeta('Terms and Conditions', (termsAndConditions) => {
         termsAndConditions = md.render(termsAndConditions);
         renderPage(req, res, 'terms-and-conditions', {
             title: 'Terms and conditions',
@@ -814,14 +819,14 @@ app.get('/admin', adminAuth, (req, res) => {
 
 // Edit terms and conditions page
 app.get('/admin/terms-and-conditions', adminAuth, (req, res) => {
-    database.getTermsAndConditions((termsAndConditions) => {
+    database.getMeta('Terms and Conditions', (termsAndConditions) => {
         renderPage(req, res, 'admin-tac', { title: 'Edit terms and conditions', termsAndConditions: termsAndConditions });
     });
 });
 
 // Edit terms and conditions event
 app.post('/admin/terms-and-conditions', adminAuth, (req, res) => {
-    database.setTermsAndConditions(req.body.tac, () => {
+    database.setMeta('Terms and Conditions', req.body.tac, () => {
         res.redirect('/admin/terms-and-conditions');
     });
 });
