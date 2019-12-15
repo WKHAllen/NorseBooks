@@ -458,7 +458,7 @@ app.post('/password-reset/:passwordResetId', (req, res) => {
 // List new book page
 app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getNumBooks(userId, (numBooks) => {
+        database.getNumUserBooks(userId, (numBooks) => {
             database.getMeta('Max books', (maxNumBooks) => {
                 maxNumBooks = parseInt(maxNumBooks);
                 if (numBooks < maxNumBooks) {
@@ -814,7 +814,69 @@ app.get('/terms-and-conditions', (req, res) => {
 
 // Admin main page
 app.get('/admin', adminAuth, (req, res) => {
-    renderPage(req, res, 'admin', { title: 'Admin' });
+    database.getMeta('Max books', (maxBooks) => {
+        database.getMeta('Max reports', (maxReports) => {
+            database.getMeta('Books per query', (booksPerQuery) => {
+                database.getMeta('Version', (version) => {
+                    renderPage(req, res, 'admin', {
+                        title: 'Admin',
+                        maxBooks: parseInt(maxBooks),
+                        maxReports: parseInt(maxReports),
+                        booksPerQuery: parseInt(booksPerQuery),
+                        version: version
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Get admin page stats
+app.get('/getAdminStats', adminAuth, (req, res) => {
+    database.getNumUsers((numUsers) => {
+        database.getNumBooks((numBooks) => {
+            database.getNumTables((numTables) => {
+                database.getNumRows((numRows) => {
+                    var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                    res.json({
+                        numUsers: numUsers,
+                        numBooks: numBooks,
+                        numTables: numTables,
+                        numRows: numRows,
+                        rowsPercentage: rowsPercentage
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Edit version event
+app.post('/setVersion', adminAuth, (req, res) => {
+    database.setMeta('Version', req.body.version, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit max books event
+app.post('/setMaxBooks', adminAuth, (req, res) => {
+    database.setMeta('Max books', req.body.maxBooks, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit max reports event
+app.post('/setMaxReports', adminAuth, (req, res) => {
+    database.setMeta('Max reports', req.body.maxReports, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit books per query event
+app.post('/setBooksPerQuery', adminAuth, (req, res) => {
+    database.setMeta('Books per query', req.body.booksPerQuery, () => {
+        res.redirect('/admin');
+    });
 });
 
 // Edit terms and conditions page
