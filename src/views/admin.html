@@ -1,53 +1,81 @@
 <div class="container">
     <h1 class="centered">Admin</h1>
-    <p class="justified">Welcome to the admin page. From here, you are able to easily control various parts of the NorseBooks system. To return to the home page, <a href="/">click here</a>.</p>
-    <a href="/admin/terms-and-conditions" class="btn btn-primary mb-3">Edit terms and conditions</a>
-    <!-- Version -->
-    <form method="POST">
-        <div class="row">
-            <div class="form-group col">
-                <label for="version">Set version</label>
-                <input type="text" class="form-control" id="version" name="version" value="{{version}}">
+    <p class="justified">Welcome to the admin page. From here, you are able to easily control various parts of the NorseBooks system. You can also view stats on the site and those who use it.</p>
+    <p>To return to the home page, <a href="/">click here</a>.</p>
+    <div class="mb-3">
+        <h2>Stats</h2>
+        <div class="d-flex justify-content-between mb-3">
+            <div>
+                <div class="stats-label">Users</div>
+                <div class="stats-value">{{numUsers}}</div>
             </div>
-            <div class="col-auto flex-end">
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setVersion">Set version</button>
+            <div>
+                <div class="stats-label">Books</div>
+                <div class="stats-value">{{numBooks}}</div>
             </div>
-        </div>
-    </form>
-    <!-- Max books -->
-    <form method="POST">
-        <div class="row">
-            <div class="form-group col">
-                <label for="maxBooks">Set max books</label>
-                <input type="number" class="form-control" id="maxBooks" name="maxBooks" value="{{maxBooks}}">
+            <div>
+                <div class="stats-label">Rows</div>
+                <div class="stats-value">{{numRows}}</div>
             </div>
-            <div class="col-auto flex-end">
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setMaxBooks">Set max books</button>
+            <div>
+                <div class="stats-label">Capacity</div>
+                <div class="stats-value">{{rowsPercentage}}%</div>
             </div>
         </div>
-    </form>
-    <!-- Max reports -->
-    <form method="POST">
-        <div class="row">
-            <div class="form-group col">
-                <label for="maxReports">Set max reports</label>
-                <input type="number" class="form-control" id="maxReports" name="maxReports" value="{{maxReports}}">
+    </div>
+    <div class="mb-3">
+        <h2>Variables</h2>
+        <!-- Version -->
+        <form method="POST">
+            <div class="row">
+                <div class="form-group col">
+                    <label for="version">Set version</label>
+                    <input type="text" class="form-control" id="version" name="version" value="{{version}}">
+                </div>
+                <div class="col-auto flex-end">
+                    <button type="submit" class="btn btn-primary mb-3" formaction="/setVersion">Set value</button>
+                </div>
             </div>
-            <div class="col-auto flex-end">
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setMaxReports">Set max reports</button>
+        </form>
+        <!-- Max books -->
+        <form method="POST">
+            <div class="row">
+                <div class="form-group col">
+                    <label for="maxBooks">Set max books</label>
+                    <input type="number" class="form-control" id="maxBooks" name="maxBooks" value="{{maxBooks}}">
+                </div>
+                <div class="col-auto flex-end">
+                    <button type="submit" class="btn btn-primary mb-3" formaction="/setMaxBooks">Set value</button>
+                </div>
             </div>
-        </div>
-    </form>
-    <!-- Books per query -->
-    <form method="POST">
-        <div class="row">
-            <div class="form-group col">
-                <label for="booksPerQuery">Set books per query</label>
-                <input type="number" class="form-control" id="booksPerQuery" name="booksPerQuery" value="{{booksPerQuery}}">
+        </form>
+        <!-- Max reports -->
+        <form method="POST">
+            <div class="row">
+                <div class="form-group col">
+                    <label for="maxReports">Set max reports</label>
+                    <input type="number" class="form-control" id="maxReports" name="maxReports" value="{{maxReports}}">
+                </div>
+                <div class="col-auto flex-end">
+                    <button type="submit" class="btn btn-primary mb-3" formaction="/setMaxReports">Set value</button>
+                </div>
             </div>
-            <div class="col-auto flex-end">
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setBooksPerQuery">Set books per query</button>
+        </form>
+        <!-- Books per query -->
+        <form method="POST">
+            <div class="row">
+                <div class="form-group col">
+                    <label for="booksPerQuery">Set books per query</label>
+                    <input type="number" class="form-control" id="booksPerQuery" name="booksPerQuery" value="{{booksPerQuery}}">
+                </div>
+                <div class="col-auto flex-end">
+                    <button type="submit" class="btn btn-primary mb-3" formaction="/setBooksPerQuery">Set value</button>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
+    <div class="mb-3">
+        <h2>Other</h2>
+        <a href="/admin/terms-and-conditions" class="btn btn-primary mb-3">Edit terms and conditions</a>
+    </div>
 </div>

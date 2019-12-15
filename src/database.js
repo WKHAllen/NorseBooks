@@ -982,6 +982,7 @@ function isAdmin(userId, callback) {
     });
 }
 
+// Get the value of a variable in the Meta table
 function getMeta(key, callback) {
     var sql = `SELECT value FROM Meta WHERE key = ?;`;
     var params = [key];
@@ -990,11 +991,50 @@ function getMeta(key, callback) {
     });
 }
 
+// Set the value of a variable in the Meta table
 function setMeta(key, value, callback) {
     var sql = `UPDATE Meta SET value = ? WHERE key = ?;`;
     var params = [value, key];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
+    });
+}
+
+// Get the number of users registered
+function getNumUsers(callback) {
+    var sql = `SELECT COUNT(id) FROM NBUser;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the number of books on the site
+function getNumBooks(callback) {
+    var sql = `SELECT COUNT(id) FROM Book;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the number of rows currently used by the database
+function getNumRows(callback) {
+    var sql = `
+        SELECT SUM(count) FROM (
+            SELECT COUNT(*) FROM NBUser UNION
+            SELECT COUNT(*) FROM Department UNION
+            SELECT COUNT(*) FROM Condition UNION
+            SELECT COUNT(*) FROM Platform UNION
+            SELECT COUNT(*) FROM Book UNION
+            SELECT COUNT(*) FROM PasswordReset UNION
+            SELECT COUNT(*) FROM Verify UNION
+            SELECT COUNT(*) FROM Session UNION
+            SELECT COUNT(*) FROM Report UNION
+            SELECT COUNT(*) FROM SearchSort UNION
+            SELECT COUNT(*) FROM Meta
+        ) AS subq;
+    `;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
     });
 }
 
@@ -1062,5 +1102,8 @@ module.exports = {
     'isAdmin': isAdmin,
     'getMeta': getMeta,
     'setMeta': setMeta,
+    'getNumUsers': getNumUsers,
+    'getNumBooks': getNumBooks,
+    'getNumRows': getNumRows,
     'mainDB': mainDB
 };

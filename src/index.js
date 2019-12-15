@@ -818,12 +818,23 @@ app.get('/admin', adminAuth, (req, res) => {
         database.getMeta('Max reports', (maxReports) => {
             database.getMeta('Books per query', (booksPerQuery) => {
                 database.getMeta('Version', (version) => {
-                    renderPage(req, res, 'admin', {
-                        title: 'Admin',
-                        maxBooks: parseInt(maxBooks),
-                        maxReports: parseInt(maxReports),
-                        booksPerQuery: parseInt(booksPerQuery),
-                        version: version
+                    database.getNumUsers((numUsers) => {
+                        database.getNumBooks((numBooks) => {
+                            database.getNumRows((numRows) => {
+                                var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                                renderPage(req, res, 'admin', {
+                                    title: 'Admin',
+                                    maxBooks: parseInt(maxBooks),
+                                    maxReports: parseInt(maxReports),
+                                    booksPerQuery: parseInt(booksPerQuery),
+                                    version: version,
+                                    numUsers: numUsers,
+                                    numBooks: numBooks,
+                                    numRows: numRows,
+                                    rowsPercentage: rowsPercentage
+                                });
+                            });
+                        });
                     });
                 });
             });

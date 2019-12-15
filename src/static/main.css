@@ -427,3 +427,11 @@ footer .footer-list-link {
 #contact-link {
     font-weight: bold;
 }
+
+.stats-label {
+    font-style: italic;
+}
+
+.stats-value {
+    font-size: 1.75rem;
+}
