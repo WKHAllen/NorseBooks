@@ -1002,7 +1002,7 @@ function setMeta(key, value, callback) {
 
 // Get the number of users registered
 function getNumUsers(callback) {
-    var sql = `SELECT COUNT(id) FROM NBUser;`;
+    var sql = `SELECT COUNT(id) FROM NBUser WHERE verified = 1;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].count);
     });
