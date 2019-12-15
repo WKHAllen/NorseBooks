@@ -1016,7 +1016,42 @@ function getNumBooks(callback) {
     });
 }
 
-// Get the number of rows currently used by the database
+// Get the number of tables in the database
+function getNumTables(callback) {
+    var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the names of the tables in the database
+function getTables(callback) {
+    var sql = `SELECT table_name AS table FROM information_schema.tables WHERE table_schema = 'public';`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get the number of rows in each table in the database
+function getRowCount(callback) {
+    var sql = `
+        SELECT
+            table_name AS table,
+            (xpath('/row/cnt/text()', xml_count))[1]::TEXT::INT as rows
+        FROM (
+            SELECT
+                table_name, table_schema,
+                query_to_xml(format('SELECT COUNT(*) AS cnt FROM %I.%I', table_schema, table_name), false, true, '') AS xml_count
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+        ) t;
+    `
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get the total number of rows currently used by the database
 function getNumRows(callback) {
     var sql = `
         SELECT SUM(count) FROM (
@@ -1104,6 +1139,9 @@ module.exports = {
     'setMeta': setMeta,
     'getNumUsers': getNumUsers,
     'getNumBooks': getNumBooks,
+    'getNumTables': getNumTables,
+    'getTables': getTables,
+    'getRowCount': getRowCount,
     'getNumRows': getNumRows,
     'mainDB': mainDB
 };
