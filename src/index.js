@@ -458,7 +458,7 @@ app.post('/password-reset/:passwordResetId', (req, res) => {
 // List new book page
 app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getNumBooks(userId, (numBooks) => {
+        database.getNumUserBooks(userId, (numBooks) => {
             database.getMeta('Max books', (maxNumBooks) => {
                 maxNumBooks = parseInt(maxNumBooks);
                 if (numBooks < maxNumBooks) {

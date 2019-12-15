@@ -677,7 +677,7 @@ function getUserBookInfo(bookId, callback) {
 }
 
 // Get the number of departments
-function getNumBooks(userId, callback) {
+function getNumUserBooks(userId, callback) {
     var sql = `SELECT id FROM Book WHERE userId = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -1111,7 +1111,7 @@ module.exports = {
     'validBook': validBook,
     'getBookInfo': getBookInfo,
     'getUserBookInfo': getUserBookInfo,
-    'getNumBooks': getNumBooks,
+    'getNumUserBooks': getNumUserBooks,
     'deleteBook': deleteBook,
     'searchBooks': searchBooks,
     'bookLister': bookLister,
