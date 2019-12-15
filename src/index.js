@@ -818,26 +818,32 @@ app.get('/admin', adminAuth, (req, res) => {
         database.getMeta('Max reports', (maxReports) => {
             database.getMeta('Books per query', (booksPerQuery) => {
                 database.getMeta('Version', (version) => {
-                    database.getNumUsers((numUsers) => {
-                        database.getNumBooks((numBooks) => {
-                            database.getNumTables((numTables) => {
-                                database.getNumRows((numRows) => {
-                                    var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
-                                    renderPage(req, res, 'admin', {
-                                        title: 'Admin',
-                                        maxBooks: parseInt(maxBooks),
-                                        maxReports: parseInt(maxReports),
-                                        booksPerQuery: parseInt(booksPerQuery),
-                                        version: version,
-                                        numUsers: numUsers,
-                                        numBooks: numBooks,
-                                        numTables: numTables,
-                                        numRows: numRows,
-                                        rowsPercentage: rowsPercentage
-                                    });
-                                });
-                            });
-                        });
+                    renderPage(req, res, 'admin', {
+                        title: 'Admin',
+                        maxBooks: parseInt(maxBooks),
+                        maxReports: parseInt(maxReports),
+                        booksPerQuery: parseInt(booksPerQuery),
+                        version: version
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Get admin page stats
+app.get('/getAdminStats', adminAuth, (req, res) => {
+    database.getNumUsers((numUsers) => {
+        database.getNumBooks((numBooks) => {
+            database.getNumTables((numTables) => {
+                database.getNumRows((numRows) => {
+                    var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                    res.json({
+                        numUsers: numUsers,
+                        numBooks: numBooks,
+                        numTables: numTables,
+                        numRows: numRows,
+                        rowsPercentage: rowsPercentage
                     });
                 });
             });

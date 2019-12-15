@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/js/admin.js"></script>
 <div class="container">
     <h1 class="centered">Admin</h1>
     <p class="justified">Welcome to the admin page. From here, you are able to easily control various parts of the NorseBooks system. You can also view stats on the site and those who use it.</p>
@@ -7,25 +8,26 @@
         <div class="d-flex justify-content-between mb-3">
             <div>
                 <div class="stats-label">Users</div>
-                <div class="stats-value">{{numUsers}}</div>
+                <div class="stats-value" id="numUsers">...</div>
             </div>
             <div>
                 <div class="stats-label">Books</div>
-                <div class="stats-value">{{numBooks}}</div>
+                <div class="stats-value" id="numBooks">...</div>
             </div>
             <div>
                 <div class="stats-label">Tables</div>
-                <div class="stats-value">{{numTables}}</div>
+                <div class="stats-value" id="numTables">...</div>
             </div>
             <div>
                 <div class="stats-label">Rows</div>
-                <div class="stats-value">{{numRows}}</div>
+                <div class="stats-value" id="numRows">...</div>
             </div>
             <div>
                 <div class="stats-label">Capacity</div>
-                <div class="stats-value">{{rowsPercentage}}%</div>
+                <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
             </div>
         </div>
+        <p class="centered hidden" id="status">Failed to fetch stats.</p>
     </div>
     <div class="mb-3">
         <h2>Variables</h2>
