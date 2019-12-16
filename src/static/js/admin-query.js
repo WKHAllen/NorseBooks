@@ -160,23 +160,6 @@ function getQueryInputs() {
     return queryInputs;
 }
 
-// Build the query
-function buildQuery(queryInputs) {
-    var select = 'SELECT ' + queryInputs.columns.join(', ');
-    var from = `FROM ${queryInputs.table}`;
-    var where = '';
-    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
-        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} '${queryInputs.whereValue}'`;
-    }
-    var orderBy = '';
-    if (queryInputs.orderBy && queryInputs.orderByDirection) {
-        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
-    }
-    var query = [select, from, where, orderBy].join(' ') + ';';
-    while (query.includes('  ')) query = query.replace('  ', ' ');
-    return query;
-}
-
 // Clear the results table
 function clearResultsTable() {
     $('#query-results-head').html('');
@@ -210,11 +193,10 @@ function executeQuery() {
     event.preventDefault();
     var queryColumns = getQueryColumns();
     var queryInputs = getQueryInputs();
-    var query = buildQuery(queryInputs);
     $.ajax({
         url: '/executeQuery',
         type: 'GET',
-        data: { query: query },
+        data: { queryInputs: queryInputs },
         dataType: 'json',
         success: (data) => {
             clearResultsTable();
