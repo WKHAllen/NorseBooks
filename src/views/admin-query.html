@@ -24,7 +24,7 @@
             </div>
             <!-- WHERE clause -->
             <div class="col-12 col-lg-4 mb-3">
-                <label for="where-div">Where <span class="small"><i>(optional)</i></span></label>
+                <label for="where-div">Condition <span class="small"><i>(optional)</i></span></label>
                 <div class="input-group" id="where-div">
                     <select class="form-control" id="where" name="where">
                         <option value="">Select...</option>
@@ -43,7 +43,7 @@
             </div>
             <!-- ORDER BY clause -->
             <div class="col-12 col-sm-6 col-lg-4 mb-3">
-                <label for="orderBy-div">Order by <span class="small"><i>(optional)</i></span></label>
+                <label for="orderBy-div">Sort <span class="small"><i>(optional)</i></span></label>
                 <div class="input-group">
                     <select class="form-control" id="orderBy" name="orderBy">
                         <option value="">Select...</option>
@@ -61,4 +61,19 @@
         </div>
     </form>
     <p class="centered hidden" id="status"></p>
+    <!-- Query results -->
+    <div class="hidden" id="query-results">
+        <h2>Results</h2>
+        <div class="custom-control custom-checkbox ml-1 mb-3">
+            <input type="checkbox" class="custom-control-input column-checkbox" id="table-small-check" onchange="updateTableSize();">
+            <label for="table-small-check" class="custom-control-label">Small</label>
+        </div>
+        <!-- Results table -->
+        <table class="table table-striped table-hover" id="query-results-table">
+            <thead>
+                <tr id="query-results-head"></tr>
+            </thead>
+            <tbody id="query-results-body"></tbody>
+        </table>
+    </div>
 </div>
