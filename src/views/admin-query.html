@@ -65,11 +65,11 @@
     <div class="hidden" id="query-results">
         <h2>Results</h2>
         <div class="custom-control custom-checkbox ml-1 mb-3">
-            <input type="checkbox" class="custom-control-input column-checkbox" id="table-small-check" onchange="updateTableSize();">
+            <input type="checkbox" class="custom-control-input column-checkbox" id="table-small-check" onchange="updateTableSize();" checked>
             <label for="table-small-check" class="custom-control-label">Small</label>
         </div>
         <!-- Results table -->
-        <table class="table table-striped table-hover" id="query-results-table">
+        <table class="table table-striped table-hover table-sm" id="query-results-table">
             <thead>
                 <tr id="query-results-head"></tr>
             </thead>

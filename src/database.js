@@ -1057,7 +1057,7 @@ function getRowCount(callback) {
             FROM information_schema.tables
             WHERE table_schema = 'public'
         ) t;
-    `
+    `;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
     });
@@ -1085,7 +1085,22 @@ function getNumRows(callback) {
 }
 
 // Execute a query
-function executeQuery(query, callback) {
+function executeSelect(queryInputs, callback) {
+    var select = 'SELECT';
+    if (queryInputs.columns) {
+        var select = 'SELECT ' + queryInputs.columns.join(', ');
+    }
+    var from = `FROM ${queryInputs.table}`;
+    var where = '';
+    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
+        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} '${queryInputs.whereValue}'`;
+    }
+    var orderBy = '';
+    if (queryInputs.orderBy && queryInputs.orderByDirection) {
+        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
+    }
+    var query = [select, from, where, orderBy].join(' ') + ';';
+    while (query.includes('  ')) query = query.replace('  ', ' ');
     mainDB.execute(query, [], (rows) => {
         if (callback) callback(rows);
     });
@@ -1162,6 +1177,6 @@ module.exports = {
     'getColumns': getColumns,
     'getRowCount': getRowCount,
     'getNumRows': getNumRows,
-    'executeQuery': executeQuery,
+    'executeSelect': executeSelect,
     'mainDB': mainDB
 };

@@ -910,24 +910,8 @@ app.get('/getDBColumns', adminAuth, (req, res) => {
     })
 });
 
-app.get('/executeQuery', adminAuth, (req, res) => {
-    var queryInputs = req.query.queryInputs;
-    var select = 'SELECT';
-    if (queryInputs.columns) {
-        var select = 'SELECT ' + queryInputs.columns.join(', ');
-    }
-    var from = `FROM ${queryInputs.table}`;
-    var where = '';
-    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
-        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} '${queryInputs.whereValue}'`;
-    }
-    var orderBy = '';
-    if (queryInputs.orderBy && queryInputs.orderByDirection) {
-        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
-    }
-    var query = [select, from, where, orderBy].join(' ') + ';';
-    while (query.includes('  ')) query = query.replace('  ', ' ');
-    database.executeQuery(query, (rows) => {
+app.get('/executeSelect', adminAuth, (req, res) => {
+    database.executeSelect(req.query.queryInputs, (rows) => {
         res.json({ result: rows });
     });
 });

@@ -194,7 +194,7 @@ function executeQuery() {
     var queryColumns = getQueryColumns();
     var queryInputs = getQueryInputs();
     $.ajax({
-        url: '/executeQuery',
+        url: '/executeSelect',
         type: 'GET',
         data: { queryInputs: queryInputs },
         dataType: 'json',
