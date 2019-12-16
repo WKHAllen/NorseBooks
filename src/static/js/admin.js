@@ -9,7 +9,7 @@ function displayStats(stats) {
 }
 
 // Show that an error has occurred
-function displayError() {
+function showError() {
     $('#status').removeClass('hidden');
 }
 
@@ -22,9 +22,7 @@ function updateStats() {
         success: (data) => {
             displayStats(data);
         },
-        error: (req, err) => {
-            displayError();
-        }
+        error: showError
     });
 }
 
