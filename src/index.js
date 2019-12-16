@@ -893,6 +893,29 @@ app.post('/admin/terms-and-conditions', adminAuth, (req, res) => {
     });
 });
 
+// Pseudo-query page
+app.get('/admin/query', adminAuth, (req, res) => {
+    renderPage(req, res, 'admin-query', { title: 'Query' });
+});
+
+app.get('/getDBTables', adminAuth, (req, res) => {
+    database.getTables((tables) => {
+        res.json({ tables: tables });
+    });
+});
+
+app.get('/getDBColumns', adminAuth, (req, res) => {
+    database.getColumns(req.query.table, (columns) => {
+        res.json({ columns: columns });
+    })
+});
+
+app.get('/executeSelect', adminAuth, (req, res) => {
+    database.executeSelect(req.query.queryInputs, (rows) => {
+        res.json({ result: rows });
+    });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     renderPage(req, res, '404', { title: 'Not found' });

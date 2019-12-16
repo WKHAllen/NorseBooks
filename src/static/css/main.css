@@ -435,3 +435,11 @@ footer .footer-list-link {
 .stats-value {
     font-size: 1.75rem;
 }
+
+#query-results {
+    overflow-x: auto;
+}
+
+#query-results-table {
+    margin-bottom: 0;
+}

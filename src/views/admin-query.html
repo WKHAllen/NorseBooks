@@ -1,0 +1,79 @@
+<script type="text/javascript" src="/js/admin-query.js"></script>
+<div class="container mb-3">
+    <h1 class="centered">Query</h1>
+    <form method="POST" onsubmit="return executeQuery();">
+        <div class="row">
+            <!-- Table -->
+            <div class="col-12 col-sm-4 mb-3">
+                <label for="table">Table</label>
+                <select class="form-control" id="table" name="table" onchange="updateColumns();" required>
+                    <option value="">Select...</option>
+                    <!-- Populated by `populateTables` -->
+                </select>
+            </div>
+            <!-- Columns -->
+            <div class="col-12 col-sm-8 mb-3">
+                <label for="columns-div">Columns</label>
+                <div id="columns-div">
+                    <button type="button" class="btn btn-primary" onclick="selectAllCols();"><span class="large">All</span></button>
+                    <button type="button" class="btn btn-primary" onclick="deselectAllCols();"><span class="large">None</span></button>
+                    <div class="row mt-1" id="columns">
+                        <!-- Populated by `populateColumns` -->
+                    </div>
+                </div>
+            </div>
+            <!-- WHERE clause -->
+            <div class="col-12 col-lg-4 mb-3">
+                <label for="where-div">Condition <span class="small"><i>(optional)</i></span></label>
+                <div class="input-group" id="where-div">
+                    <select class="form-control" id="where" name="where">
+                        <option value="">Select...</option>
+                        <!-- Populated by `populateColumnsWhere -->
+                    </select>
+                    <select class="form-control" id="whereOperator" name="whereOperator">
+                        <option value="">Select...</option>
+                        <option value="=">&#61;</option>
+                        <option value="<">&#60;</option>
+                        <option value=">">&#62;</option>
+                        <option value="<=">&#60;&#61;</option>
+                        <option value=">=">&#62;&#61;</option>
+                    </select>
+                    <input type="text" class="form-control" id="whereValue" name="whereValue">
+                </div>
+            </div>
+            <!-- ORDER BY clause -->
+            <div class="col-12 col-sm-6 col-lg-4 mb-3">
+                <label for="orderBy-div">Sort <span class="small"><i>(optional)</i></span></label>
+                <div class="input-group">
+                    <select class="form-control" id="orderBy" name="orderBy">
+                        <option value="">Select...</option>
+                    </select>
+                    <select class="form-control" id="orderByDirection" name="orderByDirection">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4 mb-3 flex-end">
+                <button type="submit" class="btn btn-primary no-expand mr-1">Execute</button>
+                <a href="/admin" class="btn btn-primary">Cancel</a>
+            </div>
+        </div>
+    </form>
+    <p class="centered hidden" id="status"></p>
+    <!-- Query results -->
+    <div class="hidden" id="query-results">
+        <h2>Results</h2>
+        <div class="custom-control custom-checkbox ml-1 mb-3">
+            <input type="checkbox" class="custom-control-input column-checkbox" id="table-small-check" onchange="updateTableSize();" checked>
+            <label for="table-small-check" class="custom-control-label">Small</label>
+        </div>
+        <!-- Results table -->
+        <table class="table table-striped table-hover table-sm" id="query-results-table">
+            <thead>
+                <tr id="query-results-head"></tr>
+            </thead>
+            <tbody id="query-results-body"></tbody>
+        </table>
+    </div>
+</div>

@@ -1028,7 +1028,19 @@ function getNumTables(callback) {
 function getTables(callback) {
     var sql = `SELECT table_name AS table FROM information_schema.tables WHERE table_schema = 'public';`;
     mainDB.execute(sql, [], (rows) => {
-        if (callback) callback(rows);
+        var tables = [];
+        for (var row of rows) tables.push(row.table);
+        if (callback) callback(tables);
+    });
+}
+
+// Get the names of the columns in a table
+function getColumns(table, callback) {
+    var sql = `SELECT column_name AS column FROM information_schema.columns WHERE table_name = '${table.toLowerCase()}';`;
+    mainDB.execute(sql, [], (rows) => {
+        var columns = [];
+        for (var row of rows) columns.push(row.column);
+        if (callback) callback(columns);
     });
 }
 
@@ -1045,7 +1057,7 @@ function getRowCount(callback) {
             FROM information_schema.tables
             WHERE table_schema = 'public'
         ) t;
-    `
+    `;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
     });
@@ -1054,22 +1066,43 @@ function getRowCount(callback) {
 // Get the total number of rows currently used by the database
 function getNumRows(callback) {
     var sql = `
-        SELECT SUM(count) FROM (
-            SELECT COUNT(*) FROM NBUser UNION
-            SELECT COUNT(*) FROM Department UNION
-            SELECT COUNT(*) FROM Condition UNION
-            SELECT COUNT(*) FROM Platform UNION
-            SELECT COUNT(*) FROM Book UNION
-            SELECT COUNT(*) FROM PasswordReset UNION
-            SELECT COUNT(*) FROM Verify UNION
-            SELECT COUNT(*) FROM Session UNION
-            SELECT COUNT(*) FROM Report UNION
-            SELECT COUNT(*) FROM SearchSort UNION
-            SELECT COUNT(*) FROM Meta
+        SELECT SUM(rows) FROM (
+            SELECT
+                table_name AS table,
+                (xpath('/row/cnt/text()', xml_count))[1]::TEXT::INT as rows
+            FROM (
+                SELECT
+                    table_name, table_schema,
+                    query_to_xml(format('SELECT COUNT(*) AS cnt FROM %I.%I', table_schema, table_name), false, true, '') AS xml_count
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+            ) t
         ) AS subq;
     `;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].sum);
+    });
+}
+
+// Execute a query
+function executeSelect(queryInputs, callback) {
+    var select = 'SELECT';
+    if (queryInputs.columns) {
+        var select = 'SELECT ' + queryInputs.columns.join(', ');
+    }
+    var from = `FROM ${queryInputs.table}`;
+    var where = '';
+    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
+        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} '${queryInputs.whereValue}'`;
+    }
+    var orderBy = '';
+    if (queryInputs.orderBy && queryInputs.orderByDirection) {
+        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
+    }
+    var query = [select, from, where, orderBy].join(' ') + ';';
+    while (query.includes('  ')) query = query.replace('  ', ' ');
+    mainDB.execute(query, [], (rows) => {
+        if (callback) callback(rows);
     });
 }
 
@@ -1141,7 +1174,9 @@ module.exports = {
     'getNumBooks': getNumBooks,
     'getNumTables': getNumTables,
     'getTables': getTables,
+    'getColumns': getColumns,
     'getRowCount': getRowCount,
     'getNumRows': getNumRows,
+    'executeSelect': executeSelect,
     'mainDB': mainDB
 };
