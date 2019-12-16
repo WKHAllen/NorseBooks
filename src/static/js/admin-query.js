@@ -2,12 +2,12 @@ const defaultOption = '<option value="">Select...</option>';
 
 // Select all columns
 function selectAllCols() {
-    $('.column-checkbox').prop('checked', true);
+    $('#columns .column-checkbox').prop('checked', true);
 }
 
 // Deselect all columns
 function deselectAllCols() {
-    $('.column-checkbox').prop('checked', false);
+    $('#columns .column-checkbox').prop('checked', false);
 }
 
 // Update the columns when a different table is selected
@@ -58,7 +58,7 @@ function populateColumnsWhere(columns) {
 
 // Populated the columns in the ORDER BY clause
 function populateColumnsOrderBy(columns) {
-    var columnElement = $('#orderby');
+    var columnElement = $('#orderBy');
     columnElement.html(defaultOption);
     for (var column of columns) {
         columnElement.append(`<option value="${column}">${column}</option>`);
@@ -69,7 +69,7 @@ function populateColumnsOrderBy(columns) {
 function clearColumns() {
     $('#columns').html('');
     $('#where').html(defaultOption);
-    $('#orderby').html(defaultOption);
+    $('#orderBy').html(defaultOption);
 }
 
 // Get the tables
@@ -82,7 +82,9 @@ function getTables(callback) {
             hideError();
             if (callback) callback(data.tables);
         },
-        error: showError
+        error: (err, req) => {
+            showError('Failed to load tables.');
+        }
     });
 }
 
@@ -97,18 +99,96 @@ function getColumns(table, callback) {
             hideError();
             if (callback) callback(data.columns);
         },
-        error: showError
+        error: (err, req) => {
+            showError('Failed to load columns.');
+        }
     });
 }
 
 // Show that an error has occurred
-function showError() {
-    $('#status').removeClass('hidden');
+function showError(text) {
+    var status = $('#status');
+    if (text) status.text(text);
+    status.removeClass('hidden');
 }
 
 // Hide errors
 function hideError() {
     $('#status').addClass('hidden');
+}
+
+// Get the query inputs
+function getQueryInputs() {
+    // Table
+    var table = $('#table').val();
+    // Columns
+    var columns = [];
+    for (var column of $('#columns .column-checkbox')) {
+        if (column.checked) {
+            columns.push(column.id.slice(7));
+        }
+    }
+    // Where
+    var where = $('#where').val();
+    // Where operator
+    var whereOperator = $('#whereOperator').val();
+    // Where value
+    var whereValue = $('#whereValue').val();
+    // Order by
+    var orderBy = $('#orderBy').val();
+    // Order by direction
+    var orderByDirection = $('#orderByDirection').val();
+    // Populate object
+    var queryInputs = {};
+    queryInputs.table = table;
+    queryInputs.columns = columns;
+    if (where !== '' && whereOperator !== '' && whereValue !== '') {
+        queryInputs.where = where;
+        queryInputs.whereOperator = whereOperator;
+        queryInputs.whereValue = whereValue;
+    }
+    if (orderBy !== '') {
+        queryInputs.orderBy = orderBy;
+        queryInputs.orderByDirection = orderByDirection;
+    }
+    return queryInputs;
+}
+
+// Build the query
+function buildQuery(queryInputs) {
+    var select = 'SELECT ' + queryInputs.columns.join(', ');
+    var from = `FROM ${queryInputs.table}`;
+    var where = '';
+    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
+        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} ${queryInputs.whereValue}`;
+    }
+    var orderBy = '';
+    if (queryInputs.orderBy && queryInputs.orderByDirection) {
+        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
+    }
+    var query = [select, from, where, orderBy].join(' ') + ';';
+    while (query.includes('  ')) query = query.replace('  ', ' ');
+    return query;
+}
+
+// Execute the query
+function executeQuery() {
+    event.preventDefault();
+    var queryInputs = getQueryInputs();
+    var query = buildQuery(queryInputs);
+    $.ajax({
+        url: '/executeQuery',
+        type: 'GET',
+        data: { query: query },
+        dataType: 'json',
+        success: (data) => {
+            console.log(data);
+        },
+        error: (err, req) => {
+            showError('Failed to execute the query.');
+        }
+    });
+    return false;
 }
 
 // When the page is ready

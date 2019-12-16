@@ -1,7 +1,7 @@
 <script type="text/javascript" src="/js/admin-query.js"></script>
 <div class="container mb-3">
     <h1 class="centered">Query</h1>
-    <form method="POST">
+    <form method="POST" onsubmit="return executeQuery();">
         <div class="row">
             <!-- Table -->
             <div class="col-12 col-sm-4 mb-3">
@@ -30,29 +30,35 @@
                         <option value="">Select...</option>
                         <!-- Populated by `populateColumnsWhere -->
                     </select>
-                    <select class="form-control" id="whereOp" name="whereOp">
+                    <select class="form-control" id="whereOperator" name="whereOperator">
                         <option value="">Select...</option>
-                        <option value="equal">&#61;</option>
-                        <option value="lessthan">&#60;</option>
-                        <option value="greaterthan">&#62;</option>
-                        <option value="lessthanequal">&#60;&#61;</option>
-                        <option value="greaterthanequal">&#62;&#61;</option>
+                        <option value="=">&#61;</option>
+                        <option value="<">&#60;</option>
+                        <option value=">">&#62;</option>
+                        <option value="<=">&#60;&#61;</option>
+                        <option value=">=">&#62;&#61;</option>
                     </select>
                     <input type="text" class="form-control" id="whereValue" name="whereValue">
                 </div>
             </div>
             <!-- ORDER BY clause -->
-            <div class="col-6 col-lg-4 mb-3">
-                <label for="orderby">Order by <span class="small"><i>(optional)</i></span></label>
-                <select class="form-control" id="orderby" name="orderby">
-                    <option value="">Select...</option>
-                </select>
+            <div class="col-12 col-sm-6 col-lg-4 mb-3">
+                <label for="orderBy-div">Order by <span class="small"><i>(optional)</i></span></label>
+                <div class="input-group">
+                    <select class="form-control" id="orderBy" name="orderBy">
+                        <option value="">Select...</option>
+                    </select>
+                    <select class="form-control" id="orderByDirection" name="orderByDirection">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                </div>
             </div>
-            <div class="col-6 col-lg-4 mb-3 flex-end">
+            <div class="col-12 col-sm-6 col-lg-4 mb-3 flex-end">
                 <button type="submit" class="btn btn-primary no-expand mr-1">Execute</button>
                 <a href="/admin" class="btn btn-primary">Cancel</a>
             </div>
         </div>
     </form>
-    <p class="centered hidden" id="status">Failed to load tables or columns.</p>
+    <p class="centered hidden" id="status"></p>
 </div>

@@ -910,6 +910,12 @@ app.get('/getDBColumns', adminAuth, (req, res) => {
     })
 });
 
+app.get('/executeQuery', adminAuth, (req, res) => {
+    database.executeQuery(req.query.query, (rows) => {
+        res.json({ result: rows });
+    });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     renderPage(req, res, '404', { title: 'Not found' });

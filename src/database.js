@@ -1084,6 +1084,13 @@ function getNumRows(callback) {
     });
 }
 
+// Execute a query
+function executeQuery(query, callback) {
+    mainDB.execute(query, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
 // Initialize the database on import
 init();
 
@@ -1155,5 +1162,6 @@ module.exports = {
     'getColumns': getColumns,
     'getRowCount': getRowCount,
     'getNumRows': getNumRows,
+    'executeQuery': executeQuery,
     'mainDB': mainDB
 };
