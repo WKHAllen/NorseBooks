@@ -411,8 +411,9 @@ app.get('/verify/:verifyId', (req, res) => {
     database.checkVerifyId(req.params.verifyId, (valid) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
-            database.setVerified(req.params.verifyId);
-            database.deleteVerifyId(req.params.verifyId);
+            database.setVerified(req.params.verifyId, () => {
+                database.deleteVerifyId(req.params.verifyId);
+            });
         }
     });
 });
