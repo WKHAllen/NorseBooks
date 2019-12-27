@@ -442,6 +442,7 @@ function pruneUnverified(verifyId, callback) {
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
         deleteVerifyId(verifyId);
+        if (callback) callback();
     });
 }
 
