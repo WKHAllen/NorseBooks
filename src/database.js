@@ -106,6 +106,7 @@ function init() {
             joinTimestamp INT NOT NULL,
             lastLogin INT,
             itemsListed INT NOT NULL,
+            itemsSold INT NOT NULL,
             verified INT NOT NULL,
             lastFeedbackTimestamp INT,
             admin INT NOT NULL
@@ -520,10 +521,10 @@ function register(email, password, firstname, lastname, callback) {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `
-            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, verified, admin) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?
+            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, verified, admin) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?
             );`;
-        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0];
+        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0, 0];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
@@ -694,6 +695,17 @@ function deleteBook(userId, bookId, callback) {
         sql = `DELETE FROM Report WHERE bookId = ?;`;
         params = [bookId];
         mainDB.execute(sql, params, (rows) => {
+            if (callback) callback();
+        });
+    });
+}
+
+// Delete a book and mark it as sold
+function bookSold(userId, bookId, callback) {
+    var sql = `UPDATE NBUser SET itemsSold = itemsSold + 1 WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        deleteBook(userId, bookId, () => {
             if (callback) callback();
         });
     });
@@ -1147,6 +1159,7 @@ module.exports = {
     'getUserBookInfo': getUserBookInfo,
     'getNumUserBooks': getNumUserBooks,
     'deleteBook': deleteBook,
+    'bookSold': bookSold,
     'searchBooks': searchBooks,
     'bookLister': bookLister,
     'reportBook': reportBook,

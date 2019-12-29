@@ -648,6 +648,17 @@ app.post('/deleteBook/:bookId', auth, (req, res) => {
     });
 });
 
+// Book sold event
+app.post('/bookSold/:bookId', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.bookSold(userId, bookInfo.id, () => {
+                res.redirect('/');
+            });
+        });
+    });
+});
+
 // Report book event
 app.post('/reportBook/:bookId', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
