@@ -24,8 +24,6 @@ const reportTimeout = 60 * 60 * 1000; // one hour
 const sessionTimeout = 14 * 24 * 60 * 60 * 1000; // two weeks
 const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 const staticTablePath = 'tables';
-const maxReports = 5;
-const booksPerQuery = 24;
 
 // The database object
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
@@ -108,6 +106,7 @@ function init() {
             joinTimestamp INT NOT NULL,
             lastLogin INT,
             itemsListed INT NOT NULL,
+            itemsSold INT NOT NULL,
             verified INT NOT NULL,
             lastFeedbackTimestamp INT,
             admin INT NOT NULL
@@ -444,6 +443,7 @@ function pruneUnverified(verifyId, callback) {
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
         deleteVerifyId(verifyId);
+        if (callback) callback();
     });
 }
 
@@ -521,10 +521,10 @@ function register(email, password, firstname, lastname, callback) {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `
-            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, verified, admin) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?
+            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, verified, admin) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?
             );`;
-        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0];
+        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0, 0];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
@@ -679,7 +679,7 @@ function getUserBookInfo(bookId, callback) {
 }
 
 // Get the number of departments
-function getNumBooks(userId, callback) {
+function getNumUserBooks(userId, callback) {
     var sql = `SELECT id FROM Book WHERE userId = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -700,9 +700,21 @@ function deleteBook(userId, bookId, callback) {
     });
 }
 
+// Delete a book and mark it as sold
+function bookSold(userId, bookId, callback) {
+    var sql = `UPDATE NBUser SET itemsSold = itemsSold + 1 WHERE id = ?;`;
+    var params = [userId];
+    mainDB.execute(sql, params, (rows) => {
+        deleteBook(userId, bookId, () => {
+            if (callback) callback();
+        });
+    });
+}
+
 // Get info on books searched
 function searchBooks(options, sort, lastBookId, callback) {
     var params = [];
+    var extraParams = [];
     var searchQuery = '';
     if (Object.keys(options).length > 0) {
         var searchOptions = [];
@@ -710,47 +722,66 @@ function searchBooks(options, sort, lastBookId, callback) {
             if (option === 'title' || option === 'author') {
                 searchOptions.push(` LOWER(${option}) LIKE LOWER(?)`);
                 params.push(`%${options[option]}%`);
+                if (lastBookId) extraParams.push(`%${options[option]}%`);
             } else if (option === 'ISBN') {
                 searchOptions.push(' (ISBN10 = ? OR ISBN13 = ?)');
                 params.push(options[option]);
                 params.push(options[option]);
+                if (lastBookId) {
+                    extraParams.push(options[option]);
+                    extraParams.push(options[option]);
+                }
             } else {
                 searchOptions.push(` ${option} = ?`);
                 params.push(options[option]);
+                if (lastBookId) extraParams.push(options[option]);
             }
         }
+        for (var extraParam of extraParams) params.push(extraParam);
         searchQuery = ' WHERE' + searchOptions.join(' AND');
-        if (lastBookId) {
-            // Get books before specified book
-            searchQuery += `
-                AND listedTimestamp < (
-                    SELECT listedTimestamp FROM Book WHERE bookId = ?
-                )`;
-            params.push(lastBookId);
-        }
-    } else {
-        if (lastBookId) {
-            // Get books before specified book
-            searchQuery = `
-                WHERE listedTimestamp < (
-                    SELECT listedTimestamp FROM Book WHERE bookId = ?
-                )`;
-            params.push(lastBookId);
-        }
     }
     getSearchSortQuery(sort, (sortQuery) => {
-        var sortQuery = sortQuery || 'listedTimestamp DESC';
-        var sql = `
-            SELECT
-                bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                price, conditionId, imageUrl, ISBN10, ISBN13
-            FROM Book
-            JOIN Department ON Book.departmentId = Department.id
-            ${searchQuery} ORDER BY ${sortQuery} LIMIT ?;`;
-        // Limit the number of books queried
-        params.push(booksPerQuery);
-        mainDB.execute(sql, params, (rows) => {
-            if (callback) callback(rows);
+        getMeta('Books per query', (booksPerQuery) => {
+            booksPerQuery = parseInt(booksPerQuery);
+            sortQuery = sortQuery || 'listedTimestamp DESC';
+            var sql;
+            if (lastBookId) {
+                sql = `
+                    SELECT * FROM (
+                        SELECT
+                            bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                            price, conditionId, imageUrl, ISBN10, ISBN13,
+                            ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
+                        FROM Book
+                        JOIN Department ON Book.departmentId = Department.id
+                        ${searchQuery}
+                    ) search1 WHERE index > (
+                        SELECT index FROM (
+                            SELECT
+                                bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                                price, conditionId, imageUrl, ISBN10, ISBN13,
+                                ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
+                            FROM Book
+                            JOIN Department ON Book.departmentId = Department.id
+                            ${searchQuery}
+                        ) search2 WHERE bookId = ?
+                    ) LIMIT ?;`;
+                params.push(lastBookId);
+                params.push(booksPerQuery);
+            } else {
+                sql = `
+                    SELECT
+                        bookId, title, author, departmentId, Department.name AS department, courseNumber,
+                        price, conditionId, imageUrl, ISBN10, ISBN13,
+                        ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
+                    FROM Book
+                    JOIN Department ON Book.departmentId = Department.id
+                    ${searchQuery} LIMIT ?;`;
+                params.push(booksPerQuery);
+            }
+            mainDB.execute(sql, params, (rows) => {
+                if (callback) callback(rows);
+            });
         });
     });
 }
@@ -771,12 +802,15 @@ function reportBook(userId, bookId, callback) {
     mainDB.execute(sql, params, (rows) => {
         numBookReports(bookId, (reports) => {
             bookLister(bookId, (listerId) => {
-                if (reports >= maxReports) {
-                    deleteBook(listerId, bookId);
-                    if (callback) callback(true);
-                } else {
-                    if (callback) callback(false);
-                }
+                getMeta('Max reports', (maxReports) => {
+                    maxReports = parseInt(maxReports);
+                    if (reports >= maxReports) {
+                        deleteBook(listerId, bookId);
+                        if (callback) callback(true);
+                    } else {
+                        if (callback) callback(false);
+                    }
+                });
             });
         });
     });
@@ -961,20 +995,143 @@ function isAdmin(userId, callback) {
     });
 }
 
-// Get the terms and conditions
-function getTermsAndConditions(callback) {
-    var sql = `SELECT value FROM Meta WHERE key = 'Terms and Conditions'`;
-    mainDB.execute(sql, [], (rows) => {
+// Get the value of a variable in the Meta table
+function getMeta(key, callback) {
+    var sql = `SELECT value FROM Meta WHERE key = ?;`;
+    var params = [key];
+    mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0].value);
     });
 }
 
-// Set the terms and conditions
-function setTermsAndConditions(termsAndCondtions, callback) {
-    var sql = `UPDATE Meta SET value = ? WHERE key = 'Terms and Conditions';`;
-    var params = [termsAndCondtions];
+// Set the value of a variable in the Meta table
+function setMeta(key, value, callback) {
+    var sql = `UPDATE Meta SET value = ? WHERE key = ?;`;
+    var params = [value, key];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback();
+    });
+}
+
+// Get the number of users registered
+function getNumUsers(callback) {
+    var sql = `SELECT COUNT(id) FROM NBUser WHERE verified = 1;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the number of books on the site
+function getNumBooks(callback) {
+    var sql = `SELECT COUNT(id) FROM Book;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the number of books sold
+function getNumSold(callback) {
+    var sql = `SELECT SUM(itemsSold) FROM NBUser;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
+// Get the total number of books that have been listed on the site
+function getTotalListed(callback) {
+    var sql = `SELECT SUM(itemsListed) FROM NBUser;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
+// Get the number of tables in the database
+function getNumTables(callback) {
+    var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get the names of the tables in the database
+function getTables(callback) {
+    var sql = `SELECT table_name AS table FROM information_schema.tables WHERE table_schema = 'public';`;
+    mainDB.execute(sql, [], (rows) => {
+        var tables = [];
+        for (var row of rows) tables.push(row.table);
+        if (callback) callback(tables);
+    });
+}
+
+// Get the names of the columns in a table
+function getColumns(table, callback) {
+    var sql = `SELECT column_name AS column FROM information_schema.columns WHERE table_name = '${table.toLowerCase()}';`;
+    mainDB.execute(sql, [], (rows) => {
+        var columns = [];
+        for (var row of rows) columns.push(row.column);
+        if (callback) callback(columns);
+    });
+}
+
+// Get the number of rows in each table in the database
+function getRowCount(callback) {
+    var sql = `
+        SELECT
+            table_name AS table,
+            (xpath('/row/cnt/text()', xml_count))[1]::TEXT::INT as rows
+        FROM (
+            SELECT
+                table_name, table_schema,
+                query_to_xml(format('SELECT COUNT(*) AS cnt FROM %I.%I', table_schema, table_name), false, true, '') AS xml_count
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+        ) t;
+    `;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get the total number of rows currently used by the database
+function getNumRows(callback) {
+    var sql = `
+        SELECT SUM(rows) FROM (
+            SELECT
+                table_name AS table,
+                (xpath('/row/cnt/text()', xml_count))[1]::TEXT::INT as rows
+            FROM (
+                SELECT
+                    table_name, table_schema,
+                    query_to_xml(format('SELECT COUNT(*) AS cnt FROM %I.%I', table_schema, table_name), false, true, '') AS xml_count
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+            ) t
+        ) AS subq;
+    `;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
+// Execute a query
+function executeSelect(queryInputs, callback) {
+    var select = 'SELECT';
+    if (queryInputs.columns) {
+        var select = 'SELECT ' + queryInputs.columns.join(', ');
+    }
+    var from = `FROM ${queryInputs.table}`;
+    var where = '';
+    if (queryInputs.where && queryInputs.whereOperator && queryInputs.whereValue) {
+        where = `WHERE ${queryInputs.where} ${queryInputs.whereOperator} '${queryInputs.whereValue}'`;
+    }
+    var orderBy = '';
+    if (queryInputs.orderBy && queryInputs.orderByDirection) {
+        orderBy = `ORDER BY ${queryInputs.orderBy} ${queryInputs.orderByDirection}`;
+    }
+    var query = [select, from, where, orderBy].join(' ') + ';';
+    while (query.includes('  ')) query = query.replace('  ', ' ');
+    mainDB.execute(query, [], (rows) => {
+        if (callback) callback(rows);
     });
 }
 
@@ -1016,8 +1173,9 @@ module.exports = {
     'validBook': validBook,
     'getBookInfo': getBookInfo,
     'getUserBookInfo': getUserBookInfo,
-    'getNumBooks': getNumBooks,
+    'getNumUserBooks': getNumUserBooks,
     'deleteBook': deleteBook,
+    'bookSold': bookSold,
     'searchBooks': searchBooks,
     'bookLister': bookLister,
     'reportBook': reportBook,
@@ -1040,7 +1198,17 @@ module.exports = {
     'canProvideFeedback': canProvideFeedback,
     'updateFeedbackTimestamp': updateFeedbackTimestamp,
     'isAdmin': isAdmin,
-    'getTermsAndConditions': getTermsAndConditions,
-    'setTermsAndConditions': setTermsAndConditions,
+    'getMeta': getMeta,
+    'setMeta': setMeta,
+    'getNumUsers': getNumUsers,
+    'getNumBooks': getNumBooks,
+    'getNumSold': getNumSold,
+    'getTotalListed': getTotalListed,
+    'getNumTables': getNumTables,
+    'getTables': getTables,
+    'getColumns': getColumns,
+    'getRowCount': getRowCount,
+    'getNumRows': getNumRows,
+    'executeSelect': executeSelect,
     'mainDB': mainDB
 };

@@ -19,6 +19,17 @@ body {
     flex-direction: column;
 }
 
+.buttonAsLink {
+    background: none;
+    outline: none;
+    border: none;
+    font-style: italic;
+}
+
+.buttonAsLink:hover {
+    text-decoration: underline;
+}
+
 .centered {
     text-align: center;
 }
@@ -408,6 +419,7 @@ footer .footer-list-link {
     box-shadow: 5px 5px 20px gray;
     z-index: 2;
     display: none;
+    min-width: 400px;
 }
 
 .close-modal {
@@ -419,5 +431,26 @@ footer .footer-list-link {
     .blurred-modal {
         width: 90%;
         left: 50%;
+        min-width: 0;
     }
+}
+
+#contact-link {
+    font-weight: bold;
+}
+
+.stats-label {
+    font-style: italic;
+}
+
+.stats-value {
+    font-size: 1.75rem;
+}
+
+#query-results {
+    overflow-x: auto;
+}
+
+#query-results-table {
+    margin-bottom: 0;
 }

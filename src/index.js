@@ -25,7 +25,6 @@ var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
 var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
 var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
 
-const maxNumBooks = 8;
 const ISBNChars = '0123456789X';
 
 var md = new remarkable.Remarkable();
@@ -249,23 +248,26 @@ var adminAuth = (req, res, next) => {
 // Render a page
 function renderPage(req, res, page, options) {
     options = options || {};
-    if (!req.session || !req.session.sessionId) {
-        options.loggedIn = false;
-        res.render(page, options);
-    } else {
-        database.getNavInfo(req.session.sessionId, (result) => {
-            if (!result) {
-                options.loggedIn = false;
-                res.render(page, options);
-            } else {
-                options.loggedIn = true;
-                options.userImageUrl = result.imageurl;
-                options.userFirstName = result.firstname;
-                options.admin = result.admin;
-                res.render(page, options);
-            }
-        });
-    }
+    database.getMeta('Version', (version) => {
+        options.version = version;
+        if (!req.session || !req.session.sessionId) {
+            options.loggedIn = false;
+            res.render(page, options);
+        } else {
+            database.getNavInfo(req.session.sessionId, (result) => {
+                if (!result) {
+                    options.loggedIn = false;
+                    res.render(page, options);
+                } else {
+                    options.loggedIn = true;
+                    options.userImageUrl = result.imageurl;
+                    options.userFirstName = result.firstname;
+                    options.admin = result.admin;
+                    res.render(page, options);
+                }
+            });
+        }
+    });
 }
 
 // Main page
@@ -409,8 +411,9 @@ app.get('/verify/:verifyId', (req, res) => {
     database.checkVerifyId(req.params.verifyId, (valid) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
-            database.setVerified(req.params.verifyId);
-            database.deleteVerifyId(req.params.verifyId);
+            database.setVerified(req.params.verifyId, () => {
+                database.deleteVerifyId(req.params.verifyId);
+            });
         }
     });
 });
@@ -456,22 +459,25 @@ app.post('/password-reset/:passwordResetId', (req, res) => {
 // List new book page
 app.get('/book', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getNumBooks(userId, (numBooks) => {
-            if (numBooks < maxNumBooks) {
-                database.hasContactInfo(userId, (hasInfo) => {
-                    if (hasInfo) {
-                        database.getDepartments((departments) => {
-                            database.getConditions((conditions) => {
-                                renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
+        database.getNumUserBooks(userId, (numBooks) => {
+            database.getMeta('Max books', (maxNumBooks) => {
+                maxNumBooks = parseInt(maxNumBooks);
+                if (numBooks < maxNumBooks) {
+                    database.hasContactInfo(userId, (hasInfo) => {
+                        if (hasInfo) {
+                            database.getDepartments((departments) => {
+                                database.getConditions((conditions) => {
+                                    renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
+                                });
                             });
-                        });
-                    } else {
-                        renderPage(req, res, 'no-contact-info', { title: 'No contact info' });
-                    }
-                });
-            } else {
-                renderPage(req, res, 'max-books', { title: 'Too many books' });
-            }
+                        } else {
+                            renderPage(req, res, 'no-contact-info', { title: 'No contact info' });
+                        }
+                    });
+                } else {
+                    renderPage(req, res, 'max-books', { title: 'Too many books' });
+                }
+            });
         });
     });
 });
@@ -642,6 +648,17 @@ app.post('/deleteBook/:bookId', auth, (req, res) => {
     });
 });
 
+// Book sold event
+app.post('/bookSold/:bookId', auth, (req, res) => {
+    database.getAuthUser(req.session.sessionId, (userId) => {
+        database.getBookInfo(req.params.bookId, (bookInfo) => {
+            database.bookSold(userId, bookInfo.id, () => {
+                res.redirect('/');
+            });
+        });
+    });
+});
+
 // Report book event
 app.post('/reportBook/:bookId', auth, (req, res) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
@@ -798,7 +815,7 @@ app.get('/help-out', (req, res) => {
 
 // Terms and conditions page
 app.get('/terms-and-conditions', (req, res) => {
-    database.getTermsAndConditions((termsAndConditions) => {
+    database.getMeta('Terms and Conditions', (termsAndConditions) => {
         termsAndConditions = md.render(termsAndConditions);
         renderPage(req, res, 'terms-and-conditions', {
             title: 'Terms and conditions',
@@ -809,20 +826,111 @@ app.get('/terms-and-conditions', (req, res) => {
 
 // Admin main page
 app.get('/admin', adminAuth, (req, res) => {
-    renderPage(req, res, 'admin', { title: 'Admin' });
+    database.getMeta('Max books', (maxBooks) => {
+        database.getMeta('Max reports', (maxReports) => {
+            database.getMeta('Books per query', (booksPerQuery) => {
+                database.getMeta('Version', (version) => {
+                    renderPage(req, res, 'admin', {
+                        title: 'Admin',
+                        maxBooks: parseInt(maxBooks),
+                        maxReports: parseInt(maxReports),
+                        booksPerQuery: parseInt(booksPerQuery),
+                        version: version
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Get admin page stats
+app.get('/getAdminStats', adminAuth, (req, res) => {
+    database.getNumUsers((numUsers) => {
+        database.getNumBooks((numBooks) => {
+            database.getNumSold((numSold) => {
+                database.getTotalListed((totalListed) => {
+                    database.getNumTables((numTables) => {
+                        database.getNumRows((numRows) => {
+                            var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                            res.json({
+                                numUsers: numUsers,
+                                numBooks: numBooks,
+                                numSold: numSold,
+                                totalListed: totalListed,
+                                numTables: numTables,
+                                numRows: numRows,
+                                rowsPercentage: rowsPercentage
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Edit version event
+app.post('/setVersion', adminAuth, (req, res) => {
+    database.setMeta('Version', req.body.version, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit max books event
+app.post('/setMaxBooks', adminAuth, (req, res) => {
+    database.setMeta('Max books', req.body.maxBooks, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit max reports event
+app.post('/setMaxReports', adminAuth, (req, res) => {
+    database.setMeta('Max reports', req.body.maxReports, () => {
+        res.redirect('/admin');
+    });
+});
+
+// Edit books per query event
+app.post('/setBooksPerQuery', adminAuth, (req, res) => {
+    database.setMeta('Books per query', req.body.booksPerQuery, () => {
+        res.redirect('/admin');
+    });
 });
 
 // Edit terms and conditions page
 app.get('/admin/terms-and-conditions', adminAuth, (req, res) => {
-    database.getTermsAndConditions((termsAndConditions) => {
+    database.getMeta('Terms and Conditions', (termsAndConditions) => {
         renderPage(req, res, 'admin-tac', { title: 'Edit terms and conditions', termsAndConditions: termsAndConditions });
     });
 });
 
 // Edit terms and conditions event
 app.post('/admin/terms-and-conditions', adminAuth, (req, res) => {
-    database.setTermsAndConditions(req.body.tac, () => {
+    database.setMeta('Terms and Conditions', req.body.tac, () => {
         res.redirect('/admin/terms-and-conditions');
+    });
+});
+
+// Pseudo-query page
+app.get('/admin/query', adminAuth, (req, res) => {
+    renderPage(req, res, 'admin-query', { title: 'Query' });
+});
+
+app.get('/getDBTables', adminAuth, (req, res) => {
+    database.getTables((tables) => {
+        res.json({ tables: tables });
+    });
+});
+
+app.get('/getDBColumns', adminAuth, (req, res) => {
+    database.getColumns(req.query.table, (columns) => {
+        res.json({ columns: columns });
+    })
+});
+
+app.get('/executeSelect', adminAuth, (req, res) => {
+    database.executeSelect(req.query.queryInputs, (rows) => {
+        res.json({ result: rows });
     });
 });
 
