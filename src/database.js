@@ -1029,6 +1029,22 @@ function getNumBooks(callback) {
     });
 }
 
+// Get the number of books sold
+function getNumSold(callback) {
+    var sql = `SELECT SUM(itemsSold) FROM NBUser;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
+// Get the total number of books that have been listed on the site
+function getTotalListed(callback) {
+    var sql = `SELECT SUM(itemsListed) FROM NBUser;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
 // Get the number of tables in the database
 function getNumTables(callback) {
     var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
@@ -1186,6 +1202,8 @@ module.exports = {
     'setMeta': setMeta,
     'getNumUsers': getNumUsers,
     'getNumBooks': getNumBooks,
+    'getNumSold': getNumSold,
+    'getTotalListed': getTotalListed,
     'getNumTables': getNumTables,
     'getTables': getTables,
     'getColumns': getColumns,

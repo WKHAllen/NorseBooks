@@ -847,15 +847,21 @@ app.get('/admin', adminAuth, (req, res) => {
 app.get('/getAdminStats', adminAuth, (req, res) => {
     database.getNumUsers((numUsers) => {
         database.getNumBooks((numBooks) => {
-            database.getNumTables((numTables) => {
-                database.getNumRows((numRows) => {
-                    var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
-                    res.json({
-                        numUsers: numUsers,
-                        numBooks: numBooks,
-                        numTables: numTables,
-                        numRows: numRows,
-                        rowsPercentage: rowsPercentage
+            database.getNumSold((numSold) => {
+                database.getTotalListed((totalListed) => {
+                    database.getNumTables((numTables) => {
+                        database.getNumRows((numRows) => {
+                            var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                            res.json({
+                                numUsers: numUsers,
+                                numBooks: numBooks,
+                                numSold: numSold,
+                                totalListed: totalListed,
+                                numTables: numTables,
+                                numRows: numRows,
+                                rowsPercentage: rowsPercentage
+                            });
+                        });
                     });
                 });
             });
