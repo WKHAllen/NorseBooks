@@ -276,6 +276,11 @@ footer .footer-list-link {
     font-style: italic;
 }
 
+.profile-summary h6 {
+    color: darkgray;
+    font-size: .875rem;
+}
+
 .profile-summary small {
     color: lightgray;
     font-size: .75rem;

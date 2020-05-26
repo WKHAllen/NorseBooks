@@ -287,7 +287,7 @@ function checkPassword(userId, password, callback) {
 
 // Get the info of a user by session ID
 function getUserInfo(userId, callback) {
-    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
+    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
