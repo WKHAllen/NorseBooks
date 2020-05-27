@@ -107,6 +107,7 @@ function init() {
             lastLogin INT,
             itemsListed INT NOT NULL,
             itemsSold INT NOT NULL,
+            moneyMade NUMERIC(8,2) NOT NULL,
             verified INT NOT NULL,
             lastFeedbackTimestamp INT,
             admin INT NOT NULL
@@ -286,7 +287,7 @@ function checkPassword(userId, password, callback) {
 
 // Get the info of a user by session ID
 function getUserInfo(userId, callback) {
-    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed FROM NBUser WHERE id = ?;`;
+    var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows[0]);
@@ -521,10 +522,10 @@ function register(email, password, firstname, lastname, callback) {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `
-            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, verified, admin) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?
+            INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, moneyMade, verified, admin) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             );`;
-        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0, 0];
+        var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0, 0, 0];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
@@ -705,8 +706,15 @@ function bookSold(userId, bookId, callback) {
     var sql = `UPDATE NBUser SET itemsSold = itemsSold + 1 WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
-        deleteBook(userId, bookId, () => {
-            if (callback) callback();
+        sql = `
+            UPDATE NBUser SET moneyMade = moneyMade + (
+                SELECT price FROM Book WHERE id = ?
+            ) WHERE id = ?;`;
+        params = [bookId, userId];
+        mainDB.execute(sql, params, (rows) => {
+            deleteBook(userId, bookId, () => {
+                if (callback) callback();
+            });
         });
     });
 }
@@ -1045,6 +1053,14 @@ function getTotalListed(callback) {
     });
 }
 
+// Get the total amount of money made using the site
+function getTotalMoneyMade(callback) {
+    var sql = `SELECT SUM(moneyMade) FROM NBUser;`
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
 // Get the number of tables in the database
 function getNumTables(callback) {
     var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
@@ -1204,6 +1220,7 @@ module.exports = {
     'getNumBooks': getNumBooks,
     'getNumSold': getNumSold,
     'getTotalListed': getTotalListed,
+    'getTotalMoneyMade': getTotalMoneyMade,
     'getNumTables': getNumTables,
     'getTables': getTables,
     'getColumns': getColumns,

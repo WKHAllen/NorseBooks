@@ -84,6 +84,11 @@ function stripWhitespace(str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
 
+// Add trailing zeros and commas as thousands separators
+function formatPrice(num) {
+    return '$' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Get the hostname of a request
 function getHostname(req) {
     return `${req.protocol}://${req.get('host')}`;
@@ -699,6 +704,8 @@ app.get('/profile', auth, (req, res) => {
                             email: userInfo.email + '@luther.edu',
                             imageUrl: userInfo.imageurl,
                             joined: joinTimestamp,
+                            itemsSold: userInfo.itemssold,
+                            moneyMade: formatPrice(userInfo.moneymade),
                             books: userInfo.itemslisted,
                             platforms: platforms,
                             contactInfoExists: contactPlatform !== '' && contactInfo !== '',
@@ -849,17 +856,20 @@ app.get('/getAdminStats', adminAuth, (req, res) => {
         database.getNumBooks((numBooks) => {
             database.getNumSold((numSold) => {
                 database.getTotalListed((totalListed) => {
-                    database.getNumTables((numTables) => {
-                        database.getNumRows((numRows) => {
-                            var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
-                            res.json({
-                                numUsers: numUsers,
-                                numBooks: numBooks,
-                                numSold: numSold,
-                                totalListed: totalListed,
-                                numTables: numTables,
-                                numRows: numRows,
-                                rowsPercentage: rowsPercentage
+                    database.getTotalMoneyMade((totalMoneyMade) => {
+                        database.getNumTables((numTables) => {
+                            database.getNumRows((numRows) => {
+                                var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                                res.json({
+                                    numUsers: numUsers,
+                                    numBooks: numBooks,
+                                    numSold: numSold,
+                                    totalListed: totalListed,
+                                    totalMoneyMade: formatPrice(totalMoneyMade),
+                                    numTables: numTables,
+                                    numRows: numRows,
+                                    rowsPercentage: rowsPercentage
+                                });
                             });
                         });
                     });
