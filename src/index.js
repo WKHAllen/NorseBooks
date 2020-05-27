@@ -856,17 +856,20 @@ app.get('/getAdminStats', adminAuth, (req, res) => {
         database.getNumBooks((numBooks) => {
             database.getNumSold((numSold) => {
                 database.getTotalListed((totalListed) => {
-                    database.getNumTables((numTables) => {
-                        database.getNumRows((numRows) => {
-                            var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
-                            res.json({
-                                numUsers: numUsers,
-                                numBooks: numBooks,
-                                numSold: numSold,
-                                totalListed: totalListed,
-                                numTables: numTables,
-                                numRows: numRows,
-                                rowsPercentage: rowsPercentage
+                    database.getTotalMoneyMade((totalMoneyMade) => {
+                        database.getNumTables((numTables) => {
+                            database.getNumRows((numRows) => {
+                                var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
+                                res.json({
+                                    numUsers: numUsers,
+                                    numBooks: numBooks,
+                                    numSold: numSold,
+                                    totalListed: totalListed,
+                                    totalMoneyMade: formatPrice(totalMoneyMade),
+                                    numTables: numTables,
+                                    numRows: numRows,
+                                    rowsPercentage: rowsPercentage
+                                });
                             });
                         });
                     });

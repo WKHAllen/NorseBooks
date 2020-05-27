@@ -1053,6 +1053,14 @@ function getTotalListed(callback) {
     });
 }
 
+// Get the total amount of money made using the site
+function getTotalMoneyMade(callback) {
+    var sql = `SELECT SUM(moneyMade) FROM NBUser;`
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].sum);
+    });
+}
+
 // Get the number of tables in the database
 function getNumTables(callback) {
     var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
@@ -1212,6 +1220,7 @@ module.exports = {
     'getNumBooks': getNumBooks,
     'getNumSold': getNumSold,
     'getTotalListed': getTotalListed,
+    'getTotalMoneyMade': getTotalMoneyMade,
     'getNumTables': getNumTables,
     'getTables': getTables,
     'getColumns': getColumns,
