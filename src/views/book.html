@@ -11,7 +11,13 @@
                     <h1>{{title}}</h1>
                     <h5 class="bold">${{price}}</h5>
                     <h6 class="bold">Condition: {{condition}}</h6>
-                    <h6 class="faint">Department: {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</h6>
+                    <h6 class="faint mb-4">Department: {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</h6>
+                    {{#if ISBN10}}
+                    <h6 class="fainter">ISBN-10: {{ISBN10}}</h6>
+                    {{/if}}
+                    {{#if ISBN13}}
+                    <h6 class="fainter">ISBN-13: {{ISBN13}}</h6>
+                    {{/if}}
                     <h6 class="mt-4">Description:</h6>
                     <p>{{description}}</p>
                     <div id="options">
