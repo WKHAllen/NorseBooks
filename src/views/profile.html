@@ -13,7 +13,8 @@
         {{/if}}
         
         <div id="your-listings">
-        <h3>Your Listings</h3>
+        <h3 class="listings">Your Listings</h3>
+            {{#if hasListings}}
             <table class="table">
                 <thead>
                     <tr>
@@ -34,6 +35,9 @@
                     {{/each}}
                 </tbody>
             </table>
+            {{else}}
+            <span>You have no books currently listed.</span>
+            {{/if}}
         </div>
         
         <div class="my-5">

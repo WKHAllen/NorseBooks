@@ -711,7 +711,8 @@ app.get('/profile', auth, (req, res) => {
                             contactInfoExists: contactPlatform !== '' && contactInfo !== '',
                             contactPlatform: contactPlatform,
                             contactInfo: contactInfo,
-                            booksListed: booksListed
+                            booksListed: booksListed,
+                            hasListings: booksListed.length > 0
                         });
                         req.session.errorMsg = undefined;
                     });
