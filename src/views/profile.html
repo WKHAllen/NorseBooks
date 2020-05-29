@@ -13,7 +13,7 @@
         {{/if}}
         
         <div id="your-listings">
-        <h3 class="listings">Your Listings</h3>
+            <h3 class="listings">Your Listings</h3>
             {{#if hasListings}}
             <table class="table">
                 <thead>
@@ -44,7 +44,7 @@
             <form method="POST">
                 <h3>Set contact info</h3>
                 <div class="row">
-                    <div class="form-group col-4 col-md-3">
+                    <div class="form-group col-6 col-sm-4 col-md-3">
                         <label for="contactPlatform">Contact platform</label>
                         <select class="form-control" id="contactPlatform" name="contactPlatform" required>
                             <option value="">Select...</option>
@@ -58,7 +58,7 @@
                         </script>
                         {{/if}}
                     </div>
-                    <div class="form-group col-8 col-md-6 col-lg-7">
+                    <div class="form-group col-6 col-sm-8 col-md-9">
                         <label for="contactInfo">Contact info</label>
                         {{#if contactInfo}}
                         <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" value="{{contactInfo}}" required>
@@ -66,11 +66,8 @@
                         <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" required>
                         {{/if}}
                     </div>
-                    <div class="col-12 col-md-3 col-lg-2 flex-end even-spacing">
-                        <button type="submit" class="btn btn-primary mb-3" formaction="/setContactInfo">Set contact info</button>
-                    </div>
                 </div>
-                
+                <button type="submit" class="btn btn-primary mb-3" formaction="/setContactInfo">Set contact info</button>
             </form>
         </div>
         
@@ -78,17 +75,15 @@
             <form method="POST">
                 <h3>Set image</h3>
                 <div class="row">
-                    <div class="form-group col-8 col-md-10">
+                    <div class="form-group col-12">
                         <label for="imageUrl">Image URL</label>
                         <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required value="{{imageUrl}}">
                     </div>
-                    <div class="col-4 col-md-2 flex-end">
-                        <button type="submit" class="btn btn-primary mb-3" formaction="/setImage">Set image</button>
-                    </div>
                 </div>
-                
+                <button type="submit" class="btn btn-primary mb-3" formaction="/setImage">Set image</button>
             </form>
         </div>
+
         <div class="mb-5">
             <form method="POST">
                 <h3>Change password</h3>
