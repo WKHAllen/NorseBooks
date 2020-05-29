@@ -39,8 +39,25 @@
             <span>You have no books currently listed.</span>
             {{/if}}
         </div>
-        
+
         <div class="my-5">
+            <form method="POST">
+                <h3>Set name</h3>
+                <div class="row">
+                    <div class="form-group col-12 col-sm-6">
+                        <label for="firstname">First name</label>
+                        <input type="text" class="form-control" id="firstname" name="firstname" maxlength="64" placeholder="Roman" value="{{firstname}}" required>
+                    </div>
+                    <div class="form-group col-12 col-sm-6">
+                        <label for="lastname">Last name</label>
+                        <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" value="{{lastname}}" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mb-3" formaction="/setName">Set name</button>
+            </form>
+        </div>
+        
+        <div class="mb-5">
             <form method="POST">
                 <h3>Set contact info</h3>
                 <div class="row">

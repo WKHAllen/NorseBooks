@@ -324,6 +324,15 @@ function setUserPassword(userId, password, callback) {
     });
 }
 
+// Set a user's name
+function setUserName(userId, firstname, lastname, callback) {
+    var sql = `UPDATE NBUser SET firstname = ?, lastname = ? WHERE id = ?`;
+    var params = [firstname, lastname, userId];
+    mainDB.execute(sql, params, (rows) => {
+        if (callback) callback();
+    });
+}
+
 // Check if a user has set their contact information
 function hasContactInfo(userId, callback) {
     var sql = `SELECT contactPlatformId, contactInfo FROM NBUser WHERE id = ?;`;
@@ -1164,6 +1173,7 @@ module.exports = {
     'getUserImage': getUserImage,
     'setUserImage': setUserImage,
     'setUserPassword': setUserPassword,
+    'setUserName': setUserName,
     'hasContactInfo': hasContactInfo,
     'getContactInfo': getContactInfo,
     'setContactInfo': setContactInfo,
