@@ -400,6 +400,10 @@ footer .footer-list-link {
     color: gray;
 }
 
+.fainter {
+    color: lightgray;
+}
+
 #blur {
     position: fixed;
     top: 0;

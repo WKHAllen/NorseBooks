@@ -711,7 +711,8 @@ app.get('/profile', auth, (req, res) => {
                             contactInfoExists: contactPlatform !== '' && contactInfo !== '',
                             contactPlatform: contactPlatform,
                             contactInfo: contactInfo,
-                            booksListed: booksListed
+                            booksListed: booksListed,
+                            hasListings: booksListed.length > 0
                         });
                         req.session.errorMsg = undefined;
                     });
@@ -719,6 +720,22 @@ app.get('/profile', auth, (req, res) => {
             });
         });
     });
+});
+
+// Set name event
+app.post('/setName', auth, (req, res) => {
+    var fname = stripWhitespace(req.body.firstname);
+    var lname = stripWhitespace(req.body.lastname);
+    if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
+        database.getAuthUser(req.session.sessionId, (userId) => {
+            database.setUserName(userId, fname, lname, () => {
+                res.redirect('/profile');
+            });
+        });
+    } else {
+        req.session.errorMsg = 'Invalid name';
+        res.redirect('/profile');
+    }
 });
 
 // Set image event
