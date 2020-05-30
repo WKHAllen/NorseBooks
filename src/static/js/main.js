@@ -12,14 +12,14 @@ function copyToClipboard(text) {
     document.body.removeChild(copyText);
 }
 
+function copyLink() {
+    copyToClipboard(window.location.href);
+    $('#copy-to-clipboard').html('<i class="fas fa-link"></i> Copied!');
+}
+
 function submitForm(id) {
     document.getElementById(id).submit()
 }
-
-$('#copy-to-clipboard').on('click', function() {
-    console.log("event hit")
-    $('#copy-to-clipboard').html("<i class='fas fa-link'></i> Copied!")
-})
 
 function showModal(id) {
     document.getElementById('blur').style.display = "block"
