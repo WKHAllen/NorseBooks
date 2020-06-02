@@ -1,0 +1,22 @@
+<script type="text/javascript" src="/js/admin-reports.js"></script>
+<div class="container">
+	<h1 class="centered">Reports</h1>
+	<table class="table table-sm">
+		<thead>
+			<tr>
+				<th scope="col">Book</th>
+				<th scope="col">Reporter</th>
+				<th scope="col">Timestamp</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each reports}}
+			<tr class="report-row">
+				<td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+				<td>{{this.firstname}} {{this.lastname}}</td>
+				<td class="timestamp">{{this.reporttimestamp}}</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+</div>

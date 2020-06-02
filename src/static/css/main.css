@@ -448,6 +448,10 @@ footer .footer-list-link {
     font-weight: bold;
 }
 
+.stats-div > div {
+    margin-bottom: 20px;
+}
+
 .stats-label {
     font-style: italic;
 }

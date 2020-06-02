@@ -5,39 +5,45 @@
     <p>To return to the home page, <a href="/">click here</a>.</p>
     <div class="mb-3">
         <h2>Stats</h2>
-        <div class="row">
-            <div class="col-3">
+        <div class="row stats-div">
+            <div class="col-4">
                 <div class="stats-label">Users</div>
                 <div class="stats-value" id="numUsers">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Books</div>
                 <div class="stats-value" id="numBooks">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Sold</div>
                 <div class="stats-value" id="numSold">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Total</div>
                 <div class="stats-value" id="totalListed">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-labem">Made</div>
                 <div class="stats-value" id="totalMoneyMade">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Tables</div>
                 <div class="stats-value" id="numTables">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Rows</div>
                 <div class="stats-value" id="numRows">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Capacity</div>
                 <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
             </div>
+            <a href="/admin/reports">
+                <div class="col-4">
+                    <div class="stats-label">Reports</div>
+                    <div class="stats-value" id="numReports">...</div>
+                </div>
+            </a>
         </div>
         <p class="centered hidden" id="status">Failed to fetch stats.</p>
     </div>
