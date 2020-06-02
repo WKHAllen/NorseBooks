@@ -1,6 +1,7 @@
 <script type="text/javascript" src="/js/admin-reports.js"></script>
 <div class="container">
 	<h1 class="centered">Reports</h1>
+	{{#if reports}}
 	<table class="table table-sm">
 		<thead>
 			<tr>
@@ -19,5 +20,8 @@
 			{{/each}}
 		</tbody>
 	</table>
+	{{else}}
+	<p class="justified">There are no active reports.</p>
+	{{/if}}
 	<a href="/admin" class="btn btn-primary mb-3">Back</a>
 </div>
