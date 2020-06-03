@@ -7,8 +7,10 @@
         <h2>Stats</h2>
         <div class="row stats-div">
             <div class="col-4">
-                <div class="stats-label">Users</div>
-                <div class="stats-value" id="numUsers">...</div>
+                <a href="/admin/users">
+                    <div class="stats-label">Users</div>
+                    <div class="stats-value" id="numUsers">...</div>
+                </a>
             </div>
             <div class="col-4">
                 <div class="stats-label">Books</div>
@@ -38,12 +40,12 @@
                 <div class="stats-label">Capacity</div>
                 <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
             </div>
-            <a href="/admin/reports">
-                <div class="col-4">
+            <div class="col-4">
+                <a href="/admin/reports">
                     <div class="stats-label">Reports</div>
                     <div class="stats-value" id="numReports">...</div>
-                </div>
-            </a>
+                </a>
+            </div>
         </div>
         <p class="centered hidden" id="status">Failed to fetch stats.</p>
     </div>

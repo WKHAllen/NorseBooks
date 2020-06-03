@@ -1056,6 +1056,13 @@ app.get('/getAlert', (req, res) => {
     });
 });
 
+// Admin users page
+app.get('/admin/users', adminAuth, (req, res) => {
+    database.getUsers((users) => {
+        renderPage(req, res, 'admin-users', { users: users });
+    });
+});
+
 // Error 404 (not found)
 app.use((req, res) => {
     renderPage(req, res, '404', { title: 'Not found' });

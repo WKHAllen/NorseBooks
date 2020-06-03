@@ -1187,6 +1187,21 @@ function executeSelect(queryInputs, callback) {
     });
 }
 
+// Get relevant information on all users
+function getUsers(callback) {
+    var sql = `
+        SELECT
+            firstname, lastname, email, joinTimestamp,
+            itemsListed, itemsSold, moneyMade
+        FROM NBUser
+        WHERE verified = 1
+        ORDER BY joinTimestamp ASC;
+    `;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
 // Initialize the database on import
 init();
 
@@ -1266,5 +1281,6 @@ module.exports = {
     'getNumReports': getNumReports,
     'getReports': getReports,
     'executeSelect': executeSelect,
+    'getUsers': getUsers,
     'mainDB': mainDB
 };

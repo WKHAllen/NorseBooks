@@ -58,6 +58,13 @@ function makeContactInfoDynamic() {
     }
 }
 
+// Fix the timestamps so that they display in a more human-readable format
+function improveTimestamps() {
+	for (var timestamp of document.getElementsByClassName('timestamp')) {
+		timestamp.innerText = (new Date(parseInt(timestamp.innerText) * 1000).toLocaleString());
+	}
+}
+
 // Create the alert
 function createAlert(alertValue, overrideClose) {
     if (alertValue && (localStorage.getItem('lastAlert') !== alertValue || (overrideClose || false))) {
