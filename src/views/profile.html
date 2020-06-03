@@ -61,7 +61,7 @@
             <form method="POST">
                 <h3>Set contact info</h3>
                 <div class="row">
-                    <div class="form-group col-6 col-sm-4 col-md-3">
+                    <div class="form-group col-12 col-sm-6 col-md-3">
                         <label for="contactPlatform">Contact platform</label>
                         <select class="form-control" id="contactPlatform" name="contactPlatform" required>
                             <option value="">Select...</option>
@@ -75,7 +75,7 @@
                         </script>
                         {{/if}}
                     </div>
-                    <div class="form-group col-6 col-sm-8 col-md-9">
+                    <div class="form-group col-12 col-sm-6 col-md-9">
                         <label for="contactInfo">Contact info</label>
                         {{#if contactInfo}}
                         <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" value="{{contactInfo}}" required>

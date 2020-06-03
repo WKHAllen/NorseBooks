@@ -5,38 +5,46 @@
     <p>To return to the home page, <a href="/">click here</a>.</p>
     <div class="mb-3">
         <h2>Stats</h2>
-        <div class="row">
-            <div class="col-3">
-                <div class="stats-label">Users</div>
-                <div class="stats-value" id="numUsers">...</div>
+        <div class="row stats-div">
+            <div class="col-4">
+                <a href="/admin/users">
+                    <div class="stats-label">Users</div>
+                    <div class="stats-value" id="numUsers">...</div>
+                </a>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Books</div>
                 <div class="stats-value" id="numBooks">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Sold</div>
                 <div class="stats-value" id="numSold">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Total</div>
                 <div class="stats-value" id="totalListed">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-labem">Made</div>
                 <div class="stats-value" id="totalMoneyMade">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Tables</div>
                 <div class="stats-value" id="numTables">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Rows</div>
                 <div class="stats-value" id="numRows">...</div>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 <div class="stats-label">Capacity</div>
                 <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
+            </div>
+            <div class="col-4">
+                <a href="/admin/reports">
+                    <div class="stats-label">Reports</div>
+                    <div class="stats-value" id="numReports">...</div>
+                </a>
             </div>
         </div>
         <p class="centered hidden" id="status">Failed to fetch stats.</p>
@@ -92,9 +100,10 @@
             </div>
         </form>
     </div>
-    <div class="mb-3">
+    <div>
         <h2>Other</h2>
-        <a href="/admin/terms-and-conditions" class="btn btn-primary mr-1">Edit terms and conditions</a>
-        <a href="/admin/query" class="btn btn-primary">Query the database</a>
+        <a href="/admin/terms-and-conditions" class="btn btn-primary mb-3 mr-1">Edit terms and conditions</a>
+        <a href="/admin/query" class="btn btn-primary mb-3 mr-1">Query the database</a>
+        <a href="/admin/alert" class="btn btn-primary mb-3">Set an alert</a>
     </div>
 </div>

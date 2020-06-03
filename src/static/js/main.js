@@ -12,14 +12,14 @@ function copyToClipboard(text) {
     document.body.removeChild(copyText);
 }
 
+function copyLink() {
+    copyToClipboard(window.location.href);
+    $('#copy-to-clipboard').html('<i class="fas fa-link"></i> Copied!');
+}
+
 function submitForm(id) {
     document.getElementById(id).submit()
 }
-
-$('#copy-to-clipboard').on('click', function() {
-    console.log("event hit")
-    $('#copy-to-clipboard').html("<i class='fas fa-link'></i> Copied!")
-})
 
 function showModal(id) {
     document.getElementById('blur').style.display = "block"
@@ -57,3 +57,49 @@ function makeContactInfoDynamic() {
         document.getElementById('contact-link').setAttribute("href", "https:/wa.me/" + document.getElementById('contact-value').innerText)
     }
 }
+
+// Fix the timestamps so that they display in a more human-readable format
+function improveTimestamps() {
+	for (var timestamp of document.getElementsByClassName('timestamp')) {
+		timestamp.innerText = (new Date(parseInt(timestamp.innerText) * 1000).toLocaleString());
+	}
+}
+
+// Create the alert
+function createAlert(alertValue, overrideClose) {
+    if (alertValue && (localStorage.getItem('lastAlert') !== alertValue || (overrideClose || false))) {
+        $('#site-alert-div').html(alertValue);
+        $('#site-alert-container').removeClass('hidden');
+    }
+}
+
+// Show the alert, querying the server if necessary
+function showAlert(alertValue, overrideClose) {
+    if (alertValue !== undefined) {
+        createAlert(alertValue, overrideClose);
+    } else {
+        $.ajax({
+            url: '/getAlert',
+            type: 'GET',
+            dataType: 'json',
+            success: (data) => {
+                createAlert(data.alertValue, overrideClose);
+            }
+        });
+    }
+}
+
+// Hide the alert
+function hideAlert() {
+    $('#site-alert-container').addClass('hidden');
+    localStorage.setItem('lastAlert', $('#site-alert-div').html());
+}
+
+// Remove the alert from local storage
+function clearAlertStorage() {
+    localStorage.removeItem('lastAlert');
+}
+
+$(() => {
+    showAlert();
+});

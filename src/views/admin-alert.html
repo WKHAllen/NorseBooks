@@ -1,0 +1,58 @@
+<script type="text/javascript" src="/js/admin-alert.js"></script>
+<div class="container">
+	<h1 class="centered">Alert</h1>
+	<p class="justified">From here, you can set an alert message that will appear at the top of the window. The alert can contain HTML content. Use the preview button to see how the alert will appear before setting it. <a href="/admin">Click here</a> to return to the admin page.</p>
+	{{#if error}}
+	<div class="alert alert-danger" role="alert">{{error}}</div>
+	{{/if}}
+	{{#if alertTimeout}}
+	<p class="justified">The current alert will end at <span id="alert-timeout" class="bold">{{alertTimeout}}</span></p>
+	{{/if}}
+	<form method="POST" onsubmit="clearAlertStorage();">
+		<div class="form-group">
+			<label for="alertValue">Alert</label>
+			{{#if alertValue}}
+			<input type="text" class="form-control" id="alertValue" name="alertValue" value="{{alertValue}}">
+			{{else}}
+			<input type="text" class="form-control" id="alertValue" name="alertValue">
+			{{/if}}
+		</div>
+		<div class="row">
+			<div class="form-group col-6 col-sm-3">
+				<label for="days">Days</label>
+				{{#if days}}
+				<input type="number" class="form-control" id="days" name="days" value="{{days}}">
+				{{else}}
+				<input type="number" class="form-control" id="days" name="days" value="0">
+				{{/if}}
+			</div>
+			<div class="form-group col-6 col-sm-3">
+				<label for="hours">Hours</label>
+				{{#if hours}}
+				<input type="number" class="form-control" id="hours" name="hours" value="{{hours}}">
+				{{else}}
+				<input type="number" class="form-control" id="hours" name="hours" value="0">
+				{{/if}}
+			</div>
+			<div class="form-group col-6 col-sm-3">
+				<label for="minutes">Minutes</label>
+				{{#if minutes}}
+				<input type="number" class="form-control" id="minutes" name="minutes" value="{{minutes}}">
+				{{else}}
+				<input type="number" class="form-control" id="minutes" name="minutes" value="0">
+				{{/if}}
+			</div>
+			<div class="form-group col-6 col-sm-3">
+				<label for="seconds">Seconds</label>
+				{{#if seconds}}
+				<input type="number" class="form-control" id="seconds" name="seconds" value="{{seconds}}">
+				{{else}}
+				<input type="number" class="form-control" id="seconds" name="seconds" value="0">
+				{{/if}}
+			</div>
+		</div>
+		<button type="submit" class="btn btn-primary mb-3 mr-1">Set alert</button>
+		<button type="button" class="btn btn-light mb-3 mr-1" onclick="previewAlert();">Preview</button>
+		<button type="submit" class="btn btn-danger mb-3" formaction="/removeAlert">Remove alert</button>
+	</form>
+</div>

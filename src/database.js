@@ -191,7 +191,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS Meta (
             id SERIAL PRIMARY KEY,
             key TEXT NOT NULL,
-            value TEXT NOT NULL
+            value TEXT
         );
     `;
     mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable, searchSortTable, metaTable], null, () => {
@@ -1138,6 +1138,33 @@ function getNumRows(callback) {
     });
 }
 
+// Get the number of reports
+function getNumReports(callback) {
+    var sql = `SELECT COUNT(id) FROM Report;`;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows[0].count);
+    });
+}
+
+// Get all reports
+function getReports(callback) {
+    var sql = `
+        SELECT
+            NBUser.firstname AS firstname,
+            NBUser.lastname AS lastname,
+            Book.bookId AS bookId,
+            Book.title AS title,
+            reportTimestamp
+        FROM Report
+        JOIN NBUser ON Report.userId = NBUser.id
+        JOIN Book ON Report.bookId = Book.id
+        ORDER BY Book.id, reportTimestamp;
+    `;
+    mainDB.execute(sql, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
 // Execute a query
 function executeSelect(queryInputs, callback) {
     var select = 'SELECT';
@@ -1156,6 +1183,21 @@ function executeSelect(queryInputs, callback) {
     var query = [select, from, where, orderBy].join(' ') + ';';
     while (query.includes('  ')) query = query.replace('  ', ' ');
     mainDB.execute(query, [], (rows) => {
+        if (callback) callback(rows);
+    });
+}
+
+// Get relevant information on all users
+function getUsers(orderBy, orderDirection, callback) {
+    var sql = `
+        SELECT
+            firstname, lastname, email, joinTimestamp,
+            itemsListed, itemsSold, moneyMade
+        FROM NBUser
+        WHERE verified = 1
+        ORDER BY ${orderBy} ${orderDirection};
+    `;
+    mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
     });
 }
@@ -1236,6 +1278,9 @@ module.exports = {
     'getColumns': getColumns,
     'getRowCount': getRowCount,
     'getNumRows': getNumRows,
+    'getNumReports': getNumReports,
+    'getReports': getReports,
     'executeSelect': executeSelect,
+    'getUsers': getUsers,
     'mainDB': mainDB
 };

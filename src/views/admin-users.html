@@ -1,0 +1,33 @@
+<script type="text/javascript" src="/js/admin-users.js"></script>
+<div class="container">
+	<h1 class="centered">Users</h1>
+	<p class="justified">This page contains relevant information on users. To sort by a column, click on the column header. <a href="/admin">Click here</a> to return to the admin page.</p>
+	<table class="table table-striped table-hover table-sm">
+		<thead>
+			<tr>
+				<th scope="col"><a href="?orderBy=firstname" id="firstname-header">First name</a></th>
+				<th scope="col"><a href="?orderBy=lastname" id="lastname-header">Last name</a></th>
+				<th scope="col"><a href="?orderBy=email" id="email-header">Email</a></th>
+				<th scope="col"><a href="?orderBy=joinTimestamp" id="joinTimestamp-header">Joined</a></th>
+				<th scope="col"><a href="?orderBy=itemsListed" id="itemsListed-header">Listed</a></th>
+				<th scope="col"><a href="?orderBy=itemsSold" id="itemsSold-header">Sold</a></th>
+				<th scope="col"><a href="?orderBy=moneyMade" id="moneyMade-header">Made</a></th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each users}}
+			<tr>
+				<td>{{this.firstname}}</td>
+				<td>{{this.lastname}}</td>
+				<td>{{this.email}}</td>
+				<td class="timestamp">{{this.jointimestamp}}</td>
+				<td>{{this.itemslisted}}</td>
+				<td>{{this.itemssold}}</td>
+				<td>${{this.moneymade}}</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	<span class="hidden" id="order-by">{{orderBy}}</span>
+	<span class="hidden" id="order-direction">{{orderDirection}}</span>
+</div>

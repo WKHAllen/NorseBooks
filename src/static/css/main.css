@@ -51,6 +51,10 @@ body {
     font-weight: 600;
 }
 
+.italic {
+    font-style: italic;
+}
+
 #book-image {
     width: 100%;
     max-height: 300px;
@@ -448,6 +452,10 @@ footer .footer-list-link {
     font-weight: bold;
 }
 
+.stats-div > div {
+    margin-bottom: 20px;
+}
+
 .stats-label {
     font-style: italic;
 }
@@ -462,4 +470,9 @@ footer .footer-list-link {
 
 #query-results-table {
     margin-bottom: 0;
+}
+
+#site-alert-container {
+    margin: 0;
+    border-radius: 0;
 }
