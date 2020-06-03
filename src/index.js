@@ -1058,8 +1058,10 @@ app.get('/getAlert', (req, res) => {
 
 // Admin users page
 app.get('/admin/users', adminAuth, (req, res) => {
-    database.getUsers((users) => {
-        renderPage(req, res, 'admin-users', { users: users });
+    var orderBy = req.query.orderBy || 'joinTimestamp';
+    var orderDirection = req.query.orderDirection || 'ASC';
+    database.getUsers(orderBy, orderDirection, (users) => {
+        renderPage(req, res, 'admin-users', { users: users, orderBy: orderBy, orderDirection: orderDirection });
     });
 });
 

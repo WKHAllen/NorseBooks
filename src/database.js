@@ -1188,14 +1188,14 @@ function executeSelect(queryInputs, callback) {
 }
 
 // Get relevant information on all users
-function getUsers(callback) {
+function getUsers(orderBy, orderDirection, callback) {
     var sql = `
         SELECT
             firstname, lastname, email, joinTimestamp,
             itemsListed, itemsSold, moneyMade
         FROM NBUser
         WHERE verified = 1
-        ORDER BY joinTimestamp ASC;
+        ORDER BY ${orderBy} ${orderDirection};
     `;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
