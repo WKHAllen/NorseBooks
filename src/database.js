@@ -191,7 +191,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS Meta (
             id SERIAL PRIMARY KEY,
             key TEXT NOT NULL,
-            value TEXT NOT NULL
+            value TEXT
         );
     `;
     mainDB.executeMany([userTable, departmentTable, conditionTable, platformTable, bookTable, passwordResetTable, verifyTable, sessionTable, reportTable, searchSortTable, metaTable], null, () => {

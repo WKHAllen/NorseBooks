@@ -467,3 +467,8 @@ footer .footer-list-link {
 #query-results-table {
     margin-bottom: 0;
 }
+
+#site-alert-container {
+    margin: 0;
+    border-radius: 0;
+}

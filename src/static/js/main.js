@@ -57,3 +57,42 @@ function makeContactInfoDynamic() {
         document.getElementById('contact-link').setAttribute("href", "https:/wa.me/" + document.getElementById('contact-value').innerText)
     }
 }
+
+// Create the alert
+function createAlert(alertValue, overrideClose) {
+    if (alertValue && (localStorage.getItem('lastAlert') !== alertValue || (overrideClose || false))) {
+        $('#site-alert-div').html(alertValue);
+        $('#site-alert-container').removeClass('hidden');
+    }
+}
+
+// Show the alert, querying the server if necessary
+function showAlert(alertValue, overrideClose) {
+    if (alertValue !== undefined) {
+        createAlert(alertValue, overrideClose);
+    } else {
+        $.ajax({
+            url: '/getAlert',
+            type: 'GET',
+            dataType: 'json',
+            success: (data) => {
+                createAlert(data.alertValue, overrideClose);
+            }
+        });
+    }
+}
+
+// Hide the alert
+function hideAlert() {
+    $('#site-alert-container').addClass('hidden');
+    localStorage.setItem('lastAlert', $('#site-alert-div').html());
+}
+
+// Remove the alert from local storage
+function clearAlertStorage() {
+    localStorage.removeItem('lastAlert');
+}
+
+$(() => {
+    showAlert();
+});

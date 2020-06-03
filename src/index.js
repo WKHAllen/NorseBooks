@@ -946,13 +946,6 @@ app.get('/admin/query', adminAuth, (req, res) => {
     renderPage(req, res, 'admin-query', { title: 'Query' });
 });
 
-// View reports page
-app.get('/admin/reports', adminAuth, (req, res) => {
-    database.getReports((reports) => {
-        renderPage(req, res, 'admin-reports', { reports: reports });
-    });
-});
-
 // Get the database tables
 app.get('/getDBTables', adminAuth, (req, res) => {
     database.getTables((tables) => {
@@ -971,6 +964,95 @@ app.get('/getDBColumns', adminAuth, (req, res) => {
 app.get('/executeSelect', adminAuth, (req, res) => {
     database.executeSelect(req.query.queryInputs, (rows) => {
         res.json({ result: rows });
+    });
+});
+
+// View reports page
+app.get('/admin/reports', adminAuth, (req, res) => {
+    database.getReports((reports) => {
+        renderPage(req, res, 'admin-reports', { reports: reports });
+    });
+});
+
+// Site alert page
+app.get('/admin/alert', adminAuth, (req, res) => {
+    database.getMeta('Alert', (alertValue) => {
+        database.getMeta('Alert timeout', (alertTimeout) => {
+            if (alertValue !== null && alertTimeout !== null) {
+                var remaining = Math.floor(parseInt(alertTimeout) - (new Date().getTime() / 1000));
+                if (remaining > 0) {
+                    var days = Math.floor(remaining / (60 * 60 * 24));
+                    var hours = Math.floor((remaining - (days * 60 * 60 * 24)) / (60 * 60));
+                    var minutes = Math.floor((remaining - (days * 60 * 60 * 24) - (hours * 60 * 60)) / 60);
+                    var seconds = remaining - (days * 60 * 60 * 24) - (hours * 60 * 60) - (minutes * 60);
+                    renderPage(req, res, 'admin-alert', {
+                        alertValue: alertValue,
+                        days: days,
+                        hours: hours,
+                        minutes: minutes,
+                        seconds: seconds,
+                        alertTimeout: alertTimeout,
+                        error: req.session.errorMsg || undefined
+                    });
+                } else {
+                    renderPage(req, res, 'admin-alert', { error: req.session.errorMsg || undefined });
+                }
+            } else {
+                renderPage(req, res, 'admin-alert', { error: req.session.errorMsg || undefined });
+            }
+            req.session.errorMsg = undefined;
+        });
+    });
+});
+
+// Set alert event
+app.post('/admin/alert', adminAuth, (req, res) => {
+    var days = parseInt(req.body.days);
+    var hours = parseInt(req.body.hours);
+    var minutes = parseInt(req.body.minutes);
+    var seconds = parseInt(req.body.seconds);
+    if (isNaN(days) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+        req.session.errorMsg = 'Days, hours, minutes, and seconds must all be integers';
+        res.redirect('/admin/alert');
+    } else {
+        if (hours < 0 || hours >= 24) {
+            req.session.errorMsg = 'Hours must be between 0 and 23';
+            res.redirect('/admin/alert');
+        } else if (minutes < 0 || minutes >= 60) {
+            req.session.errorMsg = 'Minutes must be between 0 and 59';
+            res.redirect('/admin/alert');
+        } else if (minutes < 0 || seconds >= 60) {
+            req.session.errorMsg = 'Seconds must be between 0 and 59';
+            res.redirect('/admin/alert');
+        } else {
+            var timeout = (days * 60 * 60 * 24) + (hours * 60 * 60) + (minutes * 60) + seconds;
+            var timeoutTimestamp = Math.floor(new Date().getTime() / 1000) + timeout;
+            database.setMeta('Alert', req.body.alertValue, () => {
+                database.setMeta('Alert timeout', timeoutTimestamp.toString(), () => {
+                    res.redirect('/admin/alert');
+                });
+            });
+        }
+    }
+});
+
+// Remove alert event
+app.post('/removeAlert', adminAuth, (req, res) => {
+    database.setMeta('Alert', null, () => {
+        res.redirect('/admin/alert');
+    });
+});
+
+// Get the current alert
+app.get('/getAlert', (req, res) => {
+    database.getMeta('Alert timeout', (alertTimeout) => {
+        if (Math.floor(parseInt(alertTimeout) - (new Date().getTime() / 1000)) > 0) {
+            database.getMeta('Alert', (alertValue) => {
+                res.json({ alertValue: alertValue });
+            });
+        } else {
+            res.json({});
+        }
     });
 });
 
