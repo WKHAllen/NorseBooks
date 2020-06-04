@@ -8,6 +8,7 @@ const randomPassword = require('secure-random-password');
 const multer = require('multer');
 const cloudinary = require('cloudinary');
 const remarkable = require('remarkable');
+const fs = require('fs');
 const database = require('./database');
 const emailer = require('./emailer');
 
@@ -28,6 +29,12 @@ var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDI
 const ISBNChars = '0123456789X';
 
 var md = new remarkable.Remarkable();
+
+const emailsDir = 'emails';
+const registrationEmailHTML = `${emailsDir}/confirmEmail.html`;
+const registrationEmailText = `${emailsDir}/confirmEmail.txt`;
+const passwordResetEmailHTML = `${emailsDir}/passwordReset.html`;
+const passwordResetEmailText = `${emailsDir}/passwordReset.txt`;
 
 var storage = multer.diskStorage({
     filename: function(req, file, callback) {
@@ -102,13 +109,26 @@ function newRandomPassword() {
     return examplePassword;
 }
 
+// Replace placeholders in strings
+function replacePlaceholders(string, ...values) {
+    for (var value of values)
+        string = string.replace('{}', value);
+    return string;
+}
+
 // Send a registration verification email
 function sendEmailVerification(email, hostname) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
-        emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email',
-            `Hello,<br><br>Welcome to Norse Books! All we need is for you to confirm your email address. You can do this by clicking the link below.<br><br>${hostname}/verify/${verifyId}<br><br>If you did not register for Norse Books, or you have already verified your email, please disregard this email, and do not click on the above link.<br><br>Sincerely,<br>The Norse Books Dev Team`
-        );
+        fs.readFile(registrationEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
+            if (err) throw err;
+            fs.readFile(registrationEmailText, { encoding: 'utf-8' }, (err, textData) => {
+                if (err) throw err;
+                htmlData = replacePlaceholders(htmlData, hostname, verifyId);
+                textData = replacePlaceholders(textData, hostname, verifyId);
+                emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email', htmlData, textData);
+            });
+        });
     });
 }
 
@@ -116,9 +136,15 @@ function sendEmailVerification(email, hostname) {
 function sendPasswordResetEmail(email, hostname) {
     email = email.toLowerCase();
     database.newPasswordResetId(email, (passwordResetId) => {
-        emailer.sendEmail(email + '@luther.edu', 'Norse Books - Password Reset',
-            `Hello,<br><br>A password reset request was sent. To reset your password, please click on the link below.<br><br>${hostname}/password-reset/${passwordResetId}<br><br>If you did not request to reset your password, please disregard this email. Do not share the above link with anyone.<br><br>Sincerely,<br>The Norse Books Dev Team`
-        );
+        fs.readFile(passwordResetEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
+            if (err) throw err;
+            fs.readFile(passwordResetEmailText, { encoding: 'utf-8' }, (err, textData) => {
+                if (err) throw err;
+                htmlData = replacePlaceholders(htmlData, hostname, passwordResetId);
+                textData = replacePlaceholders(textData, hostname, passwordResetId);
+                emailer.sendEmail(email + '@luther.edu', 'Norse Books - Password Reset', htmlData, textData);
+            });
+        });
     });
 }
 
