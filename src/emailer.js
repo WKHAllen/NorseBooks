@@ -7,7 +7,7 @@ try {
 var emailAddress = process.env.EMAIL_ADDRESS || processenv.EMAIL_ADDRESS;
 var emailPassword = process.env.EMAIL_APP_PASSWORD || processenv.EMAIL_APP_PASSWORD;
 
-function sendEmail(emailTo, subject, html) {
+function sendEmail(emailTo, subject, html, text) {
     var transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         auth: {
@@ -19,7 +19,8 @@ function sendEmail(emailTo, subject, html) {
         from: emailAddress,
         to: emailTo,
         subject: subject,
-        html: html
+        html: html,
+        text: text
     };
     transporter.sendMail(mailOptions, (err, info) => {
         // In case gsmtp servers encounter problems (they have before)
