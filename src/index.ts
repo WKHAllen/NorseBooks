@@ -550,9 +550,9 @@ app.get('/book', auth, (req: Request, res: Response) => {
 
 // List new book event
 app.post('/book', auth, upload.single('image'), (req: Request, res: Response) => {
-    cloudinary.v2.uploader.upload(req.file.path, function(result) {
+    cloudinary.v2.uploader.upload(req.file.path, (cloudinaryErr, result) => {
         validBook(req.body, (valid, err, values) => {
-            if (valid) {
+            if (valid && !cloudinaryErr) {
                 database.getAuthUser(req.session.sessionId, (userId) => {
                     database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, (bookId) => {
                         res.redirect(`/book/${bookId}`);
@@ -561,18 +561,24 @@ app.post('/book', auth, upload.single('image'), (req: Request, res: Response) =>
             } else {
                 database.getDepartments((departments) => {
                     database.getConditions((conditions) => {
-                        renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions, error: err, form: {
-                            title: req.body.title,
-                            author: req.body.author,
-                            department: req.body.department,
-                            courseNumber: req.body.courseNumber,
-                            price: req.body.price,
-                            condition: req.body.condition,
-                            ISBN10: req.body.ISBN10,
-                            ISBN13: req.body.ISBN13,
-                            imageUrl: req.body.imageUrl,
-                            description: req.body.description
-                        }});
+                        renderPage(req, res, 'new-book', {
+                            title: 'New book',
+                            departments: departments,
+                            conditions: conditions,
+                            error: err || 'Error uploading image. Please try a different image.',
+                            form: {
+                                title: req.body.title,
+                                author: req.body.author,
+                                department: req.body.department,
+                                courseNumber: req.body.courseNumber,
+                                price: req.body.price,
+                                condition: req.body.condition,
+                                ISBN10: req.body.ISBN10,
+                                ISBN13: req.body.ISBN13,
+                                imageUrl: req.body.imageUrl,
+                                description: req.body.description
+                            }
+                        });
                     });
                 });
             }
@@ -635,19 +641,26 @@ app.get('/edit/:bookId', auth, (req: Request, res: Response) => {
                         database.getBookInfo(req.params.bookId, (bookInfo) => {
                             database.getDepartments((departments) => {
                                 database.getConditions((conditions) => {
-                                    renderPage(req, res, 'edit', { title: 'Edit book', departments: departments, conditions: conditions, form: {
-                                        bookId: req.params.bookId,
-                                        title: bookInfo.title,
-                                        author: bookInfo.author,
-                                        department: bookInfo.departmentid,
-                                        courseNumber: bookInfo.coursenumber,
-                                        price: bookInfo.price,
-                                        condition: bookInfo.conditionid,
-                                        ISBN10: bookInfo.isbn10,
-                                        ISBN13: bookInfo.isbn13,
-                                        imageUrl: bookInfo.imageurl,
-                                        description: bookInfo.description
-                                    }});
+                                    renderPage(req, res, 'edit', {
+                                        title: 'Edit book',
+                                        departments: departments,
+                                        conditions: conditions,
+                                        error: req.session.errorMsg || undefined,
+                                        form: {
+                                            bookId: req.params.bookId,
+                                            title: bookInfo.title,
+                                            author: bookInfo.author,
+                                            department: bookInfo.departmentid,
+                                            courseNumber: bookInfo.coursenumber,
+                                            price: bookInfo.price,
+                                            condition: bookInfo.conditionid,
+                                            ISBN10: bookInfo.isbn10,
+                                            ISBN13: bookInfo.isbn13,
+                                            imageUrl: bookInfo.imageurl,
+                                            description: bookInfo.description
+                                        }
+                                    });
+                                    req.session.errorMsg = undefined;
                                 });
                             });
                         });
@@ -667,12 +680,17 @@ app.post('/edit/:bookId', auth, upload.single('image'), (req: Request, res: Resp
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             if (req.file) {
-                cloudinary.v2.uploader.upload(req.file.path, function(result) {
-                    database.getAuthUser(req.session.sessionId, (userId) => {
-                        database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
-                            res.redirect(`/book/${req.params.bookId}`);
+                cloudinary.v2.uploader.upload(req.file.path, (cloudinaryErr, result) => {
+                    if (!cloudinaryErr) {
+                        database.getAuthUser(req.session.sessionId, (userId) => {
+                            database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                                res.redirect(`/book/${req.params.bookId}`);
+                            });
                         });
-                    });
+                    } else {
+                        req.session.errorMsg = 'Error uploading image. Please try a different image.';
+                        res.redirect(`/edit/${req.params.bookId}`);
+                    }
                 });
             } else {
                 database.getAuthUser(req.session.sessionId, (userId) => {
