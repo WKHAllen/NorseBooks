@@ -1,5 +1,7 @@
 node_modules
 .vscode
 src/processenv.js
+.env
+src/build
 todo.txt
 *.DS_Store

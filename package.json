@@ -4,6 +4,7 @@
   "description": "A place for Luther College students to resell textbooks",
   "main": "index.js",
   "scripts": {
+    "build": "cd src && npm run build",
     "start": "cd src && npm start",
     "postinstall": "cd src && npm install"
   },

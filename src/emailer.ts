@@ -1,13 +1,9 @@
-const nodemailer = require('nodemailer');
+import * as nodemailer from 'nodemailer';
 
-try {
-    var processenv = require('./processenv');
-} catch (ex) {}
+export var emailAddress = process.env.EMAIL_ADDRESS;
+var emailPassword = process.env.EMAIL_APP_PASSWORD;
 
-var emailAddress = process.env.EMAIL_ADDRESS || processenv.EMAIL_ADDRESS;
-var emailPassword = process.env.EMAIL_APP_PASSWORD || processenv.EMAIL_APP_PASSWORD;
-
-function sendEmail(emailTo, subject, html, text) {
+export function sendEmail(emailTo: string, subject: string, html: string, text?: string) {
     var transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         auth: {
@@ -44,8 +40,3 @@ function sendEmail(emailTo, subject, html, text) {
         }
     });
 }
-
-module.exports = {
-    'sendEmail': sendEmail,
-    'emailAddress': emailAddress
-};

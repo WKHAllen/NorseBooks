@@ -1,40 +1,37 @@
-const express = require('express');
-const enforce = require('express-sslify');
-const hbs = require('express-handlebars');
-const session = require('express-session');
-const bodyParser = require('body-parser');
-const owasp = require('owasp-password-strength-test');
-const randomPassword = require('secure-random-password');
-const multer = require('multer');
-const cloudinary = require('cloudinary');
-const remarkable = require('remarkable');
-const fs = require('fs');
-const database = require('./database');
-const emailer = require('./emailer');
+import * as express        from 'express';
+import * as enforce        from 'express-sslify';
+import * as hbs            from 'express-handlebars';
+import * as session        from 'express-session';
+import * as bodyParser     from 'body-parser';
+import * as owasp          from 'owasp-password-strength-test';
+import * as randomPassword from 'secure-random-password';
+import * as multer         from 'multer';
+import * as cloudinary     from 'cloudinary';
+import * as showdown       from 'showdown';
+import * as fs             from 'fs';
+import * as database       from './database';
+import * as emailer        from './emailer';
 
-var debug = true;
+type Request      = express.Request;
+type Response     = express.Response;
+type NextFunction = express.NextFunction;
 
-try {
-    var processenv = require('./processenv');
-} catch (ex) {
-    debug = false;
-}
+const debug               = Boolean(Number(process.env.DEBUG));
+const port                = Number(process.env.PORT);
+const sessionSecret       = process.env.SESSION_SECRET;
+const cloudinaryName      = process.env.CLOUDINARY_NAME;
+const cloudinaryApiKey    = process.env.CLOUDINARY_API_KEY;
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
 
-var port = process.env.PORT || processenv.PORT;
-var sessionSecret = process.env.SESSION_SECRET || processenv.SESSION_SECRET;
-var cloudinaryName = process.env.CLOUDINARY_NAME || processenv.CLOUDINARY_NAME;
-var cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || processenv.CLOUDINARY_API_KEY;
-var cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || processenv.CLOUDINARY_API_SECRET;
+const emailsDir = 'emails';
+const registrationEmailHTML  = `${emailsDir}/confirmEmail.html`;
+const registrationEmailText  = `${emailsDir}/confirmEmail.txt`;
+const passwordResetEmailHTML = `${emailsDir}/passwordReset.html`;
+const passwordResetEmailText = `${emailsDir}/passwordReset.txt`;
 
 const ISBNChars = '0123456789X';
 
-var md = new remarkable.Remarkable();
-
-const emailsDir = 'emails';
-const registrationEmailHTML = `${emailsDir}/confirmEmail.html`;
-const registrationEmailText = `${emailsDir}/confirmEmail.txt`;
-const passwordResetEmailHTML = `${emailsDir}/passwordReset.html`;
-const passwordResetEmailText = `${emailsDir}/passwordReset.txt`;
+var converter = new showdown.Converter();
 
 var storage = multer.diskStorage({
     filename: function(req, file, callback) {
@@ -44,7 +41,7 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 
-cloudinary.config({
+cloudinary.v2.config({
     cloud_name: cloudinaryName,
     api_key: cloudinaryApiKey,
     api_secret: cloudinaryApiSecret
@@ -67,7 +64,7 @@ if (!debug)
 // Use view engine
 app.engine('.html', hbs({
     extname: '.html',
-    defaultView: 'default',
+    // defaultView: 'default',
     defaultLayout: 'default'
 }));
 app.set('view engine', '.html');
@@ -86,23 +83,26 @@ app.use(session({
 app.use(express.static('static'));
 
 // Removes whitespace from the ends of a string
-function stripWhitespace(str) {
+function stripWhitespace(str: string): string {
     if (!str && str !== '') return '';
     return str.replace(/^\s+|\s+$/g, '');
 }
 
 // Add trailing zeros and commas as thousands separators
-function formatPrice(num) {
+function formatPrice(num: number | string): string {
+    if (typeof num === 'number') {
+        num = num.toString();
+    }
     return '$' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // Get the hostname of a request
-function getHostname(req) {
+function getHostname(req: Request): string {
     return `${req.protocol}://${req.get('host')}`;
 }
 
 // Generate a random password
-function newRandomPassword() {
+function newRandomPassword(): string {
     var examplePassword = randomPassword.randomPassword({ length: 10, characters: [
         randomPassword.lower, randomPassword.upper, randomPassword.digits, randomPassword.symbols
     ]});
@@ -110,14 +110,14 @@ function newRandomPassword() {
 }
 
 // Replace placeholders in strings
-function replacePlaceholders(string, ...values) {
+function replacePlaceholders(str: string, ...values: string[]): string {
     for (var value of values)
-        string = string.replace('{}', value);
-    return string;
+        str = str.replace('{}', value);
+    return str;
 }
 
 // Send a registration verification email
-function sendEmailVerification(email, hostname) {
+function sendEmailVerification(email: string, hostname: string) {
     email = email.toLowerCase();
     database.newVerifyId(email, (verifyId) => {
         fs.readFile(registrationEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
@@ -133,7 +133,7 @@ function sendEmailVerification(email, hostname) {
 }
 
 // Send a password reset email
-function sendPasswordResetEmail(email, hostname) {
+function sendPasswordResetEmail(email: string, hostname: string) {
     email = email.toLowerCase();
     database.newPasswordResetId(email, (passwordResetId) => {
         fs.readFile(passwordResetEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
@@ -149,14 +149,14 @@ function sendPasswordResetEmail(email, hostname) {
 }
 
 // Remove unnecessary characters from an ISBN
-function minISBN(ISBN) {
+function minISBN(ISBN: string): string {
     while (ISBN.includes('-')) ISBN = ISBN.replace('-', '');
     while (ISBN.includes(' ')) ISBN = ISBN.replace(' ', '');
     return ISBN;
 }
 
 // Check if an ISBN is valid
-function validISBN(ISBN) {
+function validISBN(ISBN: string): boolean {
     if (ISBN.length !== 10 && ISBN.length !== 13) return false;
     for (var char of ISBN)
         if (!ISBNChars.includes(char))
@@ -164,14 +164,40 @@ function validISBN(ISBN) {
     return true;
 }
 
+interface bookForm {
+    title:        string,
+    author:       string,
+    department:   string,
+    courseNumber: string,
+    price:        string,
+    condition:    string,
+    imageUrl:     string,
+    description:  string,
+    ISBN10:       string,
+    ISBN13:       string
+}
+
+interface bookObject {
+    title:        string,
+    author:       string,
+    department:   number,
+    courseNumber: number,
+    price:        number,
+    condition:    number,
+    imageUrl:     string,
+    description:  string,
+    ISBN10:       string,
+    ISBN13:       string
+}
+
 // Check if a book form is valid
-function validBook(form, callback) {
+function validBook(form: bookForm, callback: (success: boolean, error: string, book?: bookObject) => void) {
     var title = stripWhitespace(form.title);
     var author = stripWhitespace(form.author);
     var department = parseInt(stripWhitespace(form.department));
     var courseNumber = parseInt(stripWhitespace(form.courseNumber));
     var price = Math.floor(parseFloat(stripWhitespace(form.price.replace('$', ''))) * 100) / 100;
-    var condition = stripWhitespace(form.condition);
+    var condition = parseInt(stripWhitespace(form.condition));
     var imageUrl = stripWhitespace(form.imageUrl);
     var description = stripWhitespace(form.description);
     var ISBN10 = minISBN(stripWhitespace(form.ISBN10).toUpperCase());
@@ -245,7 +271,7 @@ function validBook(form, callback) {
 }
 
 // Authorize/authenticate
-var auth = (req, res, next) => {
+const auth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.session || !req.session.sessionId) {
         return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
@@ -257,7 +283,7 @@ var auth = (req, res, next) => {
 }
 
 // Authenticate an admin
-var adminAuth = (req, res, next) => {
+const adminAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.session || !req.session.sessionId) {
         return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
@@ -277,7 +303,7 @@ var adminAuth = (req, res, next) => {
 }
 
 // Render a page
-function renderPage(req, res, page, options) {
+function renderPage(req: Request, res: Response, page: string, options: any) {
     options = options || {};
     database.getMeta('Version', (version) => {
         options.version = version;
@@ -302,7 +328,7 @@ function renderPage(req, res, page, options) {
 }
 
 // Main page
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
     database.getDepartments((departments) => {
         database.getSearchSortOptions((searchSortOptions) => {
             if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN && !req.query.sort) {
@@ -321,25 +347,33 @@ app.get('/', (req, res) => {
     });
 });
 
+interface bookSearchOptions {
+    title?: string,
+    author?: string,
+    departmentId?: number,
+    courseNumber?: number,
+    ISBN?: string
+}
+
 // Get more books to populate the index page
-app.get('/getBooks', (req, res) => {
-    database.validBook(req.query.lastBook, (exists) => {
+app.get('/getBooks', (req: Request, res: Response) => {
+    database.validBook(req.query.lastBook as string, (exists) => {
         if (exists || !req.query.lastBook) {
             // title
-            var title = stripWhitespace(req.query.title);
+            var title = stripWhitespace(req.query.title as string);
             // author
-            var author = stripWhitespace(req.query.author);
+            var author = stripWhitespace(req.query.author as string);
             // department
-            var department = parseInt(stripWhitespace(req.query.department));
+            var department = parseInt(stripWhitespace(req.query.department as string));
             if (isNaN(department)) department = null;
             // course number
-            var courseNumber = parseInt(stripWhitespace(req.query.courseNumber));
+            var courseNumber = parseInt(stripWhitespace(req.query.courseNumber as string));
             // ISBN
-            var ISBN = minISBN(stripWhitespace(req.query.ISBN).toUpperCase());
+            var ISBN = minISBN(stripWhitespace(req.query.ISBN as string).toUpperCase());
             // sort
-            var sort = parseInt(stripWhitespace(req.query.sort));
+            var sort = parseInt(stripWhitespace(req.query.sort as string));
             if (isNaN(sort)) sort = null;
-            var searchOptions = {};
+            var searchOptions: bookSearchOptions = {};
             // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
             // Check author
@@ -355,7 +389,7 @@ app.get('/getBooks', (req, res) => {
                 database.validSearchSortOption(sort, (valid) => {
                     if (!valid) sort = null;
                     // Perform search
-                    database.searchBooks(searchOptions, sort, req.query.lastBook, (rows) => {
+                    database.searchBooks(searchOptions, sort, req.query.lastBook as string, (rows) => {
                         res.json({ books: rows });
                     });
                 });
@@ -367,17 +401,17 @@ app.get('/getBooks', (req, res) => {
 });
 
 // Login page
-app.get('/login', (req, res) => {
+app.get('/login', (req: Request, res: Response) => {
     renderPage(req, res, 'login', { title: 'Login' });
 });
 
 // Login event
-app.post('/login', (req, res) => {
+app.post('/login', (req: Request, res: Response) => {
     database.validLogin(req.body.email.replace('@luther.edu', ''), req.body.password, (valid, sessionId) => {
         if (valid) {
             req.session.sessionId = sessionId;
             if (req.query.after)
-                res.redirect(req.query.after);
+                res.redirect(req.query.after as string);
             else
                 res.redirect('/');
         } else {
@@ -387,12 +421,12 @@ app.post('/login', (req, res) => {
 });
 
 // Registration page
-app.get('/register', (req, res) => {
+app.get('/register', (req: Request, res: Response) => {
     renderPage(req, res, 'register', { title: 'Register', passwordExample: newRandomPassword() });
 });
 
 // Registration event
-app.post('/register', (req, res) => {
+app.post('/register', (req: Request, res: Response) => {
     var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
     var fname = stripWhitespace(req.body.firstname);
     var lname = stripWhitespace(req.body.lastname);
@@ -425,20 +459,21 @@ app.post('/register', (req, res) => {
 });
 
 // Logout event
-app.get('/logout', (req, res) => {
+app.get('/logout', (req: Request, res: Response) => {
     database.deleteSession(req.session.sessionId, () => {
-        req.session.destroy();
-        res.redirect('/login');
+        req.session.destroy(() => {
+            res.redirect('/login');
+        });
     });
 });
 
 // After registering
-app.get('/register-success', (req, res) => {
+app.get('/register-success', (req: Request, res: Response) => {
     renderPage(req, res, 'register-success', { title: 'Successfully registered' });
 });
 
 // Verify email address page
-app.get('/verify/:verifyId', (req, res) => {
+app.get('/verify/:verifyId', (req: Request, res: Response) => {
     database.checkVerifyId(req.params.verifyId, (valid) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
@@ -450,12 +485,12 @@ app.get('/verify/:verifyId', (req, res) => {
 });
 
 // Request password reset page
-app.get('/password-reset', (req, res) => {
+app.get('/password-reset', (req: Request, res: Response) => {
     renderPage(req, res, 'password-reset-request', { title: 'Password reset request' });
 });
 
 // Request password reset event
-app.post('/password-reset', (req, res) => {
+app.post('/password-reset', (req: Request, res: Response) => {
     var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
     renderPage(req, res, 'password-reset-request-success', { title: 'Password reset request' });
     database.passwordResetExists(email, (exists) => {
@@ -466,14 +501,14 @@ app.post('/password-reset', (req, res) => {
 });
 
 // Password reset page
-app.get('/password-reset/:passwordResetId', (req, res) => {
+app.get('/password-reset/:passwordResetId', (req: Request, res: Response) => {
     database.checkPasswordResetId(req.params.passwordResetId, (valid) => {
         renderPage(req, res, 'password-reset', { title: 'Reset password', valid: valid, passwordExample: newRandomPassword() });
     });
 });
 
 // Password reset event
-app.post('/password-reset/:passwordResetId', (req, res) => {
+app.post('/password-reset/:passwordResetId', (req: Request, res: Response) => {
     if (req.body.newPassword === req.body.confirmNewPassword) {
         var result = owasp.test(req.body.newPassword);
         if (result.errors.length === 0) {
@@ -488,12 +523,12 @@ app.post('/password-reset/:passwordResetId', (req, res) => {
 });
 
 // List new book page
-app.get('/book', auth, (req, res) => {
+app.get('/book', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getNumUserBooks(userId, (numBooks) => {
             database.getMeta('Max books', (maxNumBooks) => {
-                maxNumBooks = parseInt(maxNumBooks);
-                if (numBooks < maxNumBooks) {
+                var numMaxNumBooks = parseInt(maxNumBooks);
+                if (numBooks < numMaxNumBooks) {
                     database.hasContactInfo(userId, (hasInfo) => {
                         if (hasInfo) {
                             database.getDepartments((departments) => {
@@ -514,8 +549,8 @@ app.get('/book', auth, (req, res) => {
 });
 
 // List new book event
-app.post('/book', auth, upload.single('image'), (req, res) => {
-    cloudinary.uploader.upload(req.file.path, function(result) {
+app.post('/book', auth, upload.single('image'), (req: Request, res: Response) => {
+    cloudinary.v2.uploader.upload(req.file.path, function(result) {
         validBook(req.body, (valid, err, values) => {
             if (valid) {
                 database.getAuthUser(req.session.sessionId, (userId) => {
@@ -546,7 +581,7 @@ app.post('/book', auth, upload.single('image'), (req, res) => {
 });
 
 // View a book
-app.get('/book/:bookId', (req, res) => {
+app.get('/book/:bookId', (req: Request, res: Response) => {
     database.validBook(req.params.bookId, (valid) => {
         if (valid) {
             database.getBookInfo(req.params.bookId, (bookInfo) => {
@@ -591,7 +626,7 @@ app.get('/book/:bookId', (req, res) => {
 });
 
 // Edit book page
-app.get('/edit/:bookId', auth, (req, res) => {
+app.get('/edit/:bookId', auth, (req: Request, res: Response) => {
     database.validBook(req.params.bookId, (valid) => {
         if (valid) {
             database.getAuthUser(req.session.sessionId, (userId) => {
@@ -628,11 +663,11 @@ app.get('/edit/:bookId', auth, (req, res) => {
 });
 
 // Edit book event
-app.post('/edit/:bookId', auth, upload.single('image'), (req, res) => {
+app.post('/edit/:bookId', auth, upload.single('image'), (req: Request, res: Response) => {
     validBook(req.body, (valid, err, values) => {
         if (valid) {
             if (req.file) {
-                cloudinary.uploader.upload(req.file.path, function(result) {
+                cloudinary.v2.uploader.upload(req.file.path, function(result) {
                     database.getAuthUser(req.session.sessionId, (userId) => {
                         database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
                             res.redirect(`/book/${req.params.bookId}`);
@@ -669,7 +704,7 @@ app.post('/edit/:bookId', auth, upload.single('image'), (req, res) => {
 });
 
 // Delete book event
-app.post('/deleteBook/:bookId', auth, (req, res) => {
+app.post('/deleteBook/:bookId', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getBookInfo(req.params.bookId, (bookInfo) => {
             database.deleteBook(userId, bookInfo.id, () => {
@@ -680,7 +715,7 @@ app.post('/deleteBook/:bookId', auth, (req, res) => {
 });
 
 // Book sold event
-app.post('/bookSold/:bookId', auth, (req, res) => {
+app.post('/bookSold/:bookId', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getBookInfo(req.params.bookId, (bookInfo) => {
             database.bookSold(userId, bookInfo.id, () => {
@@ -691,7 +726,7 @@ app.post('/bookSold/:bookId', auth, (req, res) => {
 });
 
 // Report book event
-app.post('/reportBook/:bookId', auth, (req, res) => {
+app.post('/reportBook/:bookId', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getBookInfo(req.params.bookId, (bookInfo) => {
             database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
@@ -711,7 +746,7 @@ app.post('/reportBook/:bookId', auth, (req, res) => {
 });
 
 // Profile viewing/editing page
-app.get('/profile', auth, (req, res) => {
+app.get('/profile', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.getUserInfo(userId, (userInfo) => {
             database.getContactInfo(userId, (userContactInfo) => {
@@ -749,7 +784,7 @@ app.get('/profile', auth, (req, res) => {
 });
 
 // Set name event
-app.post('/setName', auth, (req, res) => {
+app.post('/setName', auth, (req: Request, res: Response) => {
     var fname = stripWhitespace(req.body.firstname);
     var lname = stripWhitespace(req.body.lastname);
     if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
@@ -765,7 +800,7 @@ app.post('/setName', auth, (req, res) => {
 });
 
 // Set image event
-app.post('/setImage', auth, (req, res) => {
+app.post('/setImage', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.setUserImage(userId, req.body.imageUrl, () => {
             res.redirect('/profile');
@@ -774,7 +809,7 @@ app.post('/setImage', auth, (req, res) => {
 });
 
 // Change password event
-app.post('/changePassword', auth, (req, res) => {
+app.post('/changePassword', auth, (req: Request, res: Response) => {
     if (req.body.newPassword === req.body.confirmNewPassword) {
         var result = owasp.test(req.body.newPassword);
         if (result.errors.length === 0) {
@@ -801,7 +836,7 @@ app.post('/changePassword', auth, (req, res) => {
 });
 
 // Set preferred contact info
-app.post('/setContactInfo', auth, (req, res) => {
+app.post('/setContactInfo', auth, (req: Request, res: Response) => {
     var contactPlatform = parseInt(stripWhitespace(req.body.contactPlatform));
     if (isNaN(contactPlatform)) contactPlatform = -1;
     var contactInfo = stripWhitespace(req.body.contactInfo);
@@ -825,17 +860,17 @@ app.post('/setContactInfo', auth, (req, res) => {
 });
 
 // About page
-app.get('/about', (req, res) => {
+app.get('/about', (req: Request, res: Response) => {
     renderPage(req, res, 'about', { title: 'About NorseBooks' });
 });
 
 // Contact page
-app.get('/contact', (req, res) => {
+app.get('/contact', (req: Request, res: Response) => {
     renderPage(req, res, 'contact', { title: 'Contact Us' });
 });
 
 // Feedback form
-app.get('/feedback', auth, (req, res) => {
+app.get('/feedback', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId) => {
         database.canProvideFeedback(userId, (can) => {
             renderPage(req, res, 'feedback', { title: 'Provide Feedback', canProvideFeedback: can });
@@ -844,7 +879,7 @@ app.get('/feedback', auth, (req, res) => {
 });
 
 // Feedback provided
-app.post('/feedback', auth, (req, res) => {
+app.post('/feedback', auth, (req: Request, res: Response) => {
     database.getAuthUser(req.session.sessionId, (userId, firstname, lastname) => {
         database.canProvideFeedback(userId, (can) => {
             if (can) {
@@ -859,14 +894,14 @@ app.post('/feedback', auth, (req, res) => {
 });
 
 // Help out page
-app.get('/help-out', (req, res) => {
+app.get('/help-out', (req: Request, res: Response) => {
     renderPage(req, res, 'help-out', { title: 'Help out' });
 });
 
 // Terms and conditions page
-app.get('/terms-and-conditions', (req, res) => {
+app.get('/terms-and-conditions', (req: Request, res: Response) => {
     database.getMeta('Terms and Conditions', (termsAndConditions) => {
-        termsAndConditions = md.render(termsAndConditions);
+        termsAndConditions = converter.makeHtml(termsAndConditions);
         renderPage(req, res, 'terms-and-conditions', {
             title: 'Terms and conditions',
             termsAndConditions: termsAndConditions
@@ -875,7 +910,7 @@ app.get('/terms-and-conditions', (req, res) => {
 });
 
 // Admin main page
-app.get('/admin', adminAuth, (req, res) => {
+app.get('/admin', adminAuth, (req: Request, res: Response) => {
     database.getMeta('Max books', (maxBooks) => {
         database.getMeta('Max reports', (maxReports) => {
             database.getMeta('Books per query', (booksPerQuery) => {
@@ -894,7 +929,7 @@ app.get('/admin', adminAuth, (req, res) => {
 });
 
 // Get admin page stats
-app.get('/getAdminStats', adminAuth, (req, res) => {
+app.get('/getAdminStats', adminAuth, (req: Request, res: Response) => {
     database.getNumUsers((numUsers) => {
         database.getNumBooks((numBooks) => {
             database.getNumSold((numSold) => {
@@ -926,82 +961,82 @@ app.get('/getAdminStats', adminAuth, (req, res) => {
 });
 
 // Edit version event
-app.post('/setVersion', adminAuth, (req, res) => {
+app.post('/setVersion', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Version', req.body.version, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit max books event
-app.post('/setMaxBooks', adminAuth, (req, res) => {
+app.post('/setMaxBooks', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Max books', req.body.maxBooks, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit max reports event
-app.post('/setMaxReports', adminAuth, (req, res) => {
+app.post('/setMaxReports', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Max reports', req.body.maxReports, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit books per query event
-app.post('/setBooksPerQuery', adminAuth, (req, res) => {
+app.post('/setBooksPerQuery', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Books per query', req.body.booksPerQuery, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit terms and conditions page
-app.get('/admin/terms-and-conditions', adminAuth, (req, res) => {
+app.get('/admin/terms-and-conditions', adminAuth, (req: Request, res: Response) => {
     database.getMeta('Terms and Conditions', (termsAndConditions) => {
         renderPage(req, res, 'admin-tac', { title: 'Edit terms and conditions', termsAndConditions: termsAndConditions });
     });
 });
 
 // Edit terms and conditions event
-app.post('/admin/terms-and-conditions', adminAuth, (req, res) => {
+app.post('/admin/terms-and-conditions', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Terms and Conditions', req.body.tac, () => {
         res.redirect('/admin/terms-and-conditions');
     });
 });
 
 // Pseudo-query page
-app.get('/admin/query', adminAuth, (req, res) => {
+app.get('/admin/query', adminAuth, (req: Request, res: Response) => {
     renderPage(req, res, 'admin-query', { title: 'Query' });
 });
 
 // Get the database tables
-app.get('/getDBTables', adminAuth, (req, res) => {
+app.get('/getDBTables', adminAuth, (req: Request, res: Response) => {
     database.getTables((tables) => {
         res.json({ tables: tables });
     });
 });
 
 // Get the columns of a single table in the database
-app.get('/getDBColumns', adminAuth, (req, res) => {
-    database.getColumns(req.query.table, (columns) => {
+app.get('/getDBColumns', adminAuth, (req: Request, res: Response) => {
+    database.getColumns(req.query.table as string, (columns) => {
         res.json({ columns: columns });
     })
 });
 
 // Execute a select statement on the database
-app.get('/executeSelect', adminAuth, (req, res) => {
+app.get('/executeSelect', adminAuth, (req: Request, res: Response) => {
     database.executeSelect(req.query.queryInputs, (rows) => {
         res.json({ result: rows });
     });
 });
 
 // View reports page
-app.get('/admin/reports', adminAuth, (req, res) => {
+app.get('/admin/reports', adminAuth, (req: Request, res: Response) => {
     database.getReports((reports) => {
         renderPage(req, res, 'admin-reports', { reports: reports });
     });
 });
 
 // Site alert page
-app.get('/admin/alert', adminAuth, (req, res) => {
+app.get('/admin/alert', adminAuth, (req: Request, res: Response) => {
     database.getMeta('Alert', (alertValue) => {
         database.getMeta('Alert timeout', (alertTimeout) => {
             if (alertValue !== null && alertTimeout !== null) {
@@ -1032,7 +1067,7 @@ app.get('/admin/alert', adminAuth, (req, res) => {
 });
 
 // Set alert event
-app.post('/admin/alert', adminAuth, (req, res) => {
+app.post('/admin/alert', adminAuth, (req: Request, res: Response) => {
     var days = parseInt(req.body.days);
     var hours = parseInt(req.body.hours);
     var minutes = parseInt(req.body.minutes);
@@ -1063,14 +1098,14 @@ app.post('/admin/alert', adminAuth, (req, res) => {
 });
 
 // Remove alert event
-app.post('/removeAlert', adminAuth, (req, res) => {
+app.post('/removeAlert', adminAuth, (req: Request, res: Response) => {
     database.setMeta('Alert', null, () => {
         res.redirect('/admin/alert');
     });
 });
 
 // Get the current alert
-app.get('/getAlert', (req, res) => {
+app.get('/getAlert', (req: Request, res: Response) => {
     database.getMeta('Alert timeout', (alertTimeout) => {
         if (Math.floor(parseInt(alertTimeout) - (new Date().getTime() / 1000)) > 0) {
             database.getMeta('Alert', (alertValue) => {
@@ -1083,21 +1118,21 @@ app.get('/getAlert', (req, res) => {
 });
 
 // Admin users page
-app.get('/admin/users', adminAuth, (req, res) => {
-    var orderBy = req.query.orderBy || 'joinTimestamp';
-    var orderDirection = req.query.orderDirection || 'ASC';
+app.get('/admin/users', adminAuth, (req: Request, res: Response) => {
+    var orderBy = req.query.orderBy as string || 'joinTimestamp';
+    var orderDirection = req.query.orderDirection as string || 'ASC';
     database.getUsers(orderBy, orderDirection, (users) => {
         renderPage(req, res, 'admin-users', { users: users, orderBy: orderBy, orderDirection: orderDirection });
     });
 });
 
 // Error 404 (not found)
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
     renderPage(req, res, '404', { title: 'Not found' });
 });
 
 // Error 500 (internal server error)
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
     renderPage(req, res, '500', { title: 'Internal server error' });
 });
 

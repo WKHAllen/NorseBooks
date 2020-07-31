@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "./build",
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "allowJs": true,
+		"target": "es5"
+    },
+    "include": [
+		"./*.ts",
+		"./emails/**/*",
+		"./static/**/*",
+		"./tables/**/*",
+        "./views/**/*"
+    ]
+}

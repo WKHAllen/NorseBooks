@@ -1,19 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const csv = require('fast-csv');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const db = require('./db');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as csv from 'fast-csv';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import * as db from './db';
 
-var debug = true;
-
-try {
-    var processenv = require('./processenv');
-} catch (ex) {
-    debug = false;
-}
-
-const dbURL = process.env.DATABASE_URL || processenv.DATABASE_URL;
+const debug = Boolean(Number(process.env.DEBUG));
+const dbURL = process.env.DATABASE_URL;
 const maxDBClients = 20;
 const saltRounds = 12;
 const hexLength = 64;
@@ -28,13 +21,20 @@ const staticTablePath = 'tables';
 // The database object
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
 
+// Callback types
+type voidCallback   = () => void;
+type boolCallback   = (value: boolean) => void;
+type numberCallback = (value: number) => void;
+type rowCallback    = (row: any) => void;
+type rowsCallback   = (rows: any[]) => void;
+
 // Get the current time to the second
-function getTime() {
+function getTime(): number {
     return Math.floor(new Date().getTime() / 1000);
 }
 
 // Check if a table is empty
-function tableEmpty(tableName, callback) {
+function tableEmpty(tableName: string, callback?: boolCallback) {
     var sql = `SELECT id FROM ${tableName};`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows.length === 0);
@@ -42,12 +42,12 @@ function tableEmpty(tableName, callback) {
 }
 
 // Get the path to a static table
-function getStaticTablePath(tableName) {
+function getStaticTablePath(tableName: string): string {
     return path.join(__dirname, staticTablePath, tableName) + '.csv';
 }
 
 // Populate the static tables in the database
-function populateStaticTable(tableName) {
+function populateStaticTable(tableName: string) {
     tableEmpty(tableName, (empty) => {
         if (empty) {
             fs.createReadStream(getStaticTablePath(tableName))
@@ -60,9 +60,9 @@ function populateStaticTable(tableName) {
                     var values = Object.values(row);
                     var colValues = [];
                     for (var i = 0; i < values.length; i++) colValues.push('?');
-                    colValues = colValues.join(', ');
+                    var colValuesArray = colValues.join(', ');
                     // sql
-                    var sql = `INSERT INTO ${tableName} (${colKeys}) VALUES (${colValues});`;
+                    var sql = `INSERT INTO ${tableName} (${colKeys}) VALUES (${colValuesArray});`;
                     mainDB.execute(sql, values);
                 });
         }
@@ -70,7 +70,7 @@ function populateStaticTable(tableName) {
 }
 
 // Generate a new hex id
-function newHexId(callback, length) {
+function newHexId(callback?: (hexId: string) => void, length?: number) {
     length = length !== undefined ? length : hexLength;
     crypto.randomBytes(Math.floor(length / 2), (err, buffer) => {
         if (err) throw err;
@@ -79,7 +79,7 @@ function newHexId(callback, length) {
 }
 
 // Generate a new base64 id
-function newBase64Id(callback, length) {
+function newBase64Id(callback?: (base64Id: string) => void, length?: number) {
     length = length !== undefined ? length : base64Length;
     crypto.randomBytes(length, (err, buffer) => {
         if (err) throw err;
@@ -203,7 +203,7 @@ function init() {
             populateStaticTable('Platform');
             populateStaticTable('SearchSort');
             // Remove expired password resets
-            var timeRemaining;
+            var timeRemaining: number;
             var sql = `SELECT resetId, createTimestamp FROM PasswordReset;`;
             mainDB.execute(sql, [], (rows) => {
                 for (var row of rows) {
@@ -212,7 +212,7 @@ function init() {
                 }
             });
             // Remove expired verification entries
-            sql = `SELECT verifyId, createTimestamp FROM Verify;`;
+            var sql = `SELECT verifyId, createTimestamp FROM Verify;`;
             mainDB.execute(sql, [], (rows) => {
                 for (var row of rows) {
                     timeRemaining = row.createtimestamp + Math.floor(verifyTimeout / 1000) - getTime();
@@ -220,7 +220,7 @@ function init() {
                 }
             });
             // Prune old sessions
-            sql = `SELECT id, createTimestamp FROM Session;`;
+            var sql = `SELECT id, createTimestamp FROM Session;`;
             mainDB.execute(sql, [], (rows) => {
                 for (var row of rows) {
                     timeRemaining = row.createtimestamp + Math.floor(sessionTimeout / 1000) - getTime();
@@ -232,24 +232,24 @@ function init() {
 }
 
 // Authorize/authenticate a user
-function auth(sessionId, callback) {
+export function auth(sessionId: string, callback?: boolCallback) {
     var sql = `SELECT id FROM Session WHERE id = ?;`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
         if (callback) callback(rows.length > 0);
         if (rows.length > 0) {
-            sql = `
+            var sql = `
                 UPDATE NBUser SET lastLogin = ? WHERE id = (
                     SELECT userId FROM Session WHERE id = ?
                 );`;
-            params = [getTime(), sessionId];
+            var params = [getTime(), sessionId];
             mainDB.execute(sql, params);
         }
     });
 }
 
 // Get the id of an authenticated user by the session ID
-function getAuthUser(sessionId, callback) {
+export function getAuthUser(sessionId: string, callback?: (userId: number, firstname?: string, lastname?: string) => void) {
     var sql = `
         SELECT id, firstname, lastname FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
@@ -264,7 +264,7 @@ function getAuthUser(sessionId, callback) {
 }
 
 // Check if a user exists
-function userExists(email, callback) {
+export function userExists(email: string, callback?: boolCallback) {
     email = email.toLowerCase();
     var sql = `SELECT id FROM NBUser WHERE email = ?;`;
     var params = [email];
@@ -274,7 +274,7 @@ function userExists(email, callback) {
 }
 
 // Check if a user's password is correct
-function checkPassword(userId, password, callback) {
+export function checkPassword(userId: number, password: string, callback?: boolCallback) {
     var sql = `SELECT password FROM NBUser WHERE id = ? AND verified = 1;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -286,7 +286,7 @@ function checkPassword(userId, password, callback) {
 }
 
 // Get the info of a user by session ID
-function getUserInfo(userId, callback) {
+export function getUserInfo(userId: number, callback?: rowCallback) {
     var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -295,7 +295,7 @@ function getUserInfo(userId, callback) {
 }
 
 // Get a user's image
-function getUserImage(userId, callback) {
+export function getUserImage(userId: number, callback?: (imageUrl: string) => void) {
     var sql = `SELECT imageUrl FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -304,7 +304,7 @@ function getUserImage(userId, callback) {
 }
 
 // Set a user's image
-function setUserImage(userId, imageUrl, callback) {
+export function setUserImage(userId: number, imageUrl: string, callback?: voidCallback) {
     var sql = `UPDATE NBUser SET imageUrl = ? WHERE id = ?;`;
     var params = [imageUrl, userId];
     mainDB.execute(sql, params, (rows) => {
@@ -313,7 +313,7 @@ function setUserImage(userId, imageUrl, callback) {
 }
 
 // Set a user's password
-function setUserPassword(userId, password, callback) {
+export function setUserPassword(userId: number, password: string, callback?: voidCallback) {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
         var sql = `UPDATE NBUser SET password = ? WHERE id = ?;`;
@@ -325,7 +325,7 @@ function setUserPassword(userId, password, callback) {
 }
 
 // Set a user's name
-function setUserName(userId, firstname, lastname, callback) {
+export function setUserName(userId: number, firstname: string, lastname: string, callback?: voidCallback) {
     var sql = `UPDATE NBUser SET firstname = ?, lastname = ? WHERE id = ?`;
     var params = [firstname, lastname, userId];
     mainDB.execute(sql, params, (rows) => {
@@ -334,7 +334,7 @@ function setUserName(userId, firstname, lastname, callback) {
 }
 
 // Check if a user has set their contact information
-function hasContactInfo(userId, callback) {
+export function hasContactInfo(userId: number, callback?: boolCallback) {
     var sql = `SELECT contactPlatformId, contactInfo FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -343,7 +343,7 @@ function hasContactInfo(userId, callback) {
 }
 
 // Get a user's contact information
-function getContactInfo(userId, callback) {
+export function getContactInfo(userId: number, callback?: rowCallback) {
     var sql = `SELECT contactPlatformId, contactInfo FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -352,7 +352,7 @@ function getContactInfo(userId, callback) {
 }
 
 // Set a user's contact information
-function setContactInfo(userId, contactPlatformId, contactInfo, callback) {
+export function setContactInfo(userId: number, contactPlatformId: number, contactInfo: string, callback?: voidCallback) {
     var sql = `UPDATE NBUser SET contactPlatformId = ?, contactInfo = ? WHERE id = ?;`;
     var params = [contactPlatformId, contactInfo, userId];
     mainDB.execute(sql, params, (rows) => {
@@ -361,7 +361,7 @@ function setContactInfo(userId, contactPlatformId, contactInfo, callback) {
 }
 
 // Get a user's currently listed books
-function getUserBooks(userId, callback) {
+export function getUserBooks(userId: number, callback?: rowsCallback) {
     var sql = `
         SELECT
             Book.id AS id, bookId, title, author, departmentId,
@@ -378,7 +378,7 @@ function getUserBooks(userId, callback) {
 }
 
 // Get the info necessary for rendering the navbar
-function getNavInfo(sessionId, callback) {
+export function getNavInfo(sessionId: string, callback?: rowCallback) {
     var sql = `
         SELECT id, imageUrl, firstname, admin FROM NBUser WHERE id = (
             SELECT userId FROM Session WHERE id = ?
@@ -390,20 +390,20 @@ function getNavInfo(sessionId, callback) {
 }
 
 // Create a new email verification ID
-function newVerifyId(email, callback) {
+export function newVerifyId(email: string, callback?: (verifyId: string) => void) {
     email = email.toLowerCase();
     var sql = `DELETE FROM Verify WHERE email = ?;`;
     var params = [email];
     mainDB.execute(sql, params, (rows) => {
         newHexId((verifyId) => {
-            sql = `SELECT id FROM Verify WHERE verifyId = ?;`;
-            params = [verifyId];
+            var sql = `SELECT id FROM Verify WHERE verifyId = ?;`;
+            var params = [verifyId];
             mainDB.execute(sql, params, (rows) => {
                 if (rows.length > 0) {
                     newVerifyId(email, callback);
                 } else {
-                    sql = `INSERT INTO Verify (email, verifyId, createTimestamp) VALUES (?, ?, ?);`;
-                    params = [email, verifyId, getTime()];
+                    var sql = `INSERT INTO Verify (email, verifyId, createTimestamp) VALUES (?, ?, ?);`;
+                    var params = [email, verifyId, getTime()];
                     mainDB.execute(sql, params, (rows) => {
                         setTimeout(pruneUnverified, verifyTimeout, verifyId);
                         if (callback) callback(verifyId);
@@ -415,7 +415,7 @@ function newVerifyId(email, callback) {
 }
 
 // Check a verify ID
-function checkVerifyId(verifyId, callback) {
+export function checkVerifyId(verifyId: string, callback?: boolCallback) {
     var sql = `SELECT verifyId FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
@@ -424,7 +424,7 @@ function checkVerifyId(verifyId, callback) {
 }
 
 // Mark a user as verified
-function setVerified(verifyId, callback) {
+export function setVerified(verifyId: string, callback?: voidCallback) {
     var sql = `
         UPDATE NBUser SET verified = 1 WHERE email = (
             SELECT email FROM Verify WHERE verifyId = ?
@@ -436,7 +436,7 @@ function setVerified(verifyId, callback) {
 }
 
 // Delete a verify ID
-function deleteVerifyId(verifyId, callback) {
+export function deleteVerifyId(verifyId: string, callback?: voidCallback) {
     var sql = `DELETE FROM Verify WHERE verifyId = ?;`;
     var params = [verifyId];
     mainDB.execute(sql, params, (rows) => {
@@ -445,7 +445,7 @@ function deleteVerifyId(verifyId, callback) {
 }
 
 // Prune an unverified account
-function pruneUnverified(verifyId, callback) {
+export function pruneUnverified(verifyId: string, callback?: voidCallback) {
     var sql = `
         DELETE FROM NBUser WHERE email = (
             SELECT email FROM Verify WHERE verifyId = ?
@@ -458,7 +458,7 @@ function pruneUnverified(verifyId, callback) {
 }
 
 // Create a new session ID
-function newSessionId(email, callback) {
+export function newSessionId(email: string, callback?: (sessionId: string) => void) {
     email = email.toLowerCase();
     var sql = `
         DELETE FROM Session WHERE userId = (
@@ -467,19 +467,19 @@ function newSessionId(email, callback) {
     var params = [email];
     mainDB.execute(sql, params, (rows) => {
         newHexId((sessionId) => {
-            sql = `SELECT id FROM Session WHERE id = ?;`;
-            params = [sessionId];
+            var sql = `SELECT id FROM Session WHERE id = ?;`;
+            var params = [sessionId];
             mainDB.execute(sql, params, (rows) => {
                 if (rows.length > 0) {
                     newSessionId(email, callback);
                 } else {
-                    sql = `
+                    var sql = `
                         INSERT INTO Session (id, userId, createTimestamp) VALUES (
                             ?,
                             (SELECT id FROM NBUser WHERE email = ?),
                             ?
                         );`;
-                    params = [sessionId, email, getTime()];
+                    var params = [sessionId, email, getTime()];
                     mainDB.execute(sql, params, (rows) => {
                         setTimeout(deleteSession, sessionTimeout, sessionId);
                         if (callback) callback(sessionId);
@@ -491,7 +491,7 @@ function newSessionId(email, callback) {
 }
 
 // Delete a session
-function deleteSession(sessionId, callback) {
+export function deleteSession(sessionId: string, callback?: voidCallback) {
     var sql = `DELETE FROM Session WHERE id = ?;`;
     var params = [sessionId];
     mainDB.execute(sql, params, (rows) => {
@@ -500,7 +500,7 @@ function deleteSession(sessionId, callback) {
 }
 
 // Check if a login is valid
-function validLogin(email, password, callback) {
+export function validLogin(email: string, password: string, callback?: (valid: boolean, sessionId?: string) => void) {
     email = email.toLowerCase();
     var sql = `SELECT email, password FROM NBUser WHERE email = ? AND verified = 1;`;
     var params = [email];
@@ -511,14 +511,16 @@ function validLogin(email, password, callback) {
             bcrypt.compare(password, rows[0].password, (err, res) => {
                 if (err) throw err;
                 if (res) {
-                    sql = `UPDATE NBUser SET lastLogin = ? WHERE email = ?;`;
-                    params = [getTime(), email];
+                    var sql = `UPDATE NBUser SET lastLogin = ? WHERE email = ?;`;
+                    var params = [getTime(), email];
                     mainDB.execute(sql, params);
                     newSessionId(email, (sessionId) => {
                         if (callback) callback(true, sessionId);
                     });
-                } else if (callback) {
-                    callback(false);
+                } else {
+                    if (callback) {
+                        callback(false);
+                    }
                 }
             });
         }
@@ -526,7 +528,7 @@ function validLogin(email, password, callback) {
 }
 
 // Register a new user
-function register(email, password, firstname, lastname, callback) {
+export function register(email: string, password: string, firstname: string, lastname: string, callback?: voidCallback) {
     email = email.toLowerCase();
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) throw err;
@@ -542,22 +544,22 @@ function register(email, password, firstname, lastname, callback) {
 }
 
 // Generate a new password reset ID
-function newPasswordResetId(email, callback) {
+export function newPasswordResetId(email: string, callback?: (resetId: string) => void) {
     email = email.toLowerCase();
     crypto.randomBytes(hexLength / 2, (err, buffer) => {
         if (err) throw err;
-        var resetId = buffer.toString('hex');
+        var passwordResetId = buffer.toString('hex');
         var sql = `SELECT resetId FROM PasswordReset WHERE resetId = ?;`;
-        var params = [resetId];
+        var params = [passwordResetId];
         mainDB.execute(sql, params, (rows) => {
             if (rows.length > 0) {
-                newPasswordResetID(email, callback);
+                newPasswordResetId(email, callback);
             } else {
-                sql = `INSERT INTO PasswordReset (email, resetId, createTimestamp) VALUES (?, ?, ?);`;
-                params = [email, resetId, getTime()];
+                var sql = `INSERT INTO PasswordReset (email, resetId, createTimestamp) VALUES (?, ?, ?);`;
+                var params = [email, passwordResetId, getTime()];
                 mainDB.execute(sql, params, (rows) => {
-                    setTimeout(deletePasswordResetId, passwordResetTimeout, resetId);
-                    if (callback) callback(resetId);
+                    setTimeout(deletePasswordResetId, passwordResetTimeout, passwordResetId);
+                    if (callback) callback(passwordResetId);
                 });
             }
         });
@@ -565,7 +567,7 @@ function newPasswordResetId(email, callback) {
 }
 
 // Check if a password reset ID is valid
-function checkPasswordResetId(passwordResetId, callback) {
+export function checkPasswordResetId(passwordResetId: string, callback?: boolCallback) {
     var sql = `SELECT resetId FROM PasswordReset WHERE resetId = ?;`;
     var params = [passwordResetId];
     mainDB.execute(sql, params, (rows) => {
@@ -574,7 +576,7 @@ function checkPasswordResetId(passwordResetId, callback) {
 }
 
 // Delete a password reset ID
-function deletePasswordResetId(passwordResetId, callback) {
+export function deletePasswordResetId(passwordResetId: string, callback?: voidCallback) {
     var sql = `DELETE FROM PasswordReset WHERE resetId = ?;`;
     var params = [passwordResetId];
     mainDB.execute(sql, params, (rows) => {
@@ -583,7 +585,7 @@ function deletePasswordResetId(passwordResetId, callback) {
 }
 
 // Reset a password
-function resetPassword(passwordResetId, newPassword) {
+export function resetPassword(passwordResetId: string, newPassword: string, callback?: boolCallback) {
     var sql = `
         SELECT id FROM NBUser WHERE email = (
             SELECT email FROM PasswordReset WHERE resetId = ?
@@ -593,12 +595,15 @@ function resetPassword(passwordResetId, newPassword) {
         if (rows.length === 1) {
             setUserPassword(rows[0].id, newPassword);
             deletePasswordResetId(passwordResetId);
+            if (callback) callback(true);
+        } else {
+            if (callback) callback(false);
         }
     });
 }
 
 // Check if a password reset request has already been created
-function passwordResetExists(email, callback) {
+export function passwordResetExists(email: string, callback?: boolCallback) {
     var sql = `SELECT email FROM PasswordReset WHERE email = ?;`;
     var params = [email];
     mainDB.execute(sql, params, (rows) => {
@@ -607,7 +612,7 @@ function passwordResetExists(email, callback) {
 }
 
 // Create a new book id
-function newBookId(callback, length) {
+export function newBookId(callback?: (bookId: string) => void, length?: number) {
     newBase64Id((bookId) => {
         var sql = `SELECT id FROM Book WHERE bookId = ?;`;
         var params = [bookId];
@@ -622,32 +627,31 @@ function newBookId(callback, length) {
 }
 
 // Add a new book
-function newBook(title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, ISBN10, ISBN13, callback) {
+export function newBook(title: string, author: string, departmentId: number, courseNumber: number, conditionId: number, description: string, userId: number, price: number, imageUrl: string, ISBN10: string, ISBN13: string, callback?: (bookId: string) => void) {
     newBookId((bookId) => {
         var sql = `
             INSERT INTO Book (
                 bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, listedTimestamp, imageUrl, ISBN10, ISBN13
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-        var params = [bookId, title, author, departmentId, courseNumber, condition, description, userId, price, getTime(), imageUrl, ISBN10, ISBN13];
+        var params = [bookId, title, author, departmentId, courseNumber, conditionId, description, userId, price, getTime(), imageUrl, ISBN10, ISBN13];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(bookId);
-            sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
-            params = [userId];
+            var sql = `UPDATE NBUser SET itemsListed = itemsListed + 1 WHERE id = ?;`;
+            var params = [userId];
             mainDB.execute(sql, params);
         });
     });
 }
 
 // Edit an existing book
-function editBook(bookId, title, author, departmentId, courseNumber, condition, description, userId, price, imageUrl, ISBN10, ISBN13, callback) {
-    var params = [title, author, departmentId, courseNumber, condition, description, price, ISBN10, ISBN13];
+export function editBook(bookId: string, title: string, author: string, departmentId: number, courseNumber: number, conditionId: number, description: string, userId: number, price: number, imageUrl: string, ISBN10: string, ISBN13: string, callback?: voidCallback) {
+    var params = [title, author, departmentId, courseNumber, conditionId, description, price, ISBN10, ISBN13];
     var image = '';
     if (imageUrl !== null) {
         image = ', imageUrl = ?';
         params.push(imageUrl);
     }
-    params.push(bookId);
-    params.push(userId);
+    params.push(bookId, userId);
     var sql = `
         UPDATE Book
             SET title = ?, author = ?, departmentId = ?, courseNumber = ?, conditionId = ?,
@@ -659,7 +663,7 @@ function editBook(bookId, title, author, departmentId, courseNumber, condition, 
 }
 
 // Check if a book is valid
-function validBook(bookId, callback) {
+export function validBook(bookId: string, callback?: boolCallback) {
     var sql = `SELECT id FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
@@ -668,7 +672,7 @@ function validBook(bookId, callback) {
 }
 
 // Get information on a book
-function getBookInfo(bookId, callback) {
+export function getBookInfo(bookId: string, callback?: rowCallback) {
     var sql = `SELECT id, title, author, departmentId, courseNumber, conditionId, description, price, imageUrl, ISBN10, ISBN13 FROM Book WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
@@ -677,7 +681,7 @@ function getBookInfo(bookId, callback) {
 }
 
 // Get information on the user who listed a book
-function getUserBookInfo(bookId, callback) {
+export function getUserBookInfo(bookId: string, callback?: rowCallback) {
     var sql = `
         SELECT id, firstname, lastname, contactPlatformId, contactInfo FROM NBUser WHERE id = (
             SELECT userId FROM Book WHERE bookId = ?
@@ -689,7 +693,7 @@ function getUserBookInfo(bookId, callback) {
 }
 
 // Get the number of departments
-function getNumUserBooks(userId, callback) {
+export function getNumUserBooks(userId: number, callback?: numberCallback) {
     var sql = `SELECT id FROM Book WHERE userId = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -698,12 +702,12 @@ function getNumUserBooks(userId, callback) {
 }
 
 // Delete a book
-function deleteBook(userId, bookId, callback) {
+export function deleteBook(userId: number, bookId: string, callback?: voidCallback) {
     var sql = `DELETE FROM Book WHERE id = ? AND userId = ?;`;
     var params = [bookId, userId];
     mainDB.execute(sql, params, (rows) => {
-        sql = `DELETE FROM Report WHERE bookId = ?;`;
-        params = [bookId];
+        var sql = `DELETE FROM Report WHERE bookId = ?;`;
+        var params = [bookId];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback();
         });
@@ -711,15 +715,15 @@ function deleteBook(userId, bookId, callback) {
 }
 
 // Delete a book and mark it as sold
-function bookSold(userId, bookId, callback) {
+export function bookSold(userId: number, bookId: string, callback?: voidCallback) {
     var sql = `UPDATE NBUser SET itemsSold = itemsSold + 1 WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
-        sql = `
+        var sql = `
             UPDATE NBUser SET moneyMade = moneyMade + (
                 SELECT price FROM Book WHERE id = ?
             ) WHERE id = ?;`;
-        params = [bookId, userId];
+        var params = [bookId, userId];
         mainDB.execute(sql, params, (rows) => {
             deleteBook(userId, bookId, () => {
                 if (callback) callback();
@@ -729,7 +733,7 @@ function bookSold(userId, bookId, callback) {
 }
 
 // Get info on books searched
-function searchBooks(options, sort, lastBookId, callback) {
+export function searchBooks(options: object, sort: number, lastBookId: string, callback?: rowsCallback) {
     var params = [];
     var extraParams = [];
     var searchQuery = '';
@@ -742,11 +746,9 @@ function searchBooks(options, sort, lastBookId, callback) {
                 if (lastBookId) extraParams.push(`%${options[option]}%`);
             } else if (option === 'ISBN') {
                 searchOptions.push(' (ISBN10 = ? OR ISBN13 = ?)');
-                params.push(options[option]);
-                params.push(options[option]);
+                params.push(options[option], options[option]);
                 if (lastBookId) {
-                    extraParams.push(options[option]);
-                    extraParams.push(options[option]);
+                    extraParams.push(options[option], options[option]);
                 }
             } else {
                 searchOptions.push(` ${option} = ?`);
@@ -759,11 +761,10 @@ function searchBooks(options, sort, lastBookId, callback) {
     }
     getSearchSortQuery(sort, (sortQuery) => {
         getMeta('Books per query', (booksPerQuery) => {
-            booksPerQuery = parseInt(booksPerQuery);
+            var numBooksPerQuery = parseInt(booksPerQuery);
             sortQuery = sortQuery || 'listedTimestamp DESC';
-            var sql;
             if (lastBookId) {
-                sql = `
+                var sql = `
                     SELECT * FROM (
                         SELECT
                             bookId, title, author, departmentId, Department.name AS department, courseNumber,
@@ -783,10 +784,9 @@ function searchBooks(options, sort, lastBookId, callback) {
                             ${searchQuery}
                         ) search2 WHERE bookId = ?
                     ) LIMIT ?;`;
-                params.push(lastBookId);
-                params.push(booksPerQuery);
+                params.push(lastBookId, numBooksPerQuery);
             } else {
-                sql = `
+                var sql = `
                     SELECT
                         bookId, title, author, departmentId, Department.name AS department, courseNumber,
                         price, conditionId, imageUrl, ISBN10, ISBN13,
@@ -794,7 +794,7 @@ function searchBooks(options, sort, lastBookId, callback) {
                     FROM Book
                     JOIN Department ON Book.departmentId = Department.id
                     ${searchQuery} LIMIT ?;`;
-                params.push(booksPerQuery);
+                params.push(numBooksPerQuery);
             }
             mainDB.execute(sql, params, (rows) => {
                 if (callback) callback(rows);
@@ -804,7 +804,7 @@ function searchBooks(options, sort, lastBookId, callback) {
 }
 
 // Get the id of the person who listed a book
-function bookLister(bookId, callback) {
+export function bookLister(bookId: string, callback?: numberCallback) {
     var sql = `SELECT userId FROM Book WHERE id = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
@@ -813,15 +813,15 @@ function bookLister(bookId, callback) {
 }
 
 // Report a book
-function reportBook(userId, bookId, callback) {
+export function reportBook(userId: number, bookId: string, callback?: boolCallback) {
     var sql = `INSERT INTO Report (bookId, userId, reportTimestamp) VALUES (?, ?, ?);`;
     var params = [bookId, userId, getTime()];
     mainDB.execute(sql, params, (rows) => {
         numBookReports(bookId, (reports) => {
             bookLister(bookId, (listerId) => {
                 getMeta('Max reports', (maxReports) => {
-                    maxReports = parseInt(maxReports);
-                    if (reports >= maxReports) {
+                    var numMaxReports = parseInt(maxReports);
+                    if (reports >= numMaxReports) {
                         deleteBook(listerId, bookId);
                         if (callback) callback(true);
                     } else {
@@ -834,7 +834,7 @@ function reportBook(userId, bookId, callback) {
 }
 
 // Check if a user has already reported a book
-function userReportedBook(userId, bookId, callback) {
+export function userReportedBook(userId: number, bookId: string, callback?: boolCallback) {
     var sql = `SELECT id FROM Report WHERE bookId = ? AND userId = ?;`;
     var params = [bookId, userId];
     mainDB.execute(sql, params, (rows) => {
@@ -843,7 +843,7 @@ function userReportedBook(userId, bookId, callback) {
 }
 
 // Check if a user has reported a book recently
-function userReportedRecently(userId, callback) {
+export function userReportedRecently(userId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM Report WHERE userId = ? AND reportTimestamp > ?;`;
     var params = [userId, getTime() - Math.floor(reportTimeout / 1000)];
     mainDB.execute(sql, params, (rows) => {
@@ -852,7 +852,7 @@ function userReportedRecently(userId, callback) {
 }
 
 // Get the number of reports on a book
-function numBookReports(bookId, callback) {
+export function numBookReports(bookId: string, callback?: numberCallback) {
     var sql = `SELECT id FROM Report WHERE bookId = ?;`;
     var params = [bookId];
     mainDB.execute(sql, params, (rows) => {
@@ -861,7 +861,7 @@ function numBookReports(bookId, callback) {
 }
 
 // Get all departments
-function getDepartments(callback) {
+export function getDepartments(callback?: rowsCallback) {
     var sql = `SELECT id, name FROM Department ORDER BY name;`;
     mainDB.execute(sql, [], (rows) => {
         rows.push({ id: -1, name: 'Other' });
@@ -870,7 +870,7 @@ function getDepartments(callback) {
 }
 
 // Get the name of a department by ID
-function getDepartmentName(departmentId, callback) {
+export function getDepartmentName(departmentId: number, callback?: (departmentName: string) => void) {
     if (departmentId === -1) {
         if (callback) callback('Other');
     } else {
@@ -883,7 +883,7 @@ function getDepartmentName(departmentId, callback) {
 }
 
 // Check if a department is valid
-function validDepartment(departmentId, callback) {
+export function validDepartment(departmentId: number, callback?: boolCallback) {
     if (departmentId === -1) {
         if (callback) callback(true);
     } else {
@@ -896,7 +896,7 @@ function validDepartment(departmentId, callback) {
 }
 
 // Get all book conditions
-function getConditions(callback) {
+export function getConditions(callback?: rowsCallback) {
     var sql = `SELECT id, name FROM Condition ORDER BY id;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
@@ -904,7 +904,7 @@ function getConditions(callback) {
 }
 
 // Get the name of a condition by ID
-function getConditionName(conditionId, callback) {
+export function getConditionName(conditionId: number, callback?: (conditionName: string) => void) {
     var sql = `SELECT name FROM Condition WHERE id = ?;`;
     var params = [conditionId];
     mainDB.execute(sql, params, (rows) => {
@@ -913,7 +913,7 @@ function getConditionName(conditionId, callback) {
 }
 
 // Check if a book condition is valid
-function validCondition(conditionId, callback) {
+export function validCondition(conditionId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM Condition WHERE id = ?;`;
     var params = [conditionId];
     mainDB.execute(sql, params, (rows) => {
@@ -922,7 +922,7 @@ function validCondition(conditionId, callback) {
 }
 
 // Get all available contact platforms
-function getPlatforms(callback) {
+export function getPlatforms(callback?: rowsCallback) {
     var sql = `SELECT id, name FROM Platform ORDER BY id;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
@@ -930,7 +930,7 @@ function getPlatforms(callback) {
 }
 
 // Get the name of a contact platform by ID
-function getPlatformName(platformId, callback) {
+export function getPlatformName(platformId: number, callback?: (platformName: string) => void) {
     var sql = `SELECT name FROM Platform WHERE id = ?;`;
     var params = [platformId];
     mainDB.execute(sql, params, (rows) => {
@@ -939,7 +939,7 @@ function getPlatformName(platformId, callback) {
 }
 
 // Check if a contact platform is valid
-function validPlatform(platformId, callback) {
+export function validPlatform(platformId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM Platform WHERE id = ?;`;
     var params = [platformId];
     mainDB.execute(sql, params, (rows) => {
@@ -948,7 +948,7 @@ function validPlatform(platformId, callback) {
 }
 
 // Get all available search sorting options
-function getSearchSortOptions(callback) {
+export function getSearchSortOptions(callback?: rowsCallback) {
     var sql = `SELECT id, name FROM SearchSort ORDER BY id;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows);
@@ -956,7 +956,7 @@ function getSearchSortOptions(callback) {
 }
 
 // Get the name of a search sorting option by ID
-function getSearchSortName(searchSortId, callback) {
+export function getSearchSortName(searchSortId: number, callback?: (searchSortName: string) => void) {
     var sql = `SELECT name FROM SearchSort WHERE id = ?;`;
     var params = [searchSortId];
     mainDB.execute(sql, params, (rows) => {
@@ -965,7 +965,7 @@ function getSearchSortName(searchSortId, callback) {
 }
 
 // Get the ORDER BY section of a search query by ID
-function getSearchSortQuery(searchSortId, callback) {
+export function getSearchSortQuery(searchSortId: number, callback?: (searchSortQuery: string) => void) {
     var sql = `SELECT query FROM SearchSort WHERE id = ?;`;
     var params = [searchSortId];
     mainDB.execute(sql, params, (rows) => {
@@ -977,7 +977,7 @@ function getSearchSortQuery(searchSortId, callback) {
 }
 
 // Check if a search sorting option is valid
-function validSearchSortOption(searchSortId, callback) {
+export function validSearchSortOption(searchSortId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM SearchSort WHERE id = ?;`;
     var params = [searchSortId];
     mainDB.execute(sql, params, (rows) => {
@@ -986,7 +986,7 @@ function validSearchSortOption(searchSortId, callback) {
 }
 
 // Check if a user can provide feedback
-function canProvideFeedback(userId, callback) {
+export function canProvideFeedback(userId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM NBUser WHERE id = ? AND (lastFeedbackTimestamp < ? OR lastFeedbackTimestamp IS NULL);`;
     var params = [userId, getTime() - Math.floor(feedbackTimeout / 1000)];
     mainDB.execute(sql, params, (rows) => {
@@ -995,7 +995,7 @@ function canProvideFeedback(userId, callback) {
 }
 
 // Update a user's feedback timestamp to the current time
-function updateFeedbackTimestamp(userId, callback) {
+export function updateFeedbackTimestamp(userId: number, callback?: voidCallback) {
     var sql = `UPDATE NBUser SET lastFeedbackTimestamp = ? WHERE id = ?;`;
     var params = [getTime(), userId];
     mainDB.execute(sql, params, (rows) => {
@@ -1004,7 +1004,7 @@ function updateFeedbackTimestamp(userId, callback) {
 }
 
 // Check if a user is an admin
-function isAdmin(userId, callback) {
+export function isAdmin(userId: number, callback?: boolCallback) {
     var sql = `SELECT id FROM NBUser WHERE id = ? AND admin = 1;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -1013,7 +1013,7 @@ function isAdmin(userId, callback) {
 }
 
 // Get the value of a variable in the Meta table
-function getMeta(key, callback) {
+export function getMeta(key: string, callback?: (value: string) => void) {
     var sql = `SELECT value FROM Meta WHERE key = ?;`;
     var params = [key];
     mainDB.execute(sql, params, (rows) => {
@@ -1022,7 +1022,7 @@ function getMeta(key, callback) {
 }
 
 // Set the value of a variable in the Meta table
-function setMeta(key, value, callback) {
+export function setMeta(key: string, value: any, callback?: voidCallback) {
     var sql = `UPDATE Meta SET value = ? WHERE key = ?;`;
     var params = [value, key];
     mainDB.execute(sql, params, (rows) => {
@@ -1031,7 +1031,7 @@ function setMeta(key, value, callback) {
 }
 
 // Get the number of users registered
-function getNumUsers(callback) {
+export function getNumUsers(callback?: numberCallback) {
     var sql = `SELECT COUNT(id) FROM NBUser WHERE verified = 1;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].count);
@@ -1039,7 +1039,7 @@ function getNumUsers(callback) {
 }
 
 // Get the number of books on the site
-function getNumBooks(callback) {
+export function getNumBooks(callback?: numberCallback) {
     var sql = `SELECT COUNT(id) FROM Book;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].count);
@@ -1047,7 +1047,7 @@ function getNumBooks(callback) {
 }
 
 // Get the number of books sold
-function getNumSold(callback) {
+export function getNumSold(callback?: numberCallback) {
     var sql = `SELECT SUM(itemsSold) FROM NBUser;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].sum);
@@ -1055,7 +1055,7 @@ function getNumSold(callback) {
 }
 
 // Get the total number of books that have been listed on the site
-function getTotalListed(callback) {
+export function getTotalListed(callback?: numberCallback) {
     var sql = `SELECT SUM(itemsListed) FROM NBUser;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].sum);
@@ -1063,7 +1063,7 @@ function getTotalListed(callback) {
 }
 
 // Get the total amount of money made using the site
-function getTotalMoneyMade(callback) {
+export function getTotalMoneyMade(callback?: numberCallback) {
     var sql = `SELECT SUM(moneyMade) FROM NBUser;`
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].sum);
@@ -1071,7 +1071,7 @@ function getTotalMoneyMade(callback) {
 }
 
 // Get the number of tables in the database
-function getNumTables(callback) {
+export function getNumTables(callback?: numberCallback) {
     var sql = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].count);
@@ -1079,7 +1079,7 @@ function getNumTables(callback) {
 }
 
 // Get the names of the tables in the database
-function getTables(callback) {
+export function getTables(callback?: (tables: string[]) => void) {
     var sql = `SELECT table_name AS table FROM information_schema.tables WHERE table_schema = 'public';`;
     mainDB.execute(sql, [], (rows) => {
         var tables = [];
@@ -1089,7 +1089,7 @@ function getTables(callback) {
 }
 
 // Get the names of the columns in a table
-function getColumns(table, callback) {
+export function getColumns(table: string, callback?: (columns: string[]) => void) {
     var sql = `SELECT column_name AS column FROM information_schema.columns WHERE table_name = '${table.toLowerCase()}';`;
     mainDB.execute(sql, [], (rows) => {
         var columns = [];
@@ -1099,7 +1099,7 @@ function getColumns(table, callback) {
 }
 
 // Get the number of rows in each table in the database
-function getRowCount(callback) {
+export function getRowCount(callback?: rowsCallback) {
     var sql = `
         SELECT
             table_name AS table,
@@ -1118,7 +1118,7 @@ function getRowCount(callback) {
 }
 
 // Get the total number of rows currently used by the database
-function getNumRows(callback) {
+export function getNumRows(callback?: numberCallback) {
     var sql = `
         SELECT SUM(rows) FROM (
             SELECT
@@ -1139,7 +1139,7 @@ function getNumRows(callback) {
 }
 
 // Get the number of reports
-function getNumReports(callback) {
+export function getNumReports(callback?: numberCallback) {
     var sql = `SELECT COUNT(id) FROM Report;`;
     mainDB.execute(sql, [], (rows) => {
         if (callback) callback(rows[0].count);
@@ -1147,7 +1147,7 @@ function getNumReports(callback) {
 }
 
 // Get all reports
-function getReports(callback) {
+export function getReports(callback?: rowsCallback) {
     var sql = `
         SELECT
             NBUser.firstname AS firstname,
@@ -1166,7 +1166,7 @@ function getReports(callback) {
 }
 
 // Execute a query
-function executeSelect(queryInputs, callback) {
+export function executeSelect(queryInputs: any, callback?: rowsCallback) {
     var select = 'SELECT';
     if (queryInputs.columns) {
         var select = 'SELECT ' + queryInputs.columns.join(', ');
@@ -1188,7 +1188,7 @@ function executeSelect(queryInputs, callback) {
 }
 
 // Get relevant information on all users
-function getUsers(orderBy, orderDirection, callback) {
+export function getUsers(orderBy: string, orderDirection: string, callback?: rowsCallback) {
     var sql = `
         SELECT
             firstname, lastname, email, joinTimestamp,
@@ -1204,83 +1204,3 @@ function getUsers(orderBy, orderDirection, callback) {
 
 // Initialize the database on import
 init();
-
-// Export the database control functions
-module.exports = {
-    'auth': auth,
-    'getAuthUser': getAuthUser,
-    'userExists': userExists,
-    'checkPassword': checkPassword,
-    'getUserInfo': getUserInfo,
-    'getUserImage': getUserImage,
-    'setUserImage': setUserImage,
-    'setUserPassword': setUserPassword,
-    'setUserName': setUserName,
-    'hasContactInfo': hasContactInfo,
-    'getContactInfo': getContactInfo,
-    'setContactInfo': setContactInfo,
-    'getUserBooks': getUserBooks,
-    'getNavInfo': getNavInfo,
-    'newVerifyId': newVerifyId,
-    'checkVerifyId': checkVerifyId,
-    'setVerified': setVerified,
-    'deleteVerifyId': deleteVerifyId,
-    'pruneUnverified': pruneUnverified,
-    'newSessionId': newSessionId,
-    'deleteSession': deleteSession,
-    'validLogin': validLogin,
-    'register': register,
-    'newPasswordResetId': newPasswordResetId,
-    'checkPasswordResetId': checkPasswordResetId,
-    'deletePasswordResetId': deletePasswordResetId,
-    'resetPassword': resetPassword,
-    'passwordResetExists': passwordResetExists,
-    'newBookId': newBookId,
-    'newBook': newBook,
-    'editBook': editBook,
-    'validBook': validBook,
-    'getBookInfo': getBookInfo,
-    'getUserBookInfo': getUserBookInfo,
-    'getNumUserBooks': getNumUserBooks,
-    'deleteBook': deleteBook,
-    'bookSold': bookSold,
-    'searchBooks': searchBooks,
-    'bookLister': bookLister,
-    'reportBook': reportBook,
-    'userReportedBook': userReportedBook,
-    'userReportedRecently': userReportedRecently,
-    'numBookReports': numBookReports,
-    'getDepartments': getDepartments,
-    'getDepartmentName': getDepartmentName,
-    'validDepartment': validDepartment,
-    'getConditions': getConditions,
-    'getConditionName': getConditionName,
-    'validCondition': validCondition,
-    'getPlatforms': getPlatforms,
-    'getPlatformName': getPlatformName,
-    'validPlatform': validPlatform,
-    'getSearchSortOptions': getSearchSortOptions,
-    'getSearchSortName': getSearchSortName,
-    'getSearchSortQuery': getSearchSortQuery,
-    'validSearchSortOption': validSearchSortOption,
-    'canProvideFeedback': canProvideFeedback,
-    'updateFeedbackTimestamp': updateFeedbackTimestamp,
-    'isAdmin': isAdmin,
-    'getMeta': getMeta,
-    'setMeta': setMeta,
-    'getNumUsers': getNumUsers,
-    'getNumBooks': getNumBooks,
-    'getNumSold': getNumSold,
-    'getTotalListed': getTotalListed,
-    'getTotalMoneyMade': getTotalMoneyMade,
-    'getNumTables': getNumTables,
-    'getTables': getTables,
-    'getColumns': getColumns,
-    'getRowCount': getRowCount,
-    'getNumRows': getNumRows,
-    'getNumReports': getNumReports,
-    'getReports': getReports,
-    'executeSelect': executeSelect,
-    'getUsers': getUsers,
-    'mainDB': mainDB
-};

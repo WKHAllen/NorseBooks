@@ -1,7 +1,7 @@
-const { Pool } = require('pg');
+import { Pool, QueryResult } from 'pg';
 
 // If an error is thrown, provide information on the error
-function logError(stmt, params, res, err) {
+function logError(stmt: string, params: any[], res: QueryResult<any>, err: Error) {
     console.log('\n\n######### ERROR #########\n\n');
     console.log('\nStatement:');
     console.log(stmt);
@@ -14,8 +14,10 @@ function logError(stmt, params, res, err) {
 }
 
 // Control the database easily
-class DB {
-    constructor(dbURL, ssl, max) {
+export class DB {
+    pool: Pool;
+
+    constructor(dbURL: string, ssl: boolean, max: number) {
         this.pool = new Pool({
             connectionString: dbURL,
             ssl: ssl || true,
@@ -24,7 +26,7 @@ class DB {
     }
 
     // Execute a SQL query
-    execute(stmt, params, callback) {
+    execute(stmt: string, params: any[], callback?: (rows: any[]) => void) {
         var paramCount = 0;
         while (stmt.includes('?')) {
             stmt = stmt.replace('?', `$${++paramCount}`);
@@ -40,7 +42,7 @@ class DB {
     }
 
     // Execute two SQL queries, one right after the other
-    executeAfter(stmt, params, callback, afterStmt, afterParams, afterCallback) {
+    executeAfter(stmt: string, params: any[], callback: (rows: any[]) => void, afterStmt: string, afterParams: any[], afterCallback?: (rows: any[]) => void) {
         var paramCount = 0;
         while (stmt.includes('?')) {
             stmt = stmt.replace('?', `$${++paramCount}`);
@@ -64,7 +66,7 @@ class DB {
     }
 
     // Execute multiple SQL queries, each one right after the last
-    executeMany(stmts, callback, doneCallback) {
+    executeMany(stmts: string[], callback?: (rows: any[]) => void, doneCallback?: () => void) {
         this.pool.connect((err, client, release) => {
             if (err) throw err;
             for (var stmt of stmts) {
@@ -79,9 +81,4 @@ class DB {
             if (doneCallback) doneCallback();
         });
     }
-}
-
-// Export the database controller class
-module.exports = {
-    'DB': DB
 }
