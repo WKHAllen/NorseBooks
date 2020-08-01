@@ -9,7 +9,7 @@ import * as multer         from 'multer';
 import * as cloudinary     from 'cloudinary';
 import * as showdown       from 'showdown';
 import * as fs             from 'fs';
-import * as database       from './database';
+import * as services       from './services';
 import * as emailer        from './emailer';
 
 type Request      = express.Request;
@@ -118,7 +118,7 @@ function replacePlaceholders(str: string, ...values: string[]): string {
 // Send a registration verification email
 function sendEmailVerification(email: string, hostname: string) {
     email = email.toLowerCase();
-    database.newVerifyId(email, (verifyId) => {
+    services.VerificationService.newVerifyId(email, (verifyId) => {
         fs.readFile(registrationEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
             if (err) throw err;
             fs.readFile(registrationEmailText, { encoding: 'utf-8' }, (err, textData) => {
@@ -134,7 +134,7 @@ function sendEmailVerification(email: string, hostname: string) {
 // Send a password reset email
 function sendPasswordResetEmail(email: string, hostname: string) {
     email = email.toLowerCase();
-    database.newPasswordResetId(email, (passwordResetId) => {
+    services.PasswordResetService.newPasswordResetId(email, (passwordResetId) => {
         fs.readFile(passwordResetEmailHTML, { encoding: 'utf-8' }, (err, htmlData) => {
             if (err) throw err;
             fs.readFile(passwordResetEmailText, { encoding: 'utf-8' }, (err, textData) => {
@@ -210,7 +210,7 @@ function validBook(form: BookForm, callback: (success: boolean, error: string, b
             callback(false, 'Please enter the author\'s name. It must be at most 64 characters long.');
         } else {
             // Check department
-            database.validDepartment(department, (valid) => {
+            services.DepartmentService.validDepartment(department, (valid) => {
                 if (!valid) {
                     callback(false, 'Please select a valid department.');
                 } else {
@@ -223,7 +223,7 @@ function validBook(form: BookForm, callback: (success: boolean, error: string, b
                             callback(false, 'Please enter a valid price less than $1000.');
                         } else {
                             // Check condition
-                            database.validCondition(condition, (valid) => {
+                            services.ConditionService.validCondition(condition, (valid) => {
                                 if (!valid) {
                                     callback(false, 'Please select a valid book condition.');
                                 } else {
@@ -274,7 +274,7 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.session || !req.session.sessionId) {
         return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
-        database.auth(req.session.sessionId, (valid) => {
+        services.AuthService.auth(req.session.sessionId, (valid) => {
             if (valid) next();
             else return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
         });
@@ -286,10 +286,10 @@ const adminAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.session || !req.session.sessionId) {
         return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
     } else {
-        database.auth(req.session.sessionId, (valid) => {
+        services.AuthService.auth(req.session.sessionId, (valid) => {
             if (valid) {
-                database.getAuthUser(req.session.sessionId, (userId) => {
-                    database.isAdmin(userId, (admin) => {
+                services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                    services.UserService.isAdmin(userId, (admin) => {
                         if (admin) next();
                         else return res.status(401).render('not-admin', { title: 'Permission denied', after: req.originalUrl });
                     });
@@ -304,13 +304,13 @@ const adminAuth = (req: Request, res: Response, next: NextFunction) => {
 // Render a page
 function renderPage(req: Request, res: Response, page: string, options: any) {
     options = options || {};
-    database.getMeta('Version', (version) => {
+    services.MetaService.getMeta('Version', (version) => {
         options.version = version;
         if (!req.session || !req.session.sessionId) {
             options.loggedIn = false;
             res.render(page, options);
         } else {
-            database.getNavInfo(req.session.sessionId, (result) => {
+            services.MiscService.getNavInfo(req.session.sessionId, (result) => {
                 if (!result) {
                     options.loggedIn = false;
                     res.render(page, options);
@@ -328,8 +328,8 @@ function renderPage(req: Request, res: Response, page: string, options: any) {
 
 // Main page
 app.get('/', (req: Request, res: Response) => {
-    database.getDepartments((departments) => {
-        database.getSearchSortOptions((searchSortOptions) => {
+    services.DepartmentService.getDepartments((departments) => {
+        services.SearchSortService.getSearchSortOptions((searchSortOptions) => {
             if (!req.query.title && !req.query.author && !req.query.department && !req.query.courseNumber && !req.query.ISBN && !req.query.sort) {
                 renderPage(req, res, 'index', { departments: departments, sortOptions: searchSortOptions });
             } else {
@@ -356,7 +356,7 @@ interface BookSearchOptions {
 
 // Get more books to populate the index page
 app.get('/getBooks', (req: Request, res: Response) => {
-    database.validBook(req.query.lastBook as string, (exists) => {
+    services.BookService.validBook(req.query.lastBook as string, (exists) => {
         if (exists || !req.query.lastBook) {
             // title
             var title = stripWhitespace(req.query.title as string);
@@ -378,17 +378,17 @@ app.get('/getBooks', (req: Request, res: Response) => {
             // Check author
             if (author.length > 0 && author.length <= 64) searchOptions.author = author;
             // Check department
-            database.validDepartment(department, (valid) => {
+            services.DepartmentService.validDepartment(department, (valid) => {
                 if (valid) searchOptions.departmentId = department;
                 // Check course number
                 if (!isNaN(courseNumber) && courseNumber >= 101 && courseNumber <= 499) searchOptions.courseNumber = courseNumber;
                 // Check ISBN
                 if (validISBN(ISBN)) searchOptions.ISBN = ISBN;
                 // Check sort
-                database.validSearchSortOption(sort, (valid) => {
+                services.SearchSortService.validSearchSortOption(sort, (valid) => {
                     if (!valid) sort = null;
                     // Perform search
-                    database.searchBooks(searchOptions, sort, req.query.lastBook as string, (rows) => {
+                    services.BookService.searchBooks(searchOptions, sort, req.query.lastBook as string, (rows) => {
                         res.json({ books: rows });
                     });
                 });
@@ -406,7 +406,7 @@ app.get('/login', (req: Request, res: Response) => {
 
 // Login event
 app.post('/login', (req: Request, res: Response) => {
-    database.validLogin(req.body.email.replace('@luther.edu', ''), req.body.password, (valid, sessionId) => {
+    services.LoginRegisterService.validLogin(req.body.email.replace('@luther.edu', ''), req.body.password, (valid, sessionId) => {
         if (valid) {
             req.session.sessionId = sessionId;
             if (req.query.after)
@@ -429,14 +429,14 @@ app.post('/register', (req: Request, res: Response) => {
     var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
     var fname = stripWhitespace(req.body.firstname);
     var lname = stripWhitespace(req.body.lastname);
-    database.userExists(email, (exists) => {
+    services.UserService.userExists(email, (exists) => {
         if (!exists) {
             if (email.length <= 64) {
                 if (req.body.password === req.body.passwordConfirm) {
                     var result = owasp.test(req.body.password);
                     if (result.errors.length === 0) {
                         if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
-                            database.register(email, req.body.password, fname, lname);
+                            services.LoginRegisterService.register(email, req.body.password, fname, lname);
                             res.redirect('/register-success');
                             sendEmailVerification(email, getHostname(req));
                         } else {
@@ -459,7 +459,7 @@ app.post('/register', (req: Request, res: Response) => {
 
 // Logout event
 app.get('/logout', (req: Request, res: Response) => {
-    database.deleteSession(req.session.sessionId, () => {
+    services.SessionService.deleteSession(req.session.sessionId, () => {
         req.session.destroy(() => {
             res.redirect('/login');
         });
@@ -473,11 +473,11 @@ app.get('/register-success', (req: Request, res: Response) => {
 
 // Verify email address page
 app.get('/verify/:verifyId', (req: Request, res: Response) => {
-    database.checkVerifyId(req.params.verifyId, (valid) => {
+    services.VerificationService.checkVerifyId(req.params.verifyId, (valid) => {
         renderPage(req, res, 'verify', { title: 'Verify', valid: valid });
         if (valid) {
-            database.setVerified(req.params.verifyId, () => {
-                database.deleteVerifyId(req.params.verifyId);
+            services.VerificationService.setVerified(req.params.verifyId, () => {
+                services.VerificationService.deleteVerifyId(req.params.verifyId);
             });
         }
     });
@@ -492,7 +492,7 @@ app.get('/password-reset', (req: Request, res: Response) => {
 app.post('/password-reset', (req: Request, res: Response) => {
     var email = stripWhitespace(req.body.email).replace('@luther.edu', '');
     renderPage(req, res, 'password-reset-request-success', { title: 'Password reset request' });
-    database.passwordResetExists(email, (exists) => {
+    services.PasswordResetService.passwordResetExists(email, (exists) => {
         if (!exists) {
             sendPasswordResetEmail(email, getHostname(req));
         }
@@ -501,7 +501,7 @@ app.post('/password-reset', (req: Request, res: Response) => {
 
 // Password reset page
 app.get('/password-reset/:passwordResetId', (req: Request, res: Response) => {
-    database.checkPasswordResetId(req.params.passwordResetId, (valid) => {
+    services.PasswordResetService.checkPasswordResetId(req.params.passwordResetId, (valid) => {
         renderPage(req, res, 'password-reset', { title: 'Reset password', valid: valid, passwordExample: newRandomPassword() });
     });
 });
@@ -511,7 +511,7 @@ app.post('/password-reset/:passwordResetId', (req: Request, res: Response) => {
     if (req.body.newPassword === req.body.confirmNewPassword) {
         var result = owasp.test(req.body.newPassword);
         if (result.errors.length === 0) {
-            database.resetPassword(req.params.passwordResetId, req.body.newPassword);
+            services.PasswordResetService.resetPassword(req.params.passwordResetId, req.body.newPassword);
             renderPage(req, res, 'password-reset-success', { title: 'Password reset success' });
         } else {
             renderPage(req, res, 'password-reset', { title: 'Reset password', valid: true, passwordExample: newRandomPassword(), error: result.errors.join('\n') });
@@ -523,15 +523,15 @@ app.post('/password-reset/:passwordResetId', (req: Request, res: Response) => {
 
 // List new book page
 app.get('/book', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getNumUserBooks(userId, (numBooks) => {
-            database.getMeta('Max books', (maxNumBooks) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.BookService.getNumUserBooks(userId, (numBooks) => {
+            services.MetaService.getMeta('Max books', (maxNumBooks) => {
                 var numMaxNumBooks = parseInt(maxNumBooks);
                 if (numBooks < numMaxNumBooks) {
-                    database.hasContactInfo(userId, (hasInfo) => {
+                    services.UserService.hasContactInfo(userId, (hasInfo) => {
                         if (hasInfo) {
-                            database.getDepartments((departments) => {
-                                database.getConditions((conditions) => {
+                            services.DepartmentService.getDepartments((departments) => {
+                                services.ConditionService.getConditions((conditions) => {
                                     renderPage(req, res, 'new-book', { title: 'New book', departments: departments, conditions: conditions });
                                 });
                             });
@@ -552,14 +552,14 @@ app.post('/book', auth, upload.single('image'), (req: Request, res: Response) =>
     cloudinary.v2.uploader.upload(req.file.path, (cloudinaryErr, result) => {
         validBook(req.body, (valid, err, values) => {
             if (valid && !cloudinaryErr) {
-                database.getAuthUser(req.session.sessionId, (userId) => {
-                    database.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, (bookId) => {
+                services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                    services.BookService.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, (bookId) => {
                         res.redirect(`/book/${bookId}`);
                     });
                 });
             } else {
-                database.getDepartments((departments) => {
-                    database.getConditions((conditions) => {
+                services.DepartmentService.getDepartments((departments) => {
+                    services.ConditionService.getConditions((conditions) => {
                         renderPage(req, res, 'new-book', {
                             title: 'New book',
                             departments: departments,
@@ -587,16 +587,16 @@ app.post('/book', auth, upload.single('image'), (req: Request, res: Response) =>
 
 // View a book
 app.get('/book/:bookId', (req: Request, res: Response) => {
-    database.validBook(req.params.bookId, (valid) => {
+    services.BookService.validBook(req.params.bookId, (valid) => {
         if (valid) {
-            database.getBookInfo(req.params.bookId, (bookInfo) => {
-                database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
-                    database.getDepartmentName(bookInfo.departmentid, (department) => {
-                        database.getConditionName(bookInfo.conditionid, (condition) => {
-                            database.getPlatformName(userBookInfo.contactplatformid, (platform) => {
-                                database.getAuthUser(req.session.sessionId, (userId) => {
-                                    database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
-                                        database.userReportedRecently(userId, (reportedRecently) => {
+            services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+                services.BookService.getUserBookInfo(req.params.bookId, (userBookInfo) => {
+                    services.DepartmentService.getDepartmentName(bookInfo.departmentid, (department) => {
+                        services.ConditionService.getConditionName(bookInfo.conditionid, (condition) => {
+                            services.PlatformService.getPlatformName(userBookInfo.contactplatformid, (platform) => {
+                                services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                                    services.ReportService.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                                        services.ReportService.userReportedRecently(userId, (reportedRecently) => {
                                             renderPage(req, res, 'book', {
                                                 title: bookInfo.title,
                                                 author: bookInfo.author,
@@ -632,14 +632,14 @@ app.get('/book/:bookId', (req: Request, res: Response) => {
 
 // Edit book page
 app.get('/edit/:bookId', auth, (req: Request, res: Response) => {
-    database.validBook(req.params.bookId, (valid) => {
+    services.BookService.validBook(req.params.bookId, (valid) => {
         if (valid) {
-            database.getAuthUser(req.session.sessionId, (userId) => {
-                database.getUserBookInfo(req.params.bookId, (userBookInfo) => {
+            services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                services.BookService.getUserBookInfo(req.params.bookId, (userBookInfo) => {
                     if (userId === userBookInfo.id) {
-                        database.getBookInfo(req.params.bookId, (bookInfo) => {
-                            database.getDepartments((departments) => {
-                                database.getConditions((conditions) => {
+                        services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+                            services.DepartmentService.getDepartments((departments) => {
+                                services.ConditionService.getConditions((conditions) => {
                                     renderPage(req, res, 'edit', {
                                         title: 'Edit book',
                                         departments: departments,
@@ -681,8 +681,8 @@ app.post('/edit/:bookId', auth, upload.single('image'), (req: Request, res: Resp
             if (req.file) {
                 cloudinary.v2.uploader.upload(req.file.path, (cloudinaryErr, result) => {
                     if (!cloudinaryErr) {
-                        database.getAuthUser(req.session.sessionId, (userId) => {
-                            database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                        services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                            services.BookService.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
                                 res.redirect(`/book/${req.params.bookId}`);
                             });
                         });
@@ -692,15 +692,15 @@ app.post('/edit/:bookId', auth, upload.single('image'), (req: Request, res: Resp
                     }
                 });
             } else {
-                database.getAuthUser(req.session.sessionId, (userId) => {
-                    database.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                    services.BookService.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, null, values.ISBN10 || null, values.ISBN13 || null, () => {
                         res.redirect(`/book/${req.params.bookId}`);
                     });
                 });
             }
         } else {
-            database.getDepartments((departments) => {
-                database.getConditions((conditions) => {
+            services.DepartmentService.getDepartments((departments) => {
+                services.ConditionService.getConditions((conditions) => {
                     renderPage(req, res, 'edit', { title: 'Edit book', departments: departments, conditions: conditions, error: err, form: {
                         bookId: req.params.bookId,
                         title: req.body.title,
@@ -722,9 +722,9 @@ app.post('/edit/:bookId', auth, upload.single('image'), (req: Request, res: Resp
 
 // Delete book event
 app.post('/deleteBook/:bookId', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getBookInfo(req.params.bookId, (bookInfo) => {
-            database.deleteBook(userId, bookInfo.id, () => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+            services.BookService.deleteBook(userId, bookInfo.id, () => {
                 res.redirect('/');
             });
         });
@@ -733,9 +733,9 @@ app.post('/deleteBook/:bookId', auth, (req: Request, res: Response) => {
 
 // Book sold event
 app.post('/bookSold/:bookId', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getBookInfo(req.params.bookId, (bookInfo) => {
-            database.bookSold(userId, bookInfo.id, () => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+            services.BookService.bookSold(userId, bookInfo.id, () => {
                 res.redirect('/');
             });
         });
@@ -744,12 +744,12 @@ app.post('/bookSold/:bookId', auth, (req: Request, res: Response) => {
 
 // Report book event
 app.post('/reportBook/:bookId', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getBookInfo(req.params.bookId, (bookInfo) => {
-            database.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
-                database.userReportedRecently(userId, (reportedRecently) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+            services.ReportService.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
+                services.ReportService.userReportedRecently(userId, (reportedRecently) => {
                     if (!alreadyReported && !reportedRecently) {
-                        database.reportBook(userId, bookInfo.id, (deleted) => {
+                        services.ReportService.reportBook(userId, bookInfo.id, (deleted) => {
                             if (deleted) res.redirect('/');
                             else res.redirect(`/book/${req.params.bookId}`);
                         });
@@ -764,11 +764,11 @@ app.post('/reportBook/:bookId', auth, (req: Request, res: Response) => {
 
 // Profile viewing/editing page
 app.get('/profile', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.getUserInfo(userId, (userInfo) => {
-            database.getContactInfo(userId, (userContactInfo) => {
-                database.getPlatforms((platforms) => {
-                    database.getUserBooks(userId, (booksListed) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.UserService.getUserInfo(userId, (userInfo) => {
+            services.UserService.getContactInfo(userId, (userContactInfo) => {
+                services.PlatformService.getPlatforms((platforms) => {
+                    services.UserService.getUserBooks(userId, (booksListed) => {
                         var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
                         var contactPlatform = userContactInfo.contactplatformid;
                         if (contactPlatform === null) contactPlatform = '';
@@ -805,8 +805,8 @@ app.post('/setName', auth, (req: Request, res: Response) => {
     var fname = stripWhitespace(req.body.firstname);
     var lname = stripWhitespace(req.body.lastname);
     if (fname.length > 0 && fname.length <= 64 && lname.length > 0 && lname.length <= 64) {
-        database.getAuthUser(req.session.sessionId, (userId) => {
-            database.setUserName(userId, fname, lname, () => {
+        services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+            services.UserService.setUserName(userId, fname, lname, () => {
                 res.redirect('/profile');
             });
         });
@@ -818,8 +818,8 @@ app.post('/setName', auth, (req: Request, res: Response) => {
 
 // Set image event
 app.post('/setImage', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.setUserImage(userId, req.body.imageUrl, () => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.UserService.setUserImage(userId, req.body.imageUrl, () => {
             res.redirect('/profile');
         });
     });
@@ -830,10 +830,10 @@ app.post('/changePassword', auth, (req: Request, res: Response) => {
     if (req.body.newPassword === req.body.confirmNewPassword) {
         var result = owasp.test(req.body.newPassword);
         if (result.errors.length === 0) {
-            database.getAuthUser(req.session.sessionId, (userId) => {
-                database.checkPassword(userId, req.body.currentPassword, (correct) => {
+            services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                services.UserService.checkPassword(userId, req.body.currentPassword, (correct) => {
                     if (correct) {
-                        database.setUserPassword(userId, req.body.newPassword, () => {
+                        services.UserService.setUserPassword(userId, req.body.newPassword, () => {
                             res.redirect('/profile');
                         });
                     } else {
@@ -857,11 +857,11 @@ app.post('/setContactInfo', auth, (req: Request, res: Response) => {
     var contactPlatform = parseInt(stripWhitespace(req.body.contactPlatform));
     if (isNaN(contactPlatform)) contactPlatform = -1;
     var contactInfo = stripWhitespace(req.body.contactInfo);
-    database.validPlatform(contactPlatform, (valid) => {
+    services.PlatformService.validPlatform(contactPlatform, (valid) => {
         if (valid) {
             if (contactInfo.length > 0 && contactInfo.length <= 128) {
-                database.getAuthUser(req.session.sessionId, (userId) => {
-                    database.setContactInfo(userId, contactPlatform, contactInfo, () => {
+                services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+                    services.UserService.setContactInfo(userId, contactPlatform, contactInfo, () => {
                         res.redirect('/profile');
                     });
                 });
@@ -888,8 +888,8 @@ app.get('/contact', (req: Request, res: Response) => {
 
 // Feedback form
 app.get('/feedback', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId) => {
-        database.canProvideFeedback(userId, (can) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.FeedbackService.canProvideFeedback(userId, (can) => {
             renderPage(req, res, 'feedback', { title: 'Provide Feedback', canProvideFeedback: can });
         });
     });
@@ -897,13 +897,13 @@ app.get('/feedback', auth, (req: Request, res: Response) => {
 
 // Feedback provided
 app.post('/feedback', auth, (req: Request, res: Response) => {
-    database.getAuthUser(req.session.sessionId, (userId, firstname, lastname) => {
-        database.canProvideFeedback(userId, (can) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId, firstname, lastname) => {
+        services.FeedbackService.canProvideFeedback(userId, (can) => {
             if (can) {
                 var feedback = stripWhitespace(req.body.feedback);
                 while (feedback.includes('\n')) feedback = feedback.replace('\n', '<br>');
                 emailer.sendEmail(emailer.emailAddress, 'User Feedback', `${firstname} ${lastname} provided the following feedback:<br><br>${feedback}<br><br>Sincerely,<br>The Norse Books Dev Team`);
-                database.updateFeedbackTimestamp(userId);
+                services.FeedbackService.updateFeedbackTimestamp(userId);
             }
             res.redirect('/');
         });
@@ -917,7 +917,7 @@ app.get('/help-out', (req: Request, res: Response) => {
 
 // Terms and conditions page
 app.get('/terms-and-conditions', (req: Request, res: Response) => {
-    database.getMeta('Terms and Conditions', (termsAndConditions) => {
+    services.MetaService.getMeta('Terms and Conditions', (termsAndConditions) => {
         termsAndConditions = converter.makeHtml(termsAndConditions);
         renderPage(req, res, 'terms-and-conditions', {
             title: 'Terms and conditions',
@@ -928,10 +928,10 @@ app.get('/terms-and-conditions', (req: Request, res: Response) => {
 
 // Admin main page
 app.get('/admin', adminAuth, (req: Request, res: Response) => {
-    database.getMeta('Max books', (maxBooks) => {
-        database.getMeta('Max reports', (maxReports) => {
-            database.getMeta('Books per query', (booksPerQuery) => {
-                database.getMeta('Version', (version) => {
+    services.MetaService.getMeta('Max books', (maxBooks) => {
+        services.MetaService.getMeta('Max reports', (maxReports) => {
+            services.MetaService.getMeta('Books per query', (booksPerQuery) => {
+                services.MetaService.getMeta('Version', (version) => {
                     renderPage(req, res, 'admin', {
                         title: 'Admin',
                         maxBooks: parseInt(maxBooks),
@@ -947,14 +947,14 @@ app.get('/admin', adminAuth, (req: Request, res: Response) => {
 
 // Get admin page stats
 app.get('/getAdminStats', adminAuth, (req: Request, res: Response) => {
-    database.getNumUsers((numUsers) => {
-        database.getNumBooks((numBooks) => {
-            database.getNumSold((numSold) => {
-                database.getTotalListed((totalListed) => {
-                    database.getTotalMoneyMade((totalMoneyMade) => {
-                        database.getNumTables((numTables) => {
-                            database.getNumRows((numRows) => {
-                                database.getNumReports((numReports) => {
+    services.StatsService.getNumUsers((numUsers) => {
+        services.StatsService.getNumBooks((numBooks) => {
+            services.StatsService.getNumSold((numSold) => {
+                services.StatsService.getTotalListed((totalListed) => {
+                    services.StatsService.getTotalMoneyMade((totalMoneyMade) => {
+                        services.StatsService.getNumTables((numTables) => {
+                            services.StatsService.getNumRows((numRows) => {
+                                services.StatsService.getNumReports((numReports) => {
                                     var rowsPercentage = Math.floor(numRows / 10000 * 100 * 10) / 10;
                                     res.json({
                                         numUsers: numUsers,
@@ -979,42 +979,42 @@ app.get('/getAdminStats', adminAuth, (req: Request, res: Response) => {
 
 // Edit version event
 app.post('/setVersion', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Version', req.body.version, () => {
+    services.MetaService.setMeta('Version', req.body.version, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit max books event
 app.post('/setMaxBooks', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Max books', req.body.maxBooks, () => {
+    services.MetaService.setMeta('Max books', req.body.maxBooks, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit max reports event
 app.post('/setMaxReports', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Max reports', req.body.maxReports, () => {
+    services.MetaService.setMeta('Max reports', req.body.maxReports, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit books per query event
 app.post('/setBooksPerQuery', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Books per query', req.body.booksPerQuery, () => {
+    services.MetaService.setMeta('Books per query', req.body.booksPerQuery, () => {
         res.redirect('/admin');
     });
 });
 
 // Edit terms and conditions page
 app.get('/admin/terms-and-conditions', adminAuth, (req: Request, res: Response) => {
-    database.getMeta('Terms and Conditions', (termsAndConditions) => {
+    services.MetaService.getMeta('Terms and Conditions', (termsAndConditions) => {
         renderPage(req, res, 'admin-tac', { title: 'Edit terms and conditions', termsAndConditions: termsAndConditions });
     });
 });
 
 // Edit terms and conditions event
 app.post('/admin/terms-and-conditions', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Terms and Conditions', req.body.tac, () => {
+    services.MetaService.setMeta('Terms and Conditions', req.body.tac, () => {
         res.redirect('/admin/terms-and-conditions');
     });
 });
@@ -1026,36 +1026,36 @@ app.get('/admin/query', adminAuth, (req: Request, res: Response) => {
 
 // Get the database tables
 app.get('/getDBTables', adminAuth, (req: Request, res: Response) => {
-    database.getTables((tables) => {
+    services.AdminService.getTables((tables) => {
         res.json({ tables: tables });
     });
 });
 
 // Get the columns of a single table in the database
 app.get('/getDBColumns', adminAuth, (req: Request, res: Response) => {
-    database.getColumns(req.query.table as string, (columns) => {
+    services.AdminService.getColumns(req.query.table as string, (columns) => {
         res.json({ columns: columns });
     })
 });
 
 // Execute a select statement on the database
 app.get('/executeSelect', adminAuth, (req: Request, res: Response) => {
-    database.executeSelect(req.query.queryInputs, (rows) => {
+    services.AdminService.executeSelect(req.query.queryInputs, (rows) => {
         res.json({ result: rows });
     });
 });
 
 // View reports page
 app.get('/admin/reports', adminAuth, (req: Request, res: Response) => {
-    database.getReports((reports) => {
+    services.AdminService.getReports((reports) => {
         renderPage(req, res, 'admin-reports', { reports: reports });
     });
 });
 
 // Site alert page
 app.get('/admin/alert', adminAuth, (req: Request, res: Response) => {
-    database.getMeta('Alert', (alertValue) => {
-        database.getMeta('Alert timeout', (alertTimeout) => {
+    services.MetaService.getMeta('Alert', (alertValue) => {
+        services.MetaService.getMeta('Alert timeout', (alertTimeout) => {
             if (alertValue !== null && alertTimeout !== null) {
                 var remaining = Math.floor(parseInt(alertTimeout) - (new Date().getTime() / 1000));
                 if (remaining > 0) {
@@ -1105,8 +1105,8 @@ app.post('/admin/alert', adminAuth, (req: Request, res: Response) => {
         } else {
             var timeout = (days * 60 * 60 * 24) + (hours * 60 * 60) + (minutes * 60) + seconds;
             var timeoutTimestamp = Math.floor(new Date().getTime() / 1000) + timeout;
-            database.setMeta('Alert', req.body.alertValue, () => {
-                database.setMeta('Alert timeout', timeoutTimestamp.toString(), () => {
+            services.MetaService.setMeta('Alert', req.body.alertValue, () => {
+                services.MetaService.setMeta('Alert timeout', timeoutTimestamp.toString(), () => {
                     res.redirect('/admin/alert');
                 });
             });
@@ -1116,16 +1116,16 @@ app.post('/admin/alert', adminAuth, (req: Request, res: Response) => {
 
 // Remove alert event
 app.post('/removeAlert', adminAuth, (req: Request, res: Response) => {
-    database.setMeta('Alert', null, () => {
+    services.MetaService.setMeta('Alert', null, () => {
         res.redirect('/admin/alert');
     });
 });
 
 // Get the current alert
 app.get('/getAlert', (req: Request, res: Response) => {
-    database.getMeta('Alert timeout', (alertTimeout) => {
+    services.MetaService.getMeta('Alert timeout', (alertTimeout) => {
         if (Math.floor(parseInt(alertTimeout) - (new Date().getTime() / 1000)) > 0) {
-            database.getMeta('Alert', (alertValue) => {
+            services.MetaService.getMeta('Alert', (alertValue) => {
                 res.json({ alertValue: alertValue });
             });
         } else {
@@ -1138,7 +1138,7 @@ app.get('/getAlert', (req: Request, res: Response) => {
 app.get('/admin/users', adminAuth, (req: Request, res: Response) => {
     var orderBy = req.query.orderBy as string || 'joinTimestamp';
     var orderDirection = req.query.orderDirection as string || 'ASC';
-    database.getUsers(orderBy, orderDirection, (users) => {
+    services.AdminService.getUsers(orderBy, orderDirection, (users) => {
         renderPage(req, res, 'admin-users', { users: users, orderBy: orderBy, orderDirection: orderDirection });
     });
 });
@@ -1158,4 +1158,4 @@ app.listen(port, () => {
     console.log(`App running on port ${port}`);
 });
 
-module.exports = app;
+export = app;
