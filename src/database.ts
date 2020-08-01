@@ -22,11 +22,12 @@ const staticTablePath = 'tables';
 var mainDB = new db.DB(dbURL, !debug, maxDBClients);
 
 // Callback types
-type voidCallback   = () => void;
+type voidCallback   = ()               => void;
 type boolCallback   = (value: boolean) => void;
-type numberCallback = (value: number) => void;
-type rowCallback    = (row: any) => void;
-type rowsCallback   = (rows: any[]) => void;
+type numberCallback = (value: number)  => void;
+type stringCallback = (value: string)  => void;
+type rowCallback    = (row: any)       => void;
+type rowsCallback   = (rows: any[])    => void;
 
 // Get the current time to the second
 function getTime(): number {
@@ -70,7 +71,7 @@ function populateStaticTable(tableName: string) {
 }
 
 // Generate a new hex id
-function newHexId(callback?: (hexId: string) => void, length?: number) {
+function newHexId(callback?: stringCallback, length?: number) {
     length = length !== undefined ? length : hexLength;
     crypto.randomBytes(Math.floor(length / 2), (err, buffer) => {
         if (err) throw err;
@@ -79,7 +80,7 @@ function newHexId(callback?: (hexId: string) => void, length?: number) {
 }
 
 // Generate a new base64 id
-function newBase64Id(callback?: (base64Id: string) => void, length?: number) {
+function newBase64Id(callback?: stringCallback, length?: number) {
     length = length !== undefined ? length : base64Length;
     crypto.randomBytes(length, (err, buffer) => {
         if (err) throw err;
@@ -295,7 +296,7 @@ export function getUserInfo(userId: number, callback?: rowCallback) {
 }
 
 // Get a user's image
-export function getUserImage(userId: number, callback?: (imageUrl: string) => void) {
+export function getUserImage(userId: number, callback?: stringCallback) {
     var sql = `SELECT imageUrl FROM NBUser WHERE id = ?;`;
     var params = [userId];
     mainDB.execute(sql, params, (rows) => {
@@ -390,7 +391,7 @@ export function getNavInfo(sessionId: string, callback?: rowCallback) {
 }
 
 // Create a new email verification ID
-export function newVerifyId(email: string, callback?: (verifyId: string) => void) {
+export function newVerifyId(email: string, callback?: stringCallback) {
     email = email.toLowerCase();
     var sql = `DELETE FROM Verify WHERE email = ?;`;
     var params = [email];
@@ -458,7 +459,7 @@ export function pruneUnverified(verifyId: string, callback?: voidCallback) {
 }
 
 // Create a new session ID
-export function newSessionId(email: string, callback?: (sessionId: string) => void) {
+export function newSessionId(email: string, callback?: stringCallback) {
     email = email.toLowerCase();
     var sql = `
         DELETE FROM Session WHERE userId = (
@@ -544,7 +545,7 @@ export function register(email: string, password: string, firstname: string, las
 }
 
 // Generate a new password reset ID
-export function newPasswordResetId(email: string, callback?: (resetId: string) => void) {
+export function newPasswordResetId(email: string, callback?: stringCallback) {
     email = email.toLowerCase();
     crypto.randomBytes(hexLength / 2, (err, buffer) => {
         if (err) throw err;
@@ -612,7 +613,7 @@ export function passwordResetExists(email: string, callback?: boolCallback) {
 }
 
 // Create a new book id
-export function newBookId(callback?: (bookId: string) => void, length?: number) {
+export function newBookId(callback?: stringCallback, length?: number) {
     newBase64Id((bookId) => {
         var sql = `SELECT id FROM Book WHERE bookId = ?;`;
         var params = [bookId];
@@ -627,7 +628,7 @@ export function newBookId(callback?: (bookId: string) => void, length?: number) 
 }
 
 // Add a new book
-export function newBook(title: string, author: string, departmentId: number, courseNumber: number, conditionId: number, description: string, userId: number, price: number, imageUrl: string, ISBN10: string, ISBN13: string, callback?: (bookId: string) => void) {
+export function newBook(title: string, author: string, departmentId: number, courseNumber: number, conditionId: number, description: string, userId: number, price: number, imageUrl: string, ISBN10: string, ISBN13: string, callback?: stringCallback) {
     newBookId((bookId) => {
         var sql = `
             INSERT INTO Book (
@@ -870,7 +871,7 @@ export function getDepartments(callback?: rowsCallback) {
 }
 
 // Get the name of a department by ID
-export function getDepartmentName(departmentId: number, callback?: (departmentName: string) => void) {
+export function getDepartmentName(departmentId: number, callback?: stringCallback) {
     if (departmentId === -1) {
         if (callback) callback('Other');
     } else {
@@ -904,7 +905,7 @@ export function getConditions(callback?: rowsCallback) {
 }
 
 // Get the name of a condition by ID
-export function getConditionName(conditionId: number, callback?: (conditionName: string) => void) {
+export function getConditionName(conditionId: number, callback?: stringCallback) {
     var sql = `SELECT name FROM Condition WHERE id = ?;`;
     var params = [conditionId];
     mainDB.execute(sql, params, (rows) => {
@@ -930,7 +931,7 @@ export function getPlatforms(callback?: rowsCallback) {
 }
 
 // Get the name of a contact platform by ID
-export function getPlatformName(platformId: number, callback?: (platformName: string) => void) {
+export function getPlatformName(platformId: number, callback?: stringCallback) {
     var sql = `SELECT name FROM Platform WHERE id = ?;`;
     var params = [platformId];
     mainDB.execute(sql, params, (rows) => {
@@ -956,7 +957,7 @@ export function getSearchSortOptions(callback?: rowsCallback) {
 }
 
 // Get the name of a search sorting option by ID
-export function getSearchSortName(searchSortId: number, callback?: (searchSortName: string) => void) {
+export function getSearchSortName(searchSortId: number, callback?: stringCallback) {
     var sql = `SELECT name FROM SearchSort WHERE id = ?;`;
     var params = [searchSortId];
     mainDB.execute(sql, params, (rows) => {
@@ -965,7 +966,7 @@ export function getSearchSortName(searchSortId: number, callback?: (searchSortNa
 }
 
 // Get the ORDER BY section of a search query by ID
-export function getSearchSortQuery(searchSortId: number, callback?: (searchSortQuery: string) => void) {
+export function getSearchSortQuery(searchSortId: number, callback?: stringCallback) {
     var sql = `SELECT query FROM SearchSort WHERE id = ?;`;
     var params = [searchSortId];
     mainDB.execute(sql, params, (rows) => {
@@ -1013,7 +1014,7 @@ export function isAdmin(userId: number, callback?: boolCallback) {
 }
 
 // Get the value of a variable in the Meta table
-export function getMeta(key: string, callback?: (value: string) => void) {
+export function getMeta(key: string, callback?: stringCallback) {
     var sql = `SELECT value FROM Meta WHERE key = ?;`;
     var params = [key];
     mainDB.execute(sql, params, (rows) => {
