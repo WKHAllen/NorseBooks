@@ -45,6 +45,7 @@
     "pg": "^7.12.1",
     "secure-random-password": "^0.2.1",
     "showdown": "^1.9.1",
+    "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   },
   "devDependencies": {
