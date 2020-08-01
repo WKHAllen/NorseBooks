@@ -75,7 +75,7 @@ function clearColumns() {
 // Get the tables
 function getTables(callback) {
     $.ajax({
-        url: '/getDBTables',
+        url: '/admin/getDBTables',
         type: 'GET',
         dataType: 'json',
         success: (data) => {
@@ -91,7 +91,7 @@ function getTables(callback) {
 // Get the columns in a table
 function getColumns(table, callback) {
     $.ajax({
-        url: '/getDBColumns',
+        url: '/admin/getDBColumns',
         type: 'GET',
         data: { table: table },
         dataType: 'json',
@@ -194,7 +194,7 @@ function executeQuery() {
     var queryColumns = getQueryColumns();
     var queryInputs = getQueryInputs();
     $.ajax({
-        url: '/executeSelect',
+        url: '/admin/executeSelect',
         type: 'GET',
         data: { queryInputs: queryInputs },
         dataType: 'json',

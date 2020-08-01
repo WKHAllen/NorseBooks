@@ -53,7 +53,7 @@
                         <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" value="{{lastname}}" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setName">Set name</button>
+                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setName">Set name</button>
             </form>
         </div>
         
@@ -84,7 +84,7 @@
                         {{/if}}
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setContactInfo">Set contact info</button>
+                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setContactInfo">Set contact info</button>
             </form>
         </div>
         
@@ -97,7 +97,7 @@
                         <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="256" required value="{{imageUrl}}">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/setImage">Set image</button>
+                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setImage">Set image</button>
             </form>
         </div>
 
@@ -118,7 +118,7 @@
                         <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" formaction="/changePassword">Change password</button>
+                <button type="submit" class="btn btn-primary" formaction="/profile/changePassword">Change password</button>
             </form>
         </div>
     </div>
