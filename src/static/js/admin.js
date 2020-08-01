@@ -16,7 +16,7 @@ function showError() {
 // Update the stats
 function updateStats() {
     $.ajax({
-        url: '/getAdminStats',
+        url: '/admin/getAdminStats',
         type: 'GET',
         dataType: 'json',
         success: (data) => {
