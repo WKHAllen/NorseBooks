@@ -1,0 +1,22 @@
+{
+	"short_name": "NorseBooks",
+	"name": "NorseBooks",
+	"description": "NorseBooks is a place for Luther College students to buy and sell textbooks",
+	"icons": [
+		{
+			"src": "/img/favicon-192.png",
+			"type": "image/png",
+			"sizes": "192x192"
+		},
+		{
+			"src": "/img/favicon-512.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		}
+	],
+	"start_url": ".",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#0f2f9f"
+}
