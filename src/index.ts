@@ -64,7 +64,6 @@ if (!debug)
 // Use view engine
 app.engine('.html', hbs({
     extname: '.html',
-    // defaultView: 'default',
     defaultLayout: 'default'
 }));
 app.set('view engine', '.html');
@@ -164,7 +163,7 @@ function validISBN(ISBN: string): boolean {
     return true;
 }
 
-interface bookForm {
+interface BookForm {
     title:        string,
     author:       string,
     department:   string,
@@ -177,7 +176,7 @@ interface bookForm {
     ISBN13:       string
 }
 
-interface bookObject {
+interface BookObject {
     title:        string,
     author:       string,
     department:   number,
@@ -191,7 +190,7 @@ interface bookObject {
 }
 
 // Check if a book form is valid
-function validBook(form: bookForm, callback: (success: boolean, error: string, book?: bookObject) => void) {
+function validBook(form: BookForm, callback: (success: boolean, error: string, book?: BookObject) => void) {
     var title = stripWhitespace(form.title);
     var author = stripWhitespace(form.author);
     var department = parseInt(stripWhitespace(form.department));
@@ -347,7 +346,7 @@ app.get('/', (req: Request, res: Response) => {
     });
 });
 
-interface bookSearchOptions {
+interface BookSearchOptions {
     title?: string,
     author?: string,
     departmentId?: number,
@@ -373,7 +372,7 @@ app.get('/getBooks', (req: Request, res: Response) => {
             // sort
             var sort = parseInt(stripWhitespace(req.query.sort as string));
             if (isNaN(sort)) sort = null;
-            var searchOptions: bookSearchOptions = {};
+            var searchOptions: BookSearchOptions = {};
             // Check title
             if (title.length > 0 && title.length <= 128) searchOptions.title = title;
             // Check author
