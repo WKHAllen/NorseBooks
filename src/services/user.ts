@@ -118,6 +118,19 @@ export module UserService {
         });
     }
 
+    // Get a list of the books a user has reported
+    export function getUserBookReports(userId: number, callback?: rowsCallback) {
+        var sql = `
+            SELECT Book.bookId as bookId, title, author, reportTimestamp
+            FROM Book JOIN Report ON Book.id = Report.bookId
+            WHERE Report.userId = ?
+            ORDER BY Report.reportTimestamp;`;
+        var params = [userId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows);
+        });
+    }
+
     // Check if a user is an admin
     export function isAdmin(userId: number, callback?: boolCallback) {
         var sql = `SELECT id FROM NBUser WHERE id = ? AND admin = 1;`;

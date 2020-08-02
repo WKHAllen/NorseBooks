@@ -121,5 +121,31 @@
                 <button type="submit" class="btn btn-primary" formaction="/profile/changePassword">Change password</button>
             </form>
         </div>
+
+        <div id="reported-books" class="mb-5">
+            <h3 class="listings">Reported Books</h3>
+            {{#if hasReports}}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each booksReported}}
+                    <tr>
+                        <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+                        <td>{{this.author}}</td>
+                        <td class="timestamp">{{this.reporttimestamp}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+            {{else}}
+            <span>You have not reported any books.</span>
+            {{/if}}
+        </div>
     </div>
 </div>

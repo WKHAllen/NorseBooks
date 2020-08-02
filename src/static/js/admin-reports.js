@@ -18,5 +18,4 @@ function joinTitles() {
 // When the page is ready
 $(() => {
 	joinTitles();
-	improveTimestamps();
 });

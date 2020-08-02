@@ -102,4 +102,5 @@ function clearAlertStorage() {
 
 $(() => {
     showAlert();
+    improveTimestamps();
 });

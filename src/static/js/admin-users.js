@@ -16,6 +16,5 @@ function showOrderBy() {
 
 // When the page is ready
 $(() => {
-	improveTimestamps();
 	showOrderBy();
 });
