@@ -29,7 +29,11 @@
                             {{else if loggedIn}}
                             <button type="button" class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
                             <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
-                            <button type="submit" formaction="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
+                            {{#if reported}}
+                            <button type="submit" formaction="/reports/unreportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Unreport</button>
+                            {{else}}
+                            <button type="submit" formaction="/reports/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
+                            {{/if}}
                             {{else}}
                             <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
                             <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
@@ -52,7 +56,9 @@
             <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
         <h6>You can contact <b>{{firstname}} {{lastname}}</b> via:</h6>
-            <a class="btn btn-outline-info ml-3" id="contact-link" href=""><span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span></a>
+            <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank">
+                <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
+            </a>
     </div>
 
     <div class="blurred-modal" id="delete">

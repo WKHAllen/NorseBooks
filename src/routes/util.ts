@@ -253,6 +253,7 @@ export function adminAuth (req: Request, res: Response, next: NextFunction) {
 // Render a page
 export function renderPage(req: Request, res: Response, page: string, options: any) {
     options = options || {};
+    options.url = req.originalUrl;
     services.MetaService.getMeta('Version', (version) => {
         options.version = version;
         if (!req.session || !req.session.sessionId) {

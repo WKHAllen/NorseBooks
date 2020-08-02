@@ -104,7 +104,8 @@ router.get('/:bookId', (req: Request, res: Response) => {
                                                 contactInfo: userBookInfo.contactinfo,
                                                 bookOwner: userId === userBookInfo.id,
                                                 bookId: req.params.bookId,
-                                                canReport: !alreadyReported && !reportedRecently
+                                                reported: alreadyReported,
+                                                canReport: !reportedRecently
                                             });
                                         });
                                     });

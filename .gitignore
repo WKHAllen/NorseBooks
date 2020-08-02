@@ -1,7 +1,9 @@
-node_modules
-.vscode
+node_modules/
+__pycache__/
+.vscode/
+src/build/
+backups/
+*.DS_Store
 src/processenv.js
 .env
-src/build
 todo.txt
-*.DS_Store

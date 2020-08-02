@@ -157,6 +157,10 @@ footer .footer-list-link {
     padding: 0px 20px;
 }
 
+#index .card-link {
+    text-decoration: none;
+}
+
 #index .thumbnail {
     width: 250px;
     height: 250px;
@@ -166,6 +170,7 @@ footer .footer-list-link {
 #index .card-price {
     font-size: 1rem;
     color: black;
+    padding-left: 8px;
 }
 
 #index .card-body {
@@ -292,7 +297,7 @@ footer .footer-list-link {
     margin:0 auto;
 }
 
-#your-listings tbody tr:hover {
+#your-listings tbody tr:hover, #reported-books tbody tr:hover {
     background-color: rgb(243, 243, 244);
 }
 
