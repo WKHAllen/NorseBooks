@@ -12,30 +12,34 @@ router.get('/', auth, (req: Request, res: Response) => {
             services.UserService.getContactInfo(userId, (userContactInfo) => {
                 services.PlatformService.getPlatforms((platforms) => {
                     services.UserService.getUserBooks(userId, (booksListed) => {
-                        var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
-                        var contactPlatform = userContactInfo.contactplatformid;
-                        if (contactPlatform === null) contactPlatform = '';
-                        var contactInfo = userContactInfo.contactinfo;
-                        if (contactInfo === null) contactInfo = '';
-                        renderPage(req, res, 'profile', {
-                            title: 'Your profile',
-                            error: req.session.errorMsg || undefined,
-                            firstname: userInfo.firstname,
-                            lastname: userInfo.lastname,
-                            email: userInfo.email + '@luther.edu',
-                            imageUrl: userInfo.imageurl,
-                            joined: joinTimestamp,
-                            itemsSold: userInfo.itemssold,
-                            moneyMade: formatPrice(userInfo.moneymade),
-                            books: userInfo.itemslisted,
-                            platforms: platforms,
-                            contactInfoExists: contactPlatform !== '' && contactInfo !== '',
-                            contactPlatform: contactPlatform,
-                            contactInfo: contactInfo,
-                            booksListed: booksListed,
-                            hasListings: booksListed.length > 0
+                        services.UserService.getUserBookReports(userId, (booksReported) => {
+                            var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
+                            var contactPlatform = userContactInfo.contactplatformid;
+                            if (contactPlatform === null) contactPlatform = '';
+                            var contactInfo = userContactInfo.contactinfo;
+                            if (contactInfo === null) contactInfo = '';
+                            renderPage(req, res, 'profile', {
+                                title: 'Your profile',
+                                error: req.session.errorMsg || undefined,
+                                firstname: userInfo.firstname,
+                                lastname: userInfo.lastname,
+                                email: userInfo.email + '@luther.edu',
+                                imageUrl: userInfo.imageurl,
+                                joined: joinTimestamp,
+                                itemsSold: userInfo.itemssold,
+                                moneyMade: formatPrice(userInfo.moneymade),
+                                books: userInfo.itemslisted,
+                                platforms: platforms,
+                                contactInfoExists: contactPlatform !== '' && contactInfo !== '',
+                                contactPlatform: contactPlatform,
+                                contactInfo: contactInfo,
+                                booksListed: booksListed,
+                                hasListings: booksListed.length > 0,
+                                booksReported: booksReported,
+                                hasReports: booksReported.length > 0
+                            });
+                            req.session.errorMsg = undefined;
                         });
-                        req.session.errorMsg = undefined;
                     });
                 });
             });

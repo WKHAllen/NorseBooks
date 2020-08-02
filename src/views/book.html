@@ -29,7 +29,11 @@
                             {{else if loggedIn}}
                             <button type="button" class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
                             <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
-                            <button type="submit" formaction="/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
+                            {{#if reported}}
+                            <button type="submit" formaction="/reports/unreportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Unreport</button>
+                            {{else}}
+                            <button type="submit" formaction="/reports/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
+                            {{/if}}
                             {{else}}
                             <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
                             <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>

@@ -292,7 +292,7 @@ footer .footer-list-link {
     margin:0 auto;
 }
 
-#your-listings tbody tr:hover {
+#your-listings tbody tr:hover, #reported-books tbody tr:hover {
     background-color: rgb(243, 243, 244);
 }
 

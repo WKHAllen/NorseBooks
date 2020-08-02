@@ -1,4 +1,4 @@
-import { mainDB, reportTimeout, boolCallback, numberCallback, getTime } from './util';
+import { mainDB, reportTimeout, boolCallback, numberCallback, getTime, voidCallback } from './util';
 import { BookService } from './book';
 import { MetaService } from './meta';
 
@@ -23,6 +23,15 @@ export module ReportService {
                     });
                 });
             });
+        });
+    }
+
+    // Unreport a book
+    export function unreportBook(userId: number, bookId: string, callback?: voidCallback) {
+        var sql = `DELETE FROM Report WHERE userId = ? AND bookId = ?`;
+        var params = [userId, bookId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback();
         });
     }
 
