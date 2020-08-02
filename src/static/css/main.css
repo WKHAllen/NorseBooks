@@ -151,17 +151,13 @@ footer .footer-list-link {
 
 /* Index Page */
 
-#index > * {
-    margin: 0 auto;
-}
-
 #index .card {
-    margin: 0 auto;
     border: none;
     padding: 0px 20px;
 }
 
 #index .card-link {
+    margin: 0 auto;
     text-decoration: none;
 }
 
