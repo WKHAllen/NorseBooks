@@ -3,14 +3,21 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NorseBooks is a place for Luther College students to resell textbooks">
+    <meta name="description" content="NorseBooks is a place for Luther College students to buy and sell textbooks">
     <link rel="icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/img/favicon-192.png">
     <link rel="manifest" href="/manifest.json">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.norsebooks.com{{url}}">
+    <meta property="og:image" content="/img/favicon.png">
+    <meta property="og:site_name" content="NorseBooks">
+    <meta property="og:description" content="NorseBooks is a place for Luther College students to buy and sell textbooks">
     {{#if title}}
-    <title>{{title}} - Norse Books</title>
+    <meta property="og:title" content="{{title}} - NorseBooks">
+    <title>{{title}} - NorseBooks</title>
     {{else}}
-    <title>Norse Books</title>
+    <meta property="og:title" content="NorseBooks">
+    <title>NorseBooks</title>
     {{/if}}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="/css/main.css">
