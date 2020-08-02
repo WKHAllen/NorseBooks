@@ -17,10 +17,10 @@ function logError(stmt: string, params: any[], res: QueryResult<any>, err: Error
 export class DB {
     pool: Pool;
 
-    constructor(dbURL: string, ssl: boolean, max: number) {
+    constructor(dbURL: string, ssl: boolean = true, max: number = 20) {
         this.pool = new Pool({
             connectionString: dbURL,
-            ssl: ssl || true,
+            ssl: ssl,
             max: max
         });
     }
