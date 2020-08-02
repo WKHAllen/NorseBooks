@@ -63,7 +63,7 @@ app.use('/password-reset',       routes.passwordResetRoute);
 app.use('/profile',              routes.profileRoute);
 app.use('/register',             routes.registerRoute);
 app.use('/register-success',     routes.registerSuccessRoute);
-app.use('/reportBook',           routes.reportBookRoute);
+app.use('/reports',              routes.reportBookRoute);
 app.use('/terms-and-conditions', routes.termsAndConditionsRoute);
 app.use('/verify',               routes.verifyRoute);
 

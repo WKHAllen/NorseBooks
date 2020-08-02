@@ -5,7 +5,7 @@ import * as services from '../services';
 export var router = Router();
 
 // Report book event
-router.post('/:bookId', auth, (req: Request, res: Response) => {
+router.post('/reportBook/:bookId', auth, (req: Request, res: Response) => {
     services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
         services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
             services.ReportService.userReportedBook(userId, bookInfo.id, (alreadyReported) => {
@@ -19,6 +19,23 @@ router.post('/:bookId', auth, (req: Request, res: Response) => {
                         res.redirect(`/book/${req.params.bookId}`);
                     }
                 });
+            });
+        });
+    });
+});
+
+// Unreport book event
+router.post('/unreportBook/:bookId', auth, (req: Request, res: Response) => {
+    services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
+        services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+            services.ReportService.userReportedBook(userId, bookInfo.id, (hasReported) => {
+                if (hasReported) {
+                    services.ReportService.unreportBook(userId, bookInfo.id, () => {
+                        res.redirect(`/book/${req.params.bookId}`);
+                    });
+                } else {
+                    res.redirect(`/book/${req.params.bookId}`);
+                }
             });
         });
     });
