@@ -157,6 +157,10 @@ footer .footer-list-link {
     padding: 0px 20px;
 }
 
+#index .card-link {
+    text-decoration: none;
+}
+
 #index .thumbnail {
     width: 250px;
     height: 250px;

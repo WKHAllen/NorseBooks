@@ -14,62 +14,67 @@ function deleteLastBook() {
 function addBook(book) {
     var courseNumber = book.coursenumber ? ' ' + book.coursenumber : '';
     // <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
-    var newBook = document.createElement('div');
-    newBook.classList.add('card-container', 'col-12', 'col-md-6', 'col-lg-4', 'mb-4');
-        // <div class="card" style="width: 18rem;">
-        var newCard = document.createElement('div');
-        newCard.classList.add('card');
-        newCard.style = 'width: 18rem;';
-        var imgLink = document.createElement('a');
-        imgLink.href = `/book/${book.bookid}`
-        newCard.appendChild(imgLink)
-            // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
-            var newImg = document.createElement('img');
-            newImg.src = book.imageurl;
-            newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
-            newImg.alt = '...';
-            imgLink.appendChild(newImg);
-            // <div class="card-body">
-            var cardBody = document.createElement('div');
-            cardBody.classList.add('card-body');
-                // <div class="space-between">
-                var spaceBetween = document.createElement('div');
-                spaceBetween.classList.add('space-between');
-                    // <a href="/book/${book.bookid}">
-                    var bookLink = document.createElement('a');
-                    bookLink.href = `/book/${book.bookid}`;
-                        // <span class="title">${book.title}
-                        var bookTitle = document.createElement('span');
-                        bookTitle.classList.add('title');
-                        bookTitle.innerText = book.title;
+    var newBookLink = document.createElement('a');
+    newBookLink.classList.add('card-link');
+    newBookLink.href = `/book/${book.bookid}`;
+        var newBook = document.createElement('div');
+        newBook.classList.add('card-container', 'col-12', 'col-md-6', 'col-lg-4', 'mb-4');
+            // <div class="card" style="width: 18rem;">
+            var newCard = document.createElement('div');
+            newCard.classList.add('card');
+            newCard.style = 'width: 18rem;';
+            var imgLink = document.createElement('a');
+            imgLink.href = `/book/${book.bookid}`;
+            newCard.appendChild(imgLink);
+                // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
+                var newImg = document.createElement('img');
+                newImg.src = book.imageurl;
+                newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
+                newImg.alt = '...';
+                imgLink.appendChild(newImg);
+                // <div class="card-body">
+                var cardBody = document.createElement('div');
+                cardBody.classList.add('card-body');
+                    // <div class="space-between">
+                    var spaceBetween = document.createElement('div');
+                    spaceBetween.classList.add('space-between');
+                        // <a href="/book/${book.bookid}">
+                        var bookLink = document.createElement('a');
+                        bookLink.href = `/book/${book.bookid}`;
+                            // <span class="title">${book.title}
+                            var bookTitle = document.createElement('span');
+                            bookTitle.classList.add('title');
+                            bookTitle.innerText = book.title;
+                            // </span>
+                            bookLink.appendChild(bookTitle);
+                        // </a>
+                        spaceBetween.appendChild(bookLink);
+                        // <span class="card-price">$${book.price}
+                        var cardPrice = document.createElement('span');
+                        cardPrice.classList.add('card-price');
+                        cardPrice.innerText = `$${book.price}`;
                         // </span>
-                        bookLink.appendChild(bookTitle);
-                    // </a>
-                    spaceBetween.appendChild(bookLink);
-                    // <span class="card-price">$${book.price}
-                    var cardPrice = document.createElement('span');
-                    cardPrice.classList.add('card-price');
-                    cardPrice.innerText = `$${book.price}`;
-                    // </span>
-                    spaceBetween.appendChild(cardPrice);
+                        spaceBetween.appendChild(cardPrice);
+                    // </div>
+                    cardBody.appendChild(spaceBetween);
+                    // <div>By: ${book.author}
+                    var authorDiv = document.createElement('div');
+                    authorDiv.innerText = `By: ${book.author}`;
+                    // </div>
+                    cardBody.appendChild(authorDiv);
+                    // <div>${book.department}${courseNumber}
+                    var departmentDiv = document.createElement('div');
+                    departmentDiv.innerText = book.department + courseNumber;
+                    // </div>
+                    cardBody.appendChild(departmentDiv);
                 // </div>
-                cardBody.appendChild(spaceBetween);
-                // <div>By: ${book.author}
-                var authorDiv = document.createElement('div');
-                authorDiv.innerText = `By: ${book.author}`;
-                // </div>
-                cardBody.appendChild(authorDiv);
-                // <div>${book.department}${courseNumber}
-                var departmentDiv = document.createElement('div');
-                departmentDiv.innerText = book.department + courseNumber;
-                // </div>
-                cardBody.appendChild(departmentDiv);
+                newCard.appendChild(cardBody);
             // </div>
-            newCard.appendChild(cardBody);
+            newBook.appendChild(newCard);
         // </div>
-        newBook.appendChild(newCard);
-    // </div>
-    document.getElementById('index').appendChild(newBook);
+        newBookLink.appendChild(newBook);
+    // </a>
+    document.getElementById('index').appendChild(newBookLink);
 }
 
 // Load more books using AJAX
