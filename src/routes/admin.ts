@@ -207,3 +207,12 @@ router.get('/users', adminAuth, (req: Request, res: Response) => {
         renderPage(req, res, 'admin-users', { users: users, orderBy: orderBy, orderDirection: orderDirection });
     });
 });
+
+// Admin books page
+router.get('/books', adminAuth, (req: Request, res: Response) => {
+    var orderBy = req.query.orderBy as string || 'listedTimestamp';
+    var orderDirection = req.query.orderDirection as string || 'ASC';
+    services.AdminService.getBooks(orderBy, orderDirection, (books) => {
+        renderPage(req, res, 'admin-books', { books: books, orderBy: orderBy, orderDirection: orderDirection });
+    });
+});

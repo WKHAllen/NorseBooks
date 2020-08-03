@@ -98,4 +98,22 @@ export module AdminService {
         });
     }
 
+    // Get relevant information on all books
+    export function getBooks(orderBy: string, orderDirection: string, callback?: rowsCallback) {
+        var sql = `
+            SELECT
+                bookId, title, author,
+                CONCAT(NBUser.firstname, ' ', NBUser.lastname) AS listedBy,
+                Department.name as department,
+                courseNumber, price, listedTimestamp
+            FROM Book
+            JOIN NBUser ON Book.userId = NBUser.id
+            JOIN Department ON Book.departmentId = Department.id
+            ORDER BY ${orderBy} ${orderDirection};
+        `;
+        mainDB.execute(sql, [], (rows) => {
+            if (callback) callback(rows);
+        });
+    }
+
 }
