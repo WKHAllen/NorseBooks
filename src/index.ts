@@ -4,7 +4,7 @@ import * as hbs        from 'express-handlebars';
 import * as session    from 'express-session';
 import * as bodyParser from 'body-parser';
 import * as routes     from './routes';
-import { renderPage, Request, Response } from './routes/util';
+import { renderPage, Request, Response, NextFunction } from './routes/util';
 
 const debug         = Boolean(Number(process.env.DEBUG));
 const port          = Number(process.env.PORT);
@@ -15,7 +15,7 @@ var app = express();
 
 // Disable caching for authentication purposes
 app.set('etag', false);
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     next();
 });
