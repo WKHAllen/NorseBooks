@@ -216,3 +216,10 @@ router.get('/books', adminAuth, (req: Request, res: Response) => {
         renderPage(req, res, 'admin-books', { books: books, orderBy: orderBy, orderDirection: orderDirection });
     });
 });
+
+// Admin rows page
+router.get('/rows', adminAuth, (req: Request, res: Response) => {
+    services.AdminService.getRowCount((tables) => {
+        renderPage(req, res, 'admin-rows', { tables: tables });
+    });
+});

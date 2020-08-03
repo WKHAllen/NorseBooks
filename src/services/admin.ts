@@ -35,7 +35,8 @@ export module AdminService {
                     query_to_xml(format('SELECT COUNT(*) AS cnt FROM %I.%I', table_schema, table_name), false, true, '') AS xml_count
                 FROM information_schema.tables
                 WHERE table_schema = 'public'
-            ) t;
+            ) t
+            ORDER BY rows DESC;
         `;
         mainDB.execute(sql, [], (rows) => {
             if (callback) callback(rows);

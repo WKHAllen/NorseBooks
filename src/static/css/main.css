@@ -481,3 +481,8 @@ footer .footer-list-link {
     margin: 0;
     border-radius: 0;
 }
+
+#rows-chart-container {
+    max-width: min(90vw, 70vh);
+    margin: 24px auto;
+}
