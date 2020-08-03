@@ -1,5 +1,5 @@
 function selectColor(number) {
-    const hue = Math.floor(number * 137.508) % 360; // golden angle approximation
+    var hue = Math.round(number * 137.508) % 360; // golden angle approximation
     return `hsl(${hue}, 100%, 50%)`;
 }
 
