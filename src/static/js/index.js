@@ -26,10 +26,11 @@ function smallerImageURL(imageUrl) {
 // Add a book to the end of the page
 function addBook(book) {
     var courseNumber = book.coursenumber ? ' ' + book.coursenumber : '';
-    // <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
+    // <a href="/book/${book.bookid}">
     var newBookLink = document.createElement('a');
-    newBookLink.classList.add('card-link');
+    newBookLink.classList.add('full-card-link');
     newBookLink.href = `/book/${book.bookid}`;
+        // <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
         var newBook = document.createElement('div');
         newBook.classList.add('card-container', 'col-12', 'col-md-6', 'col-lg-4', 'mb-4');
             // <div class="card" style="width: 18rem;">
