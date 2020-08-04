@@ -5,9 +5,22 @@ function getLastBookId() {
     else return bookCard.getElementsByTagName('a')[0].href.slice(-4);
 }
 
+// Remove the last book on the page
 function deleteLastBook() {
     var bookCard = document.getElementById('index').lastElementChild;
     bookCard.parentNode.removeChild(bookCard);
+}
+
+// Transform book image URLs to load smaller images
+function smallerImageURL(imageUrl) {
+    const imgStart = 'https://res.cloudinary.com/norsebooks/image/upload';
+    const imgWidth = 300;
+    if (imageUrl.startsWith(imgStart)) {
+        var imgEnd = imageUrl.slice(imgStart.length + 1);
+        return `${imgStart}/w_${imgWidth}/${imgEnd}`;
+    } else {
+        return imageUrl;
+    }
 }
 
 // Add a book to the end of the page
@@ -28,7 +41,7 @@ function addBook(book) {
             newCard.appendChild(imgLink);
                 // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
                 var newImg = document.createElement('img');
-                newImg.src = book.imageurl;
+                newImg.src = smallerImageURL(book.imageurl);
                 newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
                 newImg.alt = '...';
                 imgLink.appendChild(newImg);

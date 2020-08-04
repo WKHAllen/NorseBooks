@@ -105,6 +105,7 @@ export function minISBN(ISBN: string): string {
 
 // Check if an ISBN is valid
 export function validISBN(ISBN: string): boolean {
+    if (ISBN.length !== 10 && ISBN.length !== 13) return false;
     for (var char of ISBN)
         if (!ISBNChars.includes(char))
             return false;
