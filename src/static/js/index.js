@@ -5,18 +5,32 @@ function getLastBookId() {
     else return bookCard.getElementsByTagName('a')[0].href.slice(-4);
 }
 
+// Remove the last book on the page
 function deleteLastBook() {
     var bookCard = document.getElementById('index').lastElementChild;
     bookCard.parentNode.removeChild(bookCard);
 }
 
+// Transform book image URLs to load smaller images
+function smallerImageURL(imageUrl) {
+    const imgStart = 'https://res.cloudinary.com/norsebooks/image/upload';
+    const imgWidth = 300;
+    if (imageUrl.startsWith(imgStart)) {
+        var imgEnd = imageUrl.slice(imgStart.length + 1);
+        return `${imgStart}/w_${imgWidth}/${imgEnd}`;
+    } else {
+        return imageUrl;
+    }
+}
+
 // Add a book to the end of the page
 function addBook(book) {
     var courseNumber = book.coursenumber ? ' ' + book.coursenumber : '';
-    // <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
+    // <a href="/book/${book.bookid}">
     var newBookLink = document.createElement('a');
-    newBookLink.classList.add('card-link');
+    newBookLink.classList.add('full-card-link');
     newBookLink.href = `/book/${book.bookid}`;
+        // <div class="card-container col-12 col-md-6 col-lg-4 mb-4">
         var newBook = document.createElement('div');
         newBook.classList.add('card-container', 'col-12', 'col-md-6', 'col-lg-4', 'mb-4');
             // <div class="card" style="width: 18rem;">
@@ -28,7 +42,7 @@ function addBook(book) {
             newCard.appendChild(imgLink);
                 // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
                 var newImg = document.createElement('img');
-                newImg.src = book.imageurl;
+                newImg.src = smallerImageURL(book.imageurl);
                 newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
                 newImg.alt = '...';
                 imgLink.appendChild(newImg);

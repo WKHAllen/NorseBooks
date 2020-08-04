@@ -152,12 +152,12 @@ footer .footer-list-link {
 /* Index Page */
 
 #index .card {
-    margin: 0 auto;
     border: none;
     padding: 0px 20px;
 }
 
-#index .card-link {
+#index .full-card-link {
+    margin: 0 auto;
     text-decoration: none;
 }
 
@@ -480,4 +480,9 @@ footer .footer-list-link {
 #site-alert-container {
     margin: 0;
     border-radius: 0;
+}
+
+#rows-chart-container {
+    max-width: min(90vw, 70vh);
+    margin: 24px auto;
 }
