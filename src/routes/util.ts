@@ -105,7 +105,6 @@ export function minISBN(ISBN: string): string {
 
 // Check if an ISBN is valid
 export function validISBN(ISBN: string): boolean {
-    if (ISBN.length !== 10 && ISBN.length !== 13) return false;
     for (var char of ISBN)
         if (!ISBNChars.includes(char))
             return false;
@@ -185,11 +184,11 @@ export function validBook(form: BookForm, callback: (success: boolean, error: st
                                             callback(false, 'Please enter a description of at most 1024 characters.');
                                         } else {
                                             // Check ISBN10
-                                            if (ISBN10.length > 0 && !validISBN(ISBN10)) {
+                                            if (ISBN10.length > 0 && (ISBN10.length !== 10 || !validISBN(ISBN10))) {
                                                 callback(false, 'Please enter a valid ISBN-10.');
                                             } else {
                                                 // Check ISBN13
-                                                if (ISBN13.length > 0 && !validISBN(ISBN13)) {
+                                                if (ISBN13.length > 0 && (ISBN13.length !== 13 || !validISBN(ISBN13))) {
                                                     callback(false, 'Please enter a valid ISBN-13.');
                                                 } else {
                                                     callback(true, null, {
