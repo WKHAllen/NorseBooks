@@ -218,6 +218,13 @@ export function validBook(form: BookForm, callback: (success: boolean, error: st
     }
 }
 
+// Get a cloudinary image's public ID
+export function imagePublicId(imageUrl: string): string {
+    var idStart = imageUrl.lastIndexOf('/') + 1;
+    var idEnd = imageUrl.lastIndexOf('.');
+    return imageUrl.slice(idStart, idEnd);
+}
+
 // Authorize/authenticate
 export function auth(req: Request, res: Response, next: NextFunction) {
     if (!req.session || !req.session.sessionId) {
