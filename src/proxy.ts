@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { Request, Response } from './routes/util';
+import { Response } from './routes/util';
 
 type HttpMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE' | 'PATCH';
 
