@@ -96,7 +96,6 @@ router.get('/:bookId', (req: Request, res: Response) => {
                                                 condition: condition,
                                                 ISBN10: bookInfo.isbn10,
                                                 ISBN13: bookInfo.isbn13,
-                                                imageUrl: bookInfo.imageurl,
                                                 description: bookInfo.description,
                                                 firstname: userBookInfo.firstname,
                                                 lastname: userBookInfo.lastname,

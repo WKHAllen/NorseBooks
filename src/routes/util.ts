@@ -1,5 +1,4 @@
 import * as express        from 'express';
-import * as cloudinary     from 'cloudinary';
 import * as multer         from 'multer';
 import * as randomPassword from 'secure-random-password';
 import * as fs             from 'fs';
@@ -233,6 +232,17 @@ export function logCloudinaryDestroyError(imageUrl: string, err: any, result: an
         console.log('Image ID: ', imagePublicId(imageUrl));
         console.log('Error:    ', err);
         console.log('Result:   ', result);
+    }
+}
+
+// Transform book image URLs to load smaller images from cloudinary
+export function smallerImageURL(imageUrl: string, width: number = 300) {
+    const imgStart = 'https://res.cloudinary.com/norsebooks/image/upload';
+    if (imageUrl.startsWith(imgStart)) {
+        var imgEnd = imageUrl.slice(imgStart.length + 1);
+        return `${imgStart}/w_${width}/${imgEnd}`;
+    } else {
+        return imageUrl;
     }
 }
 
