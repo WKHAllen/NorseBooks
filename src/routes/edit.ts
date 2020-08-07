@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { renderPage, Request, Response, auth, validBook, upload, cloudinaryName, cloudinaryApiKey, cloudinaryApiSecret } from './util';
+import { renderPage, Request, Response, auth, validBook, imagePublicId, logCloudinaryDestroyError, upload, cloudinaryName, cloudinaryApiKey, cloudinaryApiSecret } from './util';
 import * as services from '../services';
 import * as cloudinary from 'cloudinary';
 
@@ -63,8 +63,13 @@ router.post('/:bookId', auth, upload.single('image'), (req: Request, res: Respon
                 cloudinary.v2.uploader.upload(req.file.path, (cloudinaryErr, result) => {
                     if (!cloudinaryErr) {
                         services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
-                            services.BookService.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
-                                res.redirect(`/book/${req.params.bookId}`);
+                            services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
+                                cloudinary.v2.uploader.destroy(imagePublicId(bookInfo.imageurl), (err, destroyResult) => {
+                                    logCloudinaryDestroyError(bookInfo.imageurl, err, destroyResult);
+                                    services.BookService.editBook(req.params.bookId, values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, () => {
+                                        res.redirect(`/book/${req.params.bookId}`);
+                                    });
+                                });
                             });
                         });
                     } else {

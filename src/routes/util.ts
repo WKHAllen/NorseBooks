@@ -218,6 +218,24 @@ export function validBook(form: BookForm, callback: (success: boolean, error: st
     }
 }
 
+// Get a cloudinary image's public ID
+export function imagePublicId(imageUrl: string): string {
+    var idStart = imageUrl.lastIndexOf('/') + 1;
+    var idEnd = imageUrl.lastIndexOf('.');
+    return imageUrl.slice(idStart, idEnd);
+}
+
+// Log an error if it occurs when attempting to destroy a cloudinary image
+export function logCloudinaryDestroyError(imageUrl: string, err: any, result: any) {
+    if (err || result.result !== 'ok') {
+        console.log('ERROR DESTROYING CLOUDINARY IMAGE');
+        console.log('Image URL:', imageUrl);
+        console.log('Image ID: ', imagePublicId(imageUrl));
+        console.log('Error:    ', err);
+        console.log('Result:   ', result);
+    }
+}
+
 // Authorize/authenticate
 export function auth(req: Request, res: Response, next: NextFunction) {
     if (!req.session || !req.session.sessionId) {
