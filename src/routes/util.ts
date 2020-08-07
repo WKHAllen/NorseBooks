@@ -225,6 +225,17 @@ export function imagePublicId(imageUrl: string): string {
     return imageUrl.slice(idStart, idEnd);
 }
 
+// Log an error if it occurs when attempting to destroy a cloudinary image
+export function logCloudinaryDestroyError(imageUrl: string, err: any, result: any) {
+    if (err || result.result !== 'ok') {
+        console.log('ERROR DESTROYING CLOUDINARY IMAGE');
+        console.log('Image URL:', imageUrl);
+        console.log('Image ID: ', imagePublicId(imageUrl));
+        console.log('Error:    ', err);
+        console.log('Result:   ', result);
+    }
+}
+
 // Authorize/authenticate
 export function auth(req: Request, res: Response, next: NextFunction) {
     if (!req.session || !req.session.sessionId) {

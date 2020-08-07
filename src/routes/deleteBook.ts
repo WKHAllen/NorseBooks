@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Request, Response, auth, imagePublicId, cloudinaryName, cloudinaryApiKey, cloudinaryApiSecret } from './util';
+import { Request, Response, auth, imagePublicId, logCloudinaryDestroyError, cloudinaryName, cloudinaryApiKey, cloudinaryApiSecret } from './util';
 import * as services from '../services';
 import * as cloudinary from 'cloudinary';
 
@@ -17,12 +17,7 @@ router.post('/:bookId', auth, (req: Request, res: Response) => {
         services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
             services.BookService.deleteBook(userId, bookInfo.id, () => {
                 cloudinary.v2.uploader.destroy(imagePublicId(bookInfo.imageurl), (err, result) => {
-                    if (err || result.result !== 'ok') {
-                        console.log('ERROR DESTROYING CLOUDINARY IMAGE');
-                        console.log('Image URL:', bookInfo.imageurl);
-                        console.log('Error:    ', err);
-                        console.log('Result:   ', result);
-                    }
+                    logCloudinaryDestroyError(bookInfo.imageurl, err, result);
                     res.redirect('/');
                 });
             });
