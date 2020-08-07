@@ -9,7 +9,7 @@ export var router = Router();
 router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) => {
     services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
         if (bookInfo) {
-            proxy(req, res, smallerImageURL(bookInfo.imageurl));
+            proxy(res, smallerImageURL(bookInfo.imageurl));
         } else {
             // 404
             next();

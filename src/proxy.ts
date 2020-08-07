@@ -8,7 +8,7 @@ function logProxyError(err: Error) {
     console.log('Error:', err.message);
 }
 
-export function proxy(req: Request, res: Response, url: string, method: HttpMethod = 'GET', callback?: () => void) {
+export function proxy(res: Response, url: string, method: HttpMethod = 'GET', callback?: () => void) {
     const options = {
         method: method
     };
