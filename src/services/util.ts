@@ -6,7 +6,6 @@ import * as db from '../db';
 import { MiscService } from './misc';
 import { PasswordResetService } from './passwordReset';
 import { SessionService } from './session';
-import { UserService } from './user';
 
 export const dbURL = process.env.DATABASE_URL;
 export const maxDBClients = 20;
