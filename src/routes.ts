@@ -10,6 +10,7 @@ export { router as feedbackRoute }           from './routes/feedback';
 export { router as getAlertRoute }           from './routes/getAlert';
 export { router as getBooksRoute }           from './routes/getBooks';
 export { router as helpOutRoute }            from './routes/helpOut';
+export { router as imageRoute }              from './routes/image';
 export { router as indexRoute }              from './routes/index';
 export { router as loginRoute }              from './routes/login';
 export { router as logoutRoute }             from './routes/logout';
