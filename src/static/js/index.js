@@ -11,18 +11,6 @@ function deleteLastBook() {
     bookCard.parentNode.removeChild(bookCard);
 }
 
-// Transform book image URLs to load smaller images
-function smallerImageURL(imageUrl) {
-    const imgStart = 'https://res.cloudinary.com/norsebooks/image/upload';
-    const imgWidth = 300;
-    if (imageUrl.startsWith(imgStart)) {
-        var imgEnd = imageUrl.slice(imgStart.length + 1);
-        return `${imgStart}/w_${imgWidth}/${imgEnd}`;
-    } else {
-        return imageUrl;
-    }
-}
-
 // Add a book to the end of the page
 function addBook(book) {
     var courseNumber = book.coursenumber ? ' ' + book.coursenumber : '';
@@ -42,7 +30,7 @@ function addBook(book) {
             newCard.appendChild(imgLink);
                 // <img src="${book.imageurl}" class="card-img-top thumbnail" alt="...">
                 var newImg = document.createElement('img');
-                newImg.src = smallerImageURL(book.imageurl);
+                newImg.src = `/image/book/${book.bookid}`;
                 newImg.classList.add('card-img-top', 'thumbnail', 'p-1', 'pt-3');
                 newImg.alt = '...';
                 imgLink.appendChild(newImg);

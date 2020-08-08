@@ -1,8 +1,23 @@
-import { mainDB, saltRounds, voidCallback, boolCallback, stringCallback, rowCallback, rowsCallback } from './util';
+import { mainDB, saltRounds, voidCallback, boolCallback, stringCallback, rowCallback, rowsCallback, newBase64Id } from './util';
 import * as bcrypt from 'bcrypt';
 
 // Database user services
 export module UserService {
+
+    // Create a new book id
+    export function newUserId(callback?: stringCallback, length?: number) {
+        newBase64Id((userId) => {
+            var sql = `SELECT id FROM NBUser WHERE userId = ?;`;
+            var params = [userId];
+            mainDB.execute(sql, params, (rows) => {
+                if (rows.length > 0) {
+                    newUserId(callback, length);
+                } else {
+                    if (callback) callback(userId);
+                }
+            });
+        }, length);
+    }
 
     // Check if a user exists
     export function userExists(email: string, callback?: boolCallback) {
@@ -26,9 +41,18 @@ export module UserService {
         });
     }
 
-    // Get the info of a user by session ID
+    // Get the info of a user by their ID
     export function getUserInfo(userId: number, callback?: rowCallback) {
-        var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE id = ?;`;
+        var sql = `SELECT userId, firstname, lastname, email, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE id = ?;`;
+        var params = [userId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows[0]);
+        });
+    }
+
+    // Get the info of a user by their user ID
+    export function getUserInfoByUserId(userId: string, callback?: rowCallback) {
+        var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE userId = ?;`;
         var params = [userId];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(rows[0]);

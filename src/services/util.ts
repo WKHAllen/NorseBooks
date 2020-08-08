@@ -6,6 +6,7 @@ import * as db from '../db';
 import { MiscService } from './misc';
 import { PasswordResetService } from './passwordReset';
 import { SessionService } from './session';
+import { UserService } from './user';
 
 export const dbURL = process.env.DATABASE_URL;
 export const maxDBClients = 20;
@@ -74,8 +75,7 @@ export function populateStaticTable(tableName: string) {
 }
 
 // Generate a new hex id
-export function newHexId(callback?: stringCallback, length?: number) {
-    length = length !== undefined ? length : hexLength;
+export function newHexId(callback?: stringCallback, length: number = hexLength) {
     crypto.randomBytes(Math.floor(length / 2), (err, buffer) => {
         if (err) throw err;
         if (callback) callback(buffer.toString('hex'));
@@ -83,8 +83,7 @@ export function newHexId(callback?: stringCallback, length?: number) {
 }
 
 // Generate a new base64 id
-export function newBase64Id(callback?: stringCallback, length?: number) {
-    length = length !== undefined ? length : base64Length;
+export function newBase64Id(callback?: stringCallback, length: number = base64Length) {
     crypto.randomBytes(length, (err, buffer) => {
         if (err) throw err;
         var base64Id = buffer.toString('base64').slice(0, length);
@@ -100,6 +99,7 @@ export function init() {
     var userTable = `
         CREATE TABLE IF NOT EXISTS NBUser (
             id SERIAL PRIMARY KEY,
+            userId TEXT NOT NULL,
             firstname TEXT NOT NULL,
             lastname TEXT NOT NULL,
             email TEXT NOT NULL,

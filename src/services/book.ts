@@ -162,7 +162,7 @@ export module BookService {
                         SELECT * FROM (
                             SELECT
                                 bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                                price, conditionId, imageUrl, ISBN10, ISBN13,
+                                price, conditionId, ISBN10, ISBN13,
                                 ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
                             FROM Book
                             JOIN Department ON Book.departmentId = Department.id
@@ -171,7 +171,7 @@ export module BookService {
                             SELECT index FROM (
                                 SELECT
                                     bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                                    price, conditionId, imageUrl, ISBN10, ISBN13,
+                                    price, conditionId, ISBN10, ISBN13,
                                     ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
                                 FROM Book
                                 JOIN Department ON Book.departmentId = Department.id
@@ -183,7 +183,7 @@ export module BookService {
                     var sql = `
                         SELECT
                             bookId, title, author, departmentId, Department.name AS department, courseNumber,
-                            price, conditionId, imageUrl, ISBN10, ISBN13,
+                            price, conditionId, ISBN10, ISBN13,
                             ROW_NUMBER () OVER (ORDER BY ${sortQuery}) AS index
                         FROM Book
                         JOIN Department ON Book.departmentId = Department.id

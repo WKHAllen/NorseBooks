@@ -131,13 +131,12 @@
     </div>    
 </div>
 
-<script>
-    $('#image').on('change',function(){
-        //get the file name
+<script type="text/javascript">
+    $('#image').on('change', function() {
+        // get the file name
         var fileName = $(this).val().replace("C:\\fakepath\\", "");
-        //replace the "Choose a file" label
-
+        // replace the "Choose a file" label
         $(this).next('.custom-file-label').html(fileName);
-    })
+    });
 </script>
 <script type="text/javascript" src="/js/new-book.js"></script>

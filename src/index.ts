@@ -57,6 +57,7 @@ app.use('/feedback',             routes.feedbackRoute);
 app.use('/getAlert',             routes.getAlertRoute);
 app.use('/getBooks',             routes.getBooksRoute);
 app.use('/help-out',             routes.helpOutRoute);
+app.use('/image',                routes.imageRoute);
 app.use('/login',                routes.loginRoute);
 app.use('/logout',               routes.logoutRoute);
 app.use('/password-reset',       routes.passwordResetRoute);
