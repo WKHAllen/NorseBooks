@@ -31,7 +31,7 @@ router.get('/', auth, (req: Request, res: Response) => {
                                 firstname: userInfo.firstname,
                                 lastname: userInfo.lastname,
                                 email: userInfo.email + '@luther.edu',
-                                imageUrl: userInfo.imageurl,
+                                userId: userInfo.userid,
                                 joined: joinTimestamp,
                                 itemsSold: userInfo.itemssold,
                                 moneyMade: formatPrice(userInfo.moneymade),

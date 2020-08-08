@@ -1,5 +1,6 @@
 import { mainDB, saltRounds, voidCallback, getTime } from './util';
 import { SessionService } from './session';
+import { UserService } from './user';
 import * as bcrypt from 'bcrypt';
 
 // Database login and registration services
@@ -38,13 +39,15 @@ export module LoginRegisterService {
         email = email.toLowerCase();
         bcrypt.hash(password, saltRounds, (err, hash) => {
             if (err) throw err;
-            var sql = `
-                INSERT INTO NBUser (email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, moneyMade, verified, admin) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                );`;
-            var params = [email, hash, firstname, lastname, getTime(), 0, 0, 0, 0, 0];
-            mainDB.execute(sql, params, (rows) => {
-                if (callback) callback();
+            UserService.newUserId((userId) => {
+                var sql = `
+                    INSERT INTO NBUser (userId, email, password, firstname, lastname, joinTimestamp, itemsListed, itemsSold, moneyMade, verified, admin) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    );`;
+                var params = [userId, email, hash, firstname, lastname, getTime(), 0, 0, 0, 0, 0];
+                mainDB.execute(sql, params, (rows) => {
+                    if (callback) callback();
+                });
             });
         });
     }

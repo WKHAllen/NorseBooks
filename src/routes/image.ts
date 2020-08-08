@@ -11,8 +11,18 @@ router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) =>
         if (bookInfo) {
             proxy(res, smallerImageURL(bookInfo.imageurl));
         } else {
-            // 404
-            next();
+            next(); // 404
+        }
+    });
+});
+
+// Get a user's image
+router.get('/user/:userId', (req: Request, res: Response, next: NextFunction) => {
+    services.UserService.getUserInfoByUserId(req.params.userId, (userInfo) => {
+        if (userInfo) {
+            proxy(res, smallerImageURL(userInfo.imageurl));
+        } else {
+            next(); // 404
         }
     });
 });

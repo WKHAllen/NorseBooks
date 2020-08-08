@@ -294,7 +294,7 @@ export function renderPage(req: Request, res: Response, page: string, options: a
                     res.render(page, options);
                 } else {
                     options.loggedIn = true;
-                    options.userImageUrl = result.imageurl;
+                    options.userId = result.userid;
                     options.userFirstName = result.firstname;
                     options.admin = result.admin;
                     res.render(page, options);

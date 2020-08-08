@@ -7,7 +7,7 @@ export module MiscService {
     // Get the info necessary for rendering the navbar
     export function getNavInfo(sessionId: string, callback?: rowCallback) {
         var sql = `
-            SELECT id, imageUrl, firstname, admin FROM NBUser WHERE id = (
+            SELECT id, userId, firstname, admin FROM NBUser WHERE id = (
                 SELECT userId FROM Session WHERE id = ?
             );`;
         var params = [sessionId];
