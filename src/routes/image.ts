@@ -12,11 +12,11 @@ router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) =>
             if (bookInfo.imageurl) {
                 proxy(res, smallerImageURL(bookInfo.imageurl), 'GET', (err) => {
                     if (err) {
-                        res.redirect('/img/favicon.png');
+                        res.redirect('/img/favicon-gray.png');
                     }
                 });
             } else {
-                res.redirect('/img/favicon.png');
+                res.redirect('/img/favicon-gray.png');
             }
         } else {
             next(); // 404
@@ -31,11 +31,11 @@ router.get('/user/:userId', (req: Request, res: Response, next: NextFunction) =>
             if (userInfo.imageurl) {
                 proxy(res, smallerImageURL(userInfo.imageurl), 'GET', (err) => {
                     if (err) {
-                        res.redirect('/img/favicon.png');
+                        res.redirect('/img/favicon-gray.png');
                     }
                 });
             } else {
-                res.redirect('/img/favicon.png');
+                res.redirect('/img/favicon-gray.png');
             }
         } else {
             next(); // 404
