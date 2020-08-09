@@ -29,6 +29,15 @@ export module UserService {
         });
     }
 
+    // Check if a user is valid
+    export function validUser(userId: string, callback?: boolCallback) {
+        var sql = `SELECT id FROM NBUser WHERE userId = ?;`;
+        var params = [userId];
+        mainDB.execute(sql, params, (rows) => {
+            if (callback) callback(rows.length > 0);
+        });
+    }
+
     // Check if a user's password is correct
     export function checkPassword(userId: number, password: string, callback?: boolCallback) {
         var sql = `SELECT password FROM NBUser WHERE id = ? AND verified = 1;`;
@@ -52,7 +61,7 @@ export module UserService {
 
     // Get the info of a user by their user ID
     export function getUserInfoByUserId(userId: string, callback?: rowCallback) {
-        var sql = `SELECT firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE userId = ?;`;
+        var sql = `SELECT id, firstname, lastname, email, imageUrl, joinTimestamp, itemsListed, itemsSold, moneyMade FROM NBUser WHERE userId = ?;`;
         var params = [userId];
         mainDB.execute(sql, params, (rows) => {
             if (callback) callback(rows[0]);

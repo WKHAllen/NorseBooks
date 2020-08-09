@@ -66,6 +66,7 @@ app.use('/register',             routes.registerRoute);
 app.use('/register-success',     routes.registerSuccessRoute);
 app.use('/reports',              routes.reportBookRoute);
 app.use('/terms-and-conditions', routes.termsAndConditionsRoute);
+app.use('/user',                 routes.userRoute);
 app.use('/verify',               routes.verifyRoute);
 
 // Error 404 (not found)
