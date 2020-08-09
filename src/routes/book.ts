@@ -101,6 +101,7 @@ router.get('/:bookId', (req: Request, res: Response) => {
                                                 lastname: userBookInfo.lastname,
                                                 contactPlatform: platform,
                                                 contactInfo: userBookInfo.contactinfo,
+                                                ownerUserId: userBookInfo.userid,
                                                 bookOwner: userId === userBookInfo.id,
                                                 bookId: req.params.bookId,
                                                 reported: alreadyReported,

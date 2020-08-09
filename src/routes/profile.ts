@@ -20,7 +20,6 @@ router.get('/', auth, (req: Request, res: Response) => {
                 services.PlatformService.getPlatforms((platforms) => {
                     services.UserService.getUserBooks(userId, (booksListed) => {
                         services.UserService.getUserBookReports(userId, (booksReported) => {
-                            var joinTimestamp = new Date(userInfo.jointimestamp * 1000).toDateString();
                             var contactPlatform = userContactInfo.contactplatformid;
                             if (contactPlatform === null) contactPlatform = '';
                             var contactInfo = userContactInfo.contactinfo;
@@ -32,7 +31,7 @@ router.get('/', auth, (req: Request, res: Response) => {
                                 lastname: userInfo.lastname,
                                 email: userInfo.email + '@luther.edu',
                                 userId: userInfo.userid,
-                                joined: joinTimestamp,
+                                joinTimestamp: userInfo.jointimestamp,
                                 itemsSold: userInfo.itemssold,
                                 moneyMade: formatPrice(userInfo.moneymade),
                                 books: userInfo.itemslisted,

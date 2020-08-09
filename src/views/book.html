@@ -55,7 +55,7 @@
             <h5>Request to buy</h5>
             <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
-        <h6>You can contact <b>{{firstname}} {{lastname}}</b> via:</h6>
+        <h6>You can contact <b><a href="/user/{{ownerUserId}}">{{firstname}} {{lastname}}</a></b> via:</h6>
             <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank">
                 <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
             </a>
@@ -73,8 +73,7 @@
                 <button class="buttonAsLink italic" formaction="/deleteBook/{{bookId}}">The book didn't sell, just delete.</button>
             </form>
         </div>
-        
     </div>
 </div>
-
+<span id="original-contact-value" class="hidden">{{contactInfo}}</span>
 <script type="text/javascript" src="/main.js"></script>

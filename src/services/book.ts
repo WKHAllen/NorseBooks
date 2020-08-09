@@ -77,7 +77,7 @@ export module BookService {
     // Get information on the user who listed a book
     export function getUserBookInfo(bookId: string, callback?: rowCallback) {
         var sql = `
-            SELECT id, firstname, lastname, contactPlatformId, contactInfo FROM NBUser WHERE id = (
+            SELECT id, userId, firstname, lastname, contactPlatformId, contactInfo FROM NBUser WHERE id = (
                 SELECT userId FROM Book WHERE bookId = ?
             );`;
         var params = [bookId];

@@ -9,7 +9,11 @@ export var router = Router();
 router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) => {
     services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
         if (bookInfo) {
-            proxy(res, smallerImageURL(bookInfo.imageurl));
+            if (bookInfo.imageurl) {
+                proxy(res, smallerImageURL(bookInfo.imageurl));
+            } else {
+                res.redirect('/img/favicon.png');
+            }
         } else {
             next(); // 404
         }
@@ -20,7 +24,11 @@ router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) =>
 router.get('/user/:userId', (req: Request, res: Response, next: NextFunction) => {
     services.UserService.getUserInfoByUserId(req.params.userId, (userInfo) => {
         if (userInfo) {
-            proxy(res, smallerImageURL(userInfo.imageurl));
+            if (userInfo.imageurl) {
+                proxy(res, smallerImageURL(userInfo.imageurl));
+            } else {
+                res.redirect('/img/favicon.png');
+            }
         } else {
             next(); // 404
         }
