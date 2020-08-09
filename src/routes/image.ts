@@ -10,7 +10,11 @@ router.get('/book/:bookId', (req: Request, res: Response, next: NextFunction) =>
     services.BookService.getBookInfo(req.params.bookId, (bookInfo) => {
         if (bookInfo) {
             if (bookInfo.imageurl) {
-                proxy(res, smallerImageURL(bookInfo.imageurl));
+                proxy(res, smallerImageURL(bookInfo.imageurl), 'GET', (err) => {
+                    if (err) {
+                        res.redirect('/img/favicon.png');
+                    }
+                });
             } else {
                 res.redirect('/img/favicon.png');
             }
@@ -25,7 +29,11 @@ router.get('/user/:userId', (req: Request, res: Response, next: NextFunction) =>
     services.UserService.getUserInfoByUserId(req.params.userId, (userInfo) => {
         if (userInfo) {
             if (userInfo.imageurl) {
-                proxy(res, smallerImageURL(userInfo.imageurl));
+                proxy(res, smallerImageURL(userInfo.imageurl), 'GET', (err) => {
+                    if (err) {
+                        res.redirect('/img/favicon.png');
+                    }
+                });
             } else {
                 res.redirect('/img/favicon.png');
             }
