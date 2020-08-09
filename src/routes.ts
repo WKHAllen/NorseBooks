@@ -20,4 +20,5 @@ export { router as registerRoute }           from './routes/register';
 export { router as registerSuccessRoute }    from './routes/registerSuccess';
 export { router as reportBookRoute }         from './routes/reportBook';
 export { router as termsAndConditionsRoute } from './routes/termsAndConditions';
+export { router as userRoute }               from './routes/user';
 export { router as verifyRoute }             from './routes/verify';

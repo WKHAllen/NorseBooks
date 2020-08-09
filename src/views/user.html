@@ -1,0 +1,38 @@
+<div class="container">
+    <div class="mt-5">
+        <div class="profile-summary mb-5">
+            <img class="image-circle mb-2" id="user-image" height="200px" src="/image/user/{{profileUserId}}" alt="">
+            <h2 class="centered mb-1">{{firstname}} {{lastname}}</h2>
+            <h6 class="centered mb-1">Sold {{itemsSold}} items</h6>
+            <small class="centered">Joined <span class="timestamp-date">{{joinTimestamp}}</span></small>
+        </div>
+        
+        <div id="your-listings" class="mb-5">
+            <h3 class="listings">User Listings</h3>
+            {{#if hasListings}}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Department</th>
+                        <th scope="col">Condition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each booksListed}}
+                    <tr>
+                        <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+                        <td>{{this.author}}</td>
+                        <td>{{this.department}}{{#if this.coursenumber}} {{this.coursenumber}}{{/if}}</td>
+                        <td>{{this.condition}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+            {{else}}
+            <span>{{firstname}} {{lastname}} has no books currently listed.</span>
+            {{/if}}
+        </div>
+    </div>
+</div>

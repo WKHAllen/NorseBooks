@@ -78,6 +78,9 @@ function makeContactInfoDynamic() {
 function improveTimestamps() {
 	for (var timestamp of document.getElementsByClassName('timestamp')) {
 		timestamp.innerText = (new Date(parseInt(timestamp.innerText) * 1000).toLocaleString());
+    }
+    for (var timestampDate of document.getElementsByClassName('timestamp-date')) {
+		timestampDate.innerText = (new Date(parseInt(timestampDate.innerText) * 1000).toDateString());
 	}
 }
 
