@@ -12,7 +12,10 @@ export function sendEmail(emailTo: string, subject: string, html: string, text?:
         }
     });
     var mailOptions = {
-        from: emailAddress,
+        from: {
+            name: 'NorseBooks',
+            address: emailAddress
+        },
         to: emailTo,
         subject: subject,
         html: html,
