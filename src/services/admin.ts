@@ -88,7 +88,7 @@ export module AdminService {
     export function getUsers(orderBy: string, orderDirection: string, callback?: rowsCallback) {
         var sql = `
             SELECT
-                firstname, lastname, email, joinTimestamp,
+                userId, firstname, lastname, email, joinTimestamp,
                 itemsListed, itemsSold, moneyMade
             FROM NBUser
             WHERE verified = 1
@@ -103,7 +103,7 @@ export module AdminService {
     export function getBooks(orderBy: string, orderDirection: string, callback?: rowsCallback) {
         var sql = `
             SELECT
-                bookId, title, author,
+                bookId, title, author, NBUser.userId AS userId,
                 CONCAT(NBUser.firstname, ' ', NBUser.lastname) AS listedBy,
                 Department.name as department,
                 courseNumber, price, listedTimestamp

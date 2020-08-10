@@ -17,8 +17,8 @@
 		<tbody>
 			{{#each users}}
 			<tr>
-				<td>{{this.firstname}}</td>
-				<td>{{this.lastname}}</td>
+				<td><a href="/user/{{this.userid}}">{{this.firstname}}</a></td>
+				<td><a href="/user/{{this.userid}}">{{this.lastname}}</a></td>
 				<td>{{this.email}}</td>
 				<td class="timestamp">{{this.jointimestamp}}</td>
 				<td>{{this.itemslisted}}</td>

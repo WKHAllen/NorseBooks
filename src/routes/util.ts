@@ -249,55 +249,55 @@ export function smallerImageURL(imageUrl: string, width: number = 300) {
 // Authorize/authenticate
 export function auth(req: Request, res: Response, next: NextFunction) {
     if (!req.session || !req.session.sessionId) {
-        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl }, 401);
     } else {
         services.AuthService.auth(req.session.sessionId, (valid) => {
             if (valid) next();
-            else return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+            else return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl }, 401);
         });
     }
 }
 
 // Authenticate an admin
-export function adminAuth (req: Request, res: Response, next: NextFunction) {
+export function adminAuth(req: Request, res: Response, next: NextFunction) {
     if (!req.session || !req.session.sessionId) {
-        return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+        return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl }, 401);
     } else {
         services.AuthService.auth(req.session.sessionId, (valid) => {
             if (valid) {
                 services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
                     services.UserService.isAdmin(userId, (admin) => {
                         if (admin) next();
-                        else return res.status(401).render('not-admin', { title: 'Permission denied', after: req.originalUrl });
+                        else return renderPage(req, res, 'not-admin', { title: 'Permission denied', after: req.originalUrl }, 401);
                     });
                 });
             } else {
-                return res.status(401).render('401', { title: 'Permission denied', after: req.originalUrl });
+                return renderPage(req, res, '401', { title: 'Permission denied', after: req.originalUrl }, 401);
             }
         });
     }
 }
 
 // Render a page
-export function renderPage(req: Request, res: Response, page: string, options: any) {
+export function renderPage(req: Request, res: Response, page: string, options: any, status: number = 200) {
     options = options || {};
     options.url = req.originalUrl;
     services.MetaService.getMeta('Version', (version) => {
         options.version = version;
         if (!req.session || !req.session.sessionId) {
             options.loggedIn = false;
-            res.render(page, options);
+            return res.status(status).render(page, options);
         } else {
             services.MiscService.getNavInfo(req.session.sessionId, (result) => {
                 if (!result) {
                     options.loggedIn = false;
-                    res.render(page, options);
+                    return res.status(status).render(page, options);
                 } else {
                     options.loggedIn = true;
                     options.userId = result.userid;
                     options.userFirstName = result.firstname;
                     options.admin = result.admin;
-                    res.render(page, options);
+                    return res.status(status).render(page, options);
                 }
             });
         }
