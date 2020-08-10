@@ -73,7 +73,7 @@ export function sendEmailVerification(email: string, hostname: string) {
                 if (err) throw err;
                 htmlData = replacePlaceholders(htmlData, hostname, verifyId);
                 textData = replacePlaceholders(textData, hostname, verifyId);
-                emailer.sendEmail(email + '@luther.edu', 'Norse Books - Verify Email', htmlData, textData);
+                emailer.sendEmail(email + '@luther.edu', 'NorseBooks - Verify Email', htmlData, textData);
             });
         });
     });
@@ -89,7 +89,7 @@ export function sendPasswordResetEmail(email: string, hostname: string) {
                 if (err) throw err;
                 htmlData = replacePlaceholders(htmlData, hostname, passwordResetId);
                 textData = replacePlaceholders(textData, hostname, passwordResetId);
-                emailer.sendEmail(email + '@luther.edu', 'Norse Books - Password Reset', htmlData, textData);
+                emailer.sendEmail(email + '@luther.edu', 'NorseBooks - Password Reset', htmlData, textData);
             });
         });
     });
