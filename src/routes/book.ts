@@ -44,6 +44,7 @@ router.post('/', auth, upload.single('image'), (req: Request, res: Response) => 
             if (valid && !cloudinaryErr) {
                 services.AuthService.getAuthUser(req.session.sessionId, (userId) => {
                     services.BookService.newBook(values.title, values.author, values.department, values.courseNumber || null, values.condition, values.description, userId, values.price, result.secure_url || null, values.ISBN10 || null, values.ISBN13 || null, (bookId) => {
+                        req.session.justListed = true;
                         res.redirect(`/book/${bookId}`);
                     });
                 });
@@ -105,8 +106,10 @@ router.get('/:bookId', (req: Request, res: Response) => {
                                                 bookOwner: userId === userBookInfo.id,
                                                 bookId: req.params.bookId,
                                                 reported: alreadyReported,
-                                                canReport: !reportedRecently
+                                                canReport: !reportedRecently,
+                                                justListed: req.session.justListed || false
                                             });
+                                            req.session.justListed = undefined;
                                         });
                                     });
                                 });

@@ -12,9 +12,10 @@ function copyToClipboard(text) {
     document.body.removeChild(copyText);
 }
 
-function copyLink() {
+function copyLink(buttonId) {
+    buttonId = buttonId || 'copy-to-clipboard';
     copyToClipboard(window.location.href);
-    $('#copy-to-clipboard').html('<i class="fas fa-link"></i> Copied!');
+    $(`#${buttonId}`).html('<i class="fas fa-link"></i> Copied!');
 }
 
 function submitForm(id) {
