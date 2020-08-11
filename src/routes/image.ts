@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Request, Response, NextFunction, smallerImageURL } from './util';
 import * as services from '../services';
-import { proxy } from '../proxy';
+import proxy from '../proxy';
 
 export var router = Router();
 
