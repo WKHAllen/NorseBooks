@@ -1,10 +1,10 @@
-Hello, elcome to Norse Books!
+Hello, welcome to NorseBooks!
 
 All we need is for you to confirm your email address. You can do this by clicking the link below.
 
 {}/verify/{}
 
-If you did not register for Norse Books, or you have already verified your email, please disregard this email, and do not click on the above link.
+If you did not register for NorseBooks, or you have already verified your email, please disregard this email, and do not click on the above link.
 
 Sincerely,
-The Norse Books Dev Team
+The NorseBooks Dev Team

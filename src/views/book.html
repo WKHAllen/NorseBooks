@@ -45,8 +45,8 @@
             </div>
         </div>
         <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@henry_be" target="_blank">Henry Be</a> via <a href="https://unsplash.com/photos/lc7xcWebECc" target="_blank">Unsplash</a></small>
-        
     </div>
+
     <div id="blur"></div>
     <div class="blurred-modal" id="request">
         <div class="space-between">
@@ -54,11 +54,11 @@
             <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
         <h6>You can contact <b><a href="/user/{{ownerUserId}}">{{firstname}} {{lastname}}</a></b> via:</h6>
-            <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank">
-                {{#if loggedIn}}
-                <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
-                {{/if}}
-            </a>
+        <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank">
+            {{#if loggedIn}}
+            <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
+            {{/if}}
+        </a>
     </div>
 
     <div class="blurred-modal" id="delete">
@@ -74,6 +74,20 @@
             </form>
         </div>
     </div>
+
+    <div class="blurred-modal" id="share">
+        <div class="space-between">
+            <h5>Share your book</h5>
+            <span><button class="close-modal" onclick="hideModal('share')"><i class="fas fa-times"></i></button></span>
+        </div>
+        <h6>The best way to get people to buy your book is to share it on social media. Click the button below to copy the link to your book.</h6>
+        <button type="button" class="btn btn-success" id="copy-to-clipboard-modal" onclick="copyLink('copy-to-clipboard-modal');"><i class="fas fa-link"></i> Copy Link</button>
+    </div>
 </div>
 <span id="original-contact-value" class="hidden">{{contactInfo}}</span>
 <script type="text/javascript" src="/main.js"></script>
+{{#if justListed}}
+<script type="text/javascript">
+    showModal('share');
+</script>
+{{/if}}
