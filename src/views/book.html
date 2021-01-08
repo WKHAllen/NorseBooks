@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@henry_be" target="_blank">Henry Be</a> via <a href="https://unsplash.com/photos/lc7xcWebECc" target="_blank">Unsplash</a></small>
+        <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@henry_be" target="_blank" rel="noopener noreferrer">Henry Be</a> via <a href="https://unsplash.com/photos/lc7xcWebECc" target="_blank" rel="noopener noreferrer">Unsplash</a></small>
     </div>
 
     <div id="blur"></div>
@@ -54,7 +54,7 @@
             <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
         </div>
         <h6>You can contact <b><a href="/user/{{ownerUserId}}">{{firstname}} {{lastname}}</a></b> via:</h6>
-        <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank">
+        <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank" rel="noopener noreferrer">
             {{#if loggedIn}}
             <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
             {{/if}}
