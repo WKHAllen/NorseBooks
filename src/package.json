@@ -33,7 +33,7 @@
     "@types/pg": "^7.14.4",
     "@types/secure-random-password": "^0.2.0",
     "@types/showdown": "^1.9.3",
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.3",
     "cloudinary": "^1.18.0",
