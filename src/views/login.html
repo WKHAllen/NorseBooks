@@ -1,35 +1,65 @@
-
 <div class="modal-image login">
-    <div id="login-card">
-        {{#if error}}
-            <div class="alert alert-danger" role="alert">{{error}}</div>
-        {{/if}}
-        <div class="centered mt-3 mb-5">
-            <img src="/img/favicon.png" alt="NorseBooks Logo" height="50px">
-            <h5 class="mt-4">Welcome back to <span id="brand">NorseBooks</span></h5>
-        </div>
-        <form method="POST">
-            <div class="form-group">
-                <label for="username">Norse email address</label>
-                <div class="input-group">
-                    <input id="username" name="email" autocomplete="username" type="text" class="form-control" aria-label="Recipient's username" aria-describedby="basic-addon2">
-                    <div class="input-group-append">
-                        <span class="input-group-text" id="basic-addon2">@luther.edu</span>
-                    </div>
-                </div>
-                <small class="mb-5">We'll never share your info with anyone.</small>
-            </div>
-            <div class="form-group">
-                <label for="exampleInputPassword1">Password</label>
-                <input type="password" name="password" autocomplete="password" class="form-control" id="exampleInputPassword1">
-                <small class="mb-5">Note that this is not your Norse Key login.</small>
-            </div>
-            <div class="space-between">
-                <a href="/password-reset">Forgot Password?</a>
-                <input class="btn btn-primary" type="submit" value="Login">
-            </div>
-        </form>
-        <small class="centered-small">Don't have an account? <a href="/register">Register.</a></small>
+  <div id="login-card">
+    {{#if error}}
+    <div class="alert alert-danger" role="alert">{{error}}</div>
+    {{/if}}
+    <div class="centered mt-3 mb-5">
+      <img src="/img/favicon.png" alt="NorseBooks Logo" height="50px" />
+      <h5 class="mt-4">Welcome back to <span id="brand">NorseBooks</span></h5>
     </div>
-    <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@martinadams" target="_blank" rel="noopener noreferrer">Martin Adams</a> via <a href="https://unsplash.com/photos/V75YEqJp4pE" target="_blank" rel="noopener noreferrer">Unsplash</a></small>
+    <form method="POST">
+      <div class="form-group">
+        <label for="username">Norse email address</label>
+        <div class="input-group">
+          <input
+            id="username"
+            name="email"
+            autocomplete="username"
+            type="text"
+            class="form-control"
+            aria-label="Recipient's username"
+            aria-describedby="basic-addon2"
+          />
+          <div class="input-group-append">
+            <span class="input-group-text" id="basic-addon2">@luther.edu</span>
+          </div>
+        </div>
+        <small class="mb-5">We'll never share your info with anyone.</small>
+      </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Password</label>
+        <input
+          type="password"
+          name="password"
+          autocomplete="password"
+          class="form-control"
+          id="exampleInputPassword1"
+        />
+        <small class="mb-5">Note that this is not your Norse Key login.</small>
+      </div>
+      <div class="space-between">
+        <a href="/password-reset">Forgot Password?</a>
+        <input class="btn btn-primary" type="submit" value="Login" />
+      </div>
+    </form>
+    <small class="centered-small"
+      >Don't have an account? <a href="/register">Register.</a></small
+    >
+  </div>
+  <small class="photo-creds centered d-block mt-2"
+    >photo by
+    <a
+      href="https://unsplash.com/@martinadams"
+      target="_blank"
+      rel="noopener noreferrer"
+      >Martin Adams</a
+    >
+    via
+    <a
+      href="https://unsplash.com/photos/V75YEqJp4pE"
+      target="_blank"
+      rel="noopener noreferrer"
+      >Unsplash</a
+    ></small
+  >
 </div>

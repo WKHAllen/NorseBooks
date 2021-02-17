@@ -1,163 +1,267 @@
 <div class="container">
-    <div class="mt-5">
-        <div class="profile-summary mb-5">
-            <img class="image-circle mb-2" id="user-image" height="200px" src="/image/user/{{userId}}" alt="">
-            <h2 class="centered mb-1">{{firstname}} {{lastname}}</h2>
-            <h5 class="centered mb-1">{{email}}</h5>
-            <h6 class="centered mb-1">Sold {{itemsSold}} items</h6>
-            <h6 class="centered mb-1">Made {{moneyMade}}</h6>
-            <small class="centered">Joined <span class="timestamp-date">{{joinTimestamp}}</span></small>
-        </div>
-        {{#if error}}
-        <div class="alert alert-danger" role="alert">{{error}}</div>
-        {{/if}}
-        
-        <div id="your-listings">
-            <h3 class="listings">Your Listings</h3>
-            {{#if hasListings}}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Author</th>
-                        <th scope="col">Department</th>
-                        <th scope="col">Condition</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each booksListed}}
-                    <tr>
-                        <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
-                        <td>{{this.author}}</td>
-                        <td>{{this.department}}{{#if this.coursenumber}} {{this.coursenumber}}{{/if}}</td>
-                        <td>{{this.condition}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-            {{else}}
-            <span>You have no books currently listed.</span>
-            {{/if}}
-        </div>
-
-        <div class="my-5">
-            <form method="POST">
-                <h3>Set name</h3>
-                <div class="row">
-                    <div class="form-group col-12 col-sm-6">
-                        <label for="firstname">First name</label>
-                        <input type="text" class="form-control" id="firstname" name="firstname" maxlength="64" placeholder="Roman" value="{{firstname}}" required>
-                    </div>
-                    <div class="form-group col-12 col-sm-6">
-                        <label for="lastname">Last name</label>
-                        <input type="text" class="form-control" id="lastname" name="lastname" maxlength="64" placeholder="Yasinovskyy" value="{{lastname}}" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setName">Set name</button>
-            </form>
-        </div>
-        
-        <div class="mb-5">
-            <form method="POST">
-                <h3>Set contact info</h3>
-                <div class="row">
-                    <div class="form-group col-12 col-sm-6 col-md-3">
-                        <label for="contactPlatform">Contact platform</label>
-                        <select class="form-control" id="contactPlatform" name="contactPlatform" required>
-                            <option value="">Select...</option>
-                            {{#each platforms}}
-                            <option value="{{this.id}}">{{this.name}}</option>
-                            {{/each}}
-                        </select>
-                        {{#if contactInfoExists}}
-                        <script type="text/javascript">
-                            document.getElementById('contactPlatform').value = '{{contactPlatform}}';
-                        </script>
-                        {{/if}}
-                    </div>
-                    <div class="form-group col-12 col-sm-6 col-md-9">
-                        <label for="contactInfo">Contact info</label>
-                        {{#if contactInfo}}
-                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" value="{{contactInfo}}" required>
-                        {{else}}
-                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" maxlength="128" placeholder="i.e. yasiro01@luther.edu" required>
-                        {{/if}}
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setContactInfo">Set contact info</button>
-            </form>
-        </div>
-        
-        <div class="mb-5">
-            <form method="POST" enctype="multipart/form-data">
-                <h3>Set image</h3>
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label for="imageDiv">Image</label>
-                        <div class="custom-file" id="imageDiv">
-                            <input type="file" class="custom-file-input" id="image" name="image" accept=".jpg, .jpeg, .png" required>
-                            <label class="custom-file-label" for="image">Choose file</label>
-                        </div>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3" formaction="/profile/setImage">Set image</button>
-            </form>
-        </div>
-
-        <div class="mb-5">
-            <form method="POST">
-                <h3>Change password</h3>
-                <div class="row">
-                    <div class="form-group col-12 col-md-4">
-                        <label for="currentPassword">Current password</label>
-                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" maxlength="128" required>
-                    </div>
-                    <div class="form-group col-12 col-sm-6 col-md-4">
-                        <label for="newPassword">New password</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" maxlength="128" required>
-                    </div>
-                    <div class="form-group col-12 col-sm-6 col-md-4">
-                        <label for="confirmNewPassword">Confirm new password</label>
-                        <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" maxlength="128" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary" formaction="/profile/changePassword">Change password</button>
-            </form>
-        </div>
-
-        <div id="reported-books" class="mb-5">
-            <h3 class="listings">Reported Books</h3>
-            {{#if hasReports}}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Author</th>
-                        <th scope="col">Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each booksReported}}
-                    <tr>
-                        <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
-                        <td>{{this.author}}</td>
-                        <td class="timestamp">{{this.reporttimestamp}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-            {{else}}
-            <span>You have not reported any books.</span>
-            {{/if}}
-        </div>
+  <div class="mt-5">
+    <div class="profile-summary mb-5">
+      <img
+        class="image-circle mb-2"
+        id="user-image"
+        height="200px"
+        src="/image/user/{{userId}}"
+        alt=""
+      />
+      <h2 class="centered mb-1">{{firstname}} {{lastname}}</h2>
+      <h5 class="centered mb-1">{{email}}</h5>
+      <h6 class="centered mb-1">Sold {{itemsSold}} items</h6>
+      <h6 class="centered mb-1">Made {{moneyMade}}</h6>
+      <small class="centered"
+        >Joined <span class="timestamp-date">{{joinTimestamp}}</span></small
+      >
     </div>
+    {{#if error}}
+    <div class="alert alert-danger" role="alert">{{error}}</div>
+    {{/if}}
+
+    <div id="your-listings">
+      <h3 class="listings">Your Listings</h3>
+      {{#if hasListings}}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Author</th>
+            <th scope="col">Department</th>
+            <th scope="col">Condition</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each booksListed}}
+          <tr>
+            <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+            <td>{{this.author}}</td>
+            <td>
+              {{this.department}}{{#if this.coursenumber}}
+              {{this.coursenumber}}{{/if}}
+            </td>
+            <td>{{this.condition}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <span>You have no books currently listed.</span>
+      {{/if}}
+    </div>
+
+    <div class="my-5">
+      <form method="POST">
+        <h3>Set name</h3>
+        <div class="row">
+          <div class="form-group col-12 col-sm-6">
+            <label for="firstname">First name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="firstname"
+              name="firstname"
+              maxlength="64"
+              placeholder="Roman"
+              value="{{firstname}}"
+              required
+            />
+          </div>
+          <div class="form-group col-12 col-sm-6">
+            <label for="lastname">Last name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="lastname"
+              name="lastname"
+              maxlength="64"
+              placeholder="Yasinovskyy"
+              value="{{lastname}}"
+              required
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary mb-3"
+          formaction="/profile/setName"
+        >
+          Set name
+        </button>
+      </form>
+    </div>
+
+    <div class="mb-5">
+      <form method="POST">
+        <h3>Set contact info</h3>
+        <div class="row">
+          <div class="form-group col-12 col-sm-6 col-md-3">
+            <label for="contactPlatform">Contact platform</label>
+            <select
+              class="form-control"
+              id="contactPlatform"
+              name="contactPlatform"
+              required
+            >
+              <option value="">Select...</option>
+              {{#each platforms}}
+              <option value="{{this.id}}">{{this.name}}</option>
+              {{/each}}
+            </select>
+            {{#if contactInfoExists}}
+            <script type="text/javascript">
+              document.getElementById("contactPlatform").value =
+                "{{contactPlatform}}";
+            </script>
+            {{/if}}
+          </div>
+          <div class="form-group col-12 col-sm-6 col-md-9">
+            <label for="contactInfo">Contact info</label>
+            {{#if contactInfo}}
+            <input
+              type="text"
+              class="form-control"
+              id="contactInfo"
+              name="contactInfo"
+              maxlength="128"
+              placeholder="i.e. yasiro01@luther.edu"
+              value="{{contactInfo}}"
+              required
+            />
+            {{else}}
+            <input
+              type="text"
+              class="form-control"
+              id="contactInfo"
+              name="contactInfo"
+              maxlength="128"
+              placeholder="i.e. yasiro01@luther.edu"
+              required
+            />
+            {{/if}}
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary mb-3"
+          formaction="/profile/setContactInfo"
+        >
+          Set contact info
+        </button>
+      </form>
+    </div>
+
+    <div class="mb-5">
+      <form method="POST" enctype="multipart/form-data">
+        <h3>Set image</h3>
+        <div class="row">
+          <div class="form-group col-12">
+            <label for="imageDiv">Image</label>
+            <div class="custom-file" id="imageDiv">
+              <input
+                type="file"
+                class="custom-file-input"
+                id="image"
+                name="image"
+                accept=".jpg, .jpeg, .png"
+                required
+              />
+              <label class="custom-file-label" for="image">Choose file</label>
+            </div>
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary mb-3"
+          formaction="/profile/setImage"
+        >
+          Set image
+        </button>
+      </form>
+    </div>
+
+    <div class="mb-5">
+      <form method="POST">
+        <h3>Change password</h3>
+        <div class="row">
+          <div class="form-group col-12 col-md-4">
+            <label for="currentPassword">Current password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="currentPassword"
+              name="currentPassword"
+              maxlength="128"
+              required
+            />
+          </div>
+          <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="newPassword">New password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="newPassword"
+              name="newPassword"
+              maxlength="128"
+              required
+            />
+          </div>
+          <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="confirmNewPassword">Confirm new password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="confirmNewPassword"
+              name="confirmNewPassword"
+              maxlength="128"
+              required
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          formaction="/profile/changePassword"
+        >
+          Change password
+        </button>
+      </form>
+    </div>
+
+    <div id="reported-books" class="mb-5">
+      <h3 class="listings">Reported Books</h3>
+      {{#if hasReports}}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Author</th>
+            <th scope="col">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each booksReported}}
+          <tr>
+            <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+            <td>{{this.author}}</td>
+            <td class="timestamp">{{this.reporttimestamp}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <span>You have not reported any books.</span>
+      {{/if}}
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
-    $('#image').on('change', function() {
-        // get the file name
-        var fileName = $(this).val().replace("C:\\fakepath\\", "");
-        // replace the "Choose a file" label
-        $(this).next('.custom-file-label').html(fileName);
-    });
+  $("#image").on("change", function () {
+    // get the file name
+    var fileName = $(this).val().replace("C:\\fakepath\\", "");
+    // replace the "Choose a file" label
+    $(this).next(".custom-file-label").html(fileName);
+  });
 </script>

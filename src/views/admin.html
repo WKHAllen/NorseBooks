@@ -1,113 +1,169 @@
 <script type="text/javascript" src="/js/admin.js"></script>
 <div class="container">
-    <h1 class="centered">Admin</h1>
-    <p class="justified">Welcome to the admin page. From here, you are able to easily control various parts of the NorseBooks system. You can also view stats on the site and those who use it.</p>
-    <p>To return to the home page, <a href="/">click here</a>.</p>
-    <div class="mb-3">
-        <h2>Stats</h2>
-        <div class="row stats-div">
-            <div class="col-4">
-                <a href="/admin/users">
-                    <div class="stats-label">Users</div>
-                    <div class="stats-value" id="numUsers">...</div>
-                </a>
-            </div>
-            <div class="col-4">
-                <a href="/admin/books">
-                    <div class="stats-label">Books</div>
-                    <div class="stats-value" id="numBooks">...</div>
-                </a>
-            </div>
-            <div class="col-4">
-                <div class="stats-label">Sold</div>
-                <div class="stats-value" id="numSold">...</div>
-            </div>
-            <div class="col-4">
-                <div class="stats-label">Total</div>
-                <div class="stats-value" id="totalListed">...</div>
-            </div>
-            <div class="col-4">
-                <div class="stats-labem">Made</div>
-                <div class="stats-value" id="totalMoneyMade">...</div>
-            </div>
-            <div class="col-4">
-                <div class="stats-label">Tables</div>
-                <div class="stats-value" id="numTables">...</div>
-            </div>
-            <div class="col-4">
-                <a href="/admin/rows">
-                    <div class="stats-label">Rows</div>
-                    <div class="stats-value" id="numRows">...</div>
-                </a>
-            </div>
-            <div class="col-4">
-                <div class="stats-label">Capacity</div>
-                <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
-            </div>
-            <div class="col-4">
-                <a href="/admin/reports">
-                    <div class="stats-label">Reports</div>
-                    <div class="stats-value" id="numReports">...</div>
-                </a>
-            </div>
+  <h1 class="centered">Admin</h1>
+  <p class="justified">
+    Welcome to the admin page. From here, you are able to easily control
+    various parts of the NorseBooks system. You can also view stats on the site
+    and those who use it.
+  </p>
+  <p>To return to the home page, <a href="/">click here</a>.</p>
+  <div class="mb-3">
+    <h2>Stats</h2>
+    <div class="row stats-div">
+      <div class="col-4">
+        <a href="/admin/users">
+          <div class="stats-label">Users</div>
+          <div class="stats-value" id="numUsers">...</div>
+        </a>
+      </div>
+      <div class="col-4">
+        <a href="/admin/books">
+          <div class="stats-label">Books</div>
+          <div class="stats-value" id="numBooks">...</div>
+        </a>
+      </div>
+      <div class="col-4">
+        <div class="stats-label">Sold</div>
+        <div class="stats-value" id="numSold">...</div>
+      </div>
+      <div class="col-4">
+        <div class="stats-label">Total</div>
+        <div class="stats-value" id="totalListed">...</div>
+      </div>
+      <div class="col-4">
+        <div class="stats-labem">Made</div>
+        <div class="stats-value" id="totalMoneyMade">...</div>
+      </div>
+      <div class="col-4">
+        <div class="stats-label">Tables</div>
+        <div class="stats-value" id="numTables">...</div>
+      </div>
+      <div class="col-4">
+        <a href="/admin/rows">
+          <div class="stats-label">Rows</div>
+          <div class="stats-value" id="numRows">...</div>
+        </a>
+      </div>
+      <div class="col-4">
+        <div class="stats-label">Capacity</div>
+        <div class="stats-value"><span id="rowsPercentage">...</span>%</div>
+      </div>
+      <div class="col-4">
+        <a href="/admin/reports">
+          <div class="stats-label">Reports</div>
+          <div class="stats-value" id="numReports">...</div>
+        </a>
+      </div>
+    </div>
+    <p class="centered hidden" id="status">Failed to fetch stats.</p>
+  </div>
+  <div class="mb-3">
+    <h2>Variables</h2>
+    <!-- Version -->
+    <form method="POST">
+      <div class="row">
+        <div class="form-group col">
+          <label for="version">Version</label>
+          <input
+            type="text"
+            class="form-control"
+            id="version"
+            name="version"
+            value="{{version}}"
+          />
         </div>
-        <p class="centered hidden" id="status">Failed to fetch stats.</p>
-    </div>
-    <div class="mb-3">
-        <h2>Variables</h2>
-        <!-- Version -->
-        <form method="POST">
-            <div class="row">
-                <div class="form-group col">
-                    <label for="version">Version</label>
-                    <input type="text" class="form-control" id="version" name="version" value="{{version}}">
-                </div>
-                <div class="col-auto flex-end">
-                    <button type="submit" class="btn btn-primary mb-3" formaction="/admin/setVersion">Set value</button>
-                </div>
-            </div>
-        </form>
-        <!-- Max books -->
-        <form method="POST">
-            <div class="row">
-                <div class="form-group col">
-                    <label for="maxBooks">Max books</label>
-                    <input type="number" class="form-control" id="maxBooks" name="maxBooks" value="{{maxBooks}}">
-                </div>
-                <div class="col-auto flex-end">
-                    <button type="submit" class="btn btn-primary mb-3" formaction="/admin/setMaxBooks">Set value</button>
-                </div>
-            </div>
-        </form>
-        <!-- Max reports -->
-        <form method="POST">
-            <div class="row">
-                <div class="form-group col">
-                    <label for="maxReports">Max reports</label>
-                    <input type="number" class="form-control" id="maxReports" name="maxReports" value="{{maxReports}}">
-                </div>
-                <div class="col-auto flex-end">
-                    <button type="submit" class="btn btn-primary mb-3" formaction="/admin/setMaxReports">Set value</button>
-                </div>
-            </div>
-        </form>
-        <!-- Books per query -->
-        <form method="POST">
-            <div class="row">
-                <div class="form-group col">
-                    <label for="booksPerQuery">Books per query</label>
-                    <input type="number" class="form-control" id="booksPerQuery" name="booksPerQuery" value="{{booksPerQuery}}">
-                </div>
-                <div class="col-auto flex-end">
-                    <button type="submit" class="btn btn-primary mb-3" formaction="/admin/setBooksPerQuery">Set value</button>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div>
-        <h2>Other</h2>
-        <a href="/admin/terms-and-conditions" class="btn btn-primary mb-3 mr-1">Edit terms and conditions</a>
-        <a href="/admin/query" class="btn btn-primary mb-3 mr-1">Query the database</a>
-        <a href="/admin/alert" class="btn btn-primary mb-3">Set an alert</a>
-    </div>
+        <div class="col-auto flex-end">
+          <button
+            type="submit"
+            class="btn btn-primary mb-3"
+            formaction="/admin/setVersion"
+          >
+            Set value
+          </button>
+        </div>
+      </div>
+    </form>
+    <!-- Max books -->
+    <form method="POST">
+      <div class="row">
+        <div class="form-group col">
+          <label for="maxBooks">Max books</label>
+          <input
+            type="number"
+            class="form-control"
+            id="maxBooks"
+            name="maxBooks"
+            value="{{maxBooks}}"
+          />
+        </div>
+        <div class="col-auto flex-end">
+          <button
+            type="submit"
+            class="btn btn-primary mb-3"
+            formaction="/admin/setMaxBooks"
+          >
+            Set value
+          </button>
+        </div>
+      </div>
+    </form>
+    <!-- Max reports -->
+    <form method="POST">
+      <div class="row">
+        <div class="form-group col">
+          <label for="maxReports">Max reports</label>
+          <input
+            type="number"
+            class="form-control"
+            id="maxReports"
+            name="maxReports"
+            value="{{maxReports}}"
+          />
+        </div>
+        <div class="col-auto flex-end">
+          <button
+            type="submit"
+            class="btn btn-primary mb-3"
+            formaction="/admin/setMaxReports"
+          >
+            Set value
+          </button>
+        </div>
+      </div>
+    </form>
+    <!-- Books per query -->
+    <form method="POST">
+      <div class="row">
+        <div class="form-group col">
+          <label for="booksPerQuery">Books per query</label>
+          <input
+            type="number"
+            class="form-control"
+            id="booksPerQuery"
+            name="booksPerQuery"
+            value="{{booksPerQuery}}"
+          />
+        </div>
+        <div class="col-auto flex-end">
+          <button
+            type="submit"
+            class="btn btn-primary mb-3"
+            formaction="/admin/setBooksPerQuery"
+          >
+            Set value
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div>
+    <h2>Other</h2>
+    <a href="/admin/terms-and-conditions" class="btn btn-primary mb-3 mr-1"
+      >Edit terms and conditions</a
+    >
+    <a href="/admin/query" class="btn btn-primary mb-3 mr-1"
+      >Query the database</a
+    >
+    <a href="/admin/alert" class="btn btn-primary mb-3">Set an alert</a>
+  </div>
 </div>

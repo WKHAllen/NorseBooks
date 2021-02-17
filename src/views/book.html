@@ -1,93 +1,214 @@
 <div class="background-image" id="show">
-    <div class="container">
-        <button class="btn btn-light mb-2" onclick="window.location.href = document.referrer || '/';"><i class="fas fa-chevron-left mr-2"></i>Back</button>
-        <div class="content-card">
-            <div class="row">
-                <!-- Image -->
-                <div class="col-md-3">
-                    <img src="/image/book/{{bookId}}" width="100%" alt="">
-                </div>
-                <div class="col-md-9 mt-3 mt-md-0">
-                    <h1>{{title}}</h1>
-                    <h5 class="bold">${{price}}</h5>
-                    <h6 class="bold">Condition: {{condition}}</h6>
-                    <h6 class="faint mb-4">Department: {{department}}{{#if courseNumber}} {{courseNumber}}{{/if}}</h6>
-                    {{#if ISBN10}}
-                    <h6 class="fainter">ISBN-10: {{ISBN10}}</h6>
-                    {{/if}}
-                    {{#if ISBN13}}
-                    <h6 class="fainter">ISBN-13: {{ISBN13}}</h6>
-                    {{/if}}
-                    <h6 class="mt-4">Description:</h6>
-                    <p>{{description}}</p>
-                    <div id="options">
-                        <form method="POST">
-                            {{#if bookOwner}}
-                            <a href="/edit/{{bookId}}" class="btn btn-outline-dark"><i class="fas fa-pen"></i> Edit</a>
-                            <button type="button" class="btn btn-outline-dark" onclick="showModal('delete')"><i class="fas fa-minus-circle"></i> Remove Listing</button>
-                            <button type="button" class="btn btn-light" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
-                            {{else if loggedIn}}
-                            <button type="button" class="btn btn-success" onclick="makeContactInfoDynamic(); showModal('request');"><i class="far fa-handshake"></i> Request to purchase</button>
-                            <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
-                            {{#if reported}}
-                            <button type="submit" formaction="/reports/unreportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Unreport</button>
-                            {{else}}
-                            <button type="submit" formaction="/reports/reportBook/{{bookId}}" class="btn btn-light mt-3 mt-md-0"{{#unless canReport}} disabled{{/unless}}><i class="far fa-flag"></i> Report</button>
-                            {{/if}}
-                            {{else}}
-                            <a href="/login?after=/book/{{bookId}}" class="btn btn-success"><i class="far fa-handshake"></i> Request to purchase</a>
-                            <button type="button" class="btn btn-outline-info" id="copy-to-clipboard" onclick="copyLink();"><i class="fas fa-link"></i> Copy Link</button>
-                            <a href="/login?after=/book/{{bookId}}" class="btn btn-light mt-3 mt-md-0"><i class="far fa-flag"></i> Report</a>
-                            {{/if}}
-                        </form>
-                    </div>
-                </div>
-            </div>
+  <div class="container">
+    <button
+      class="btn btn-light mb-2"
+      onclick="window.location.href = document.referrer || '/';"
+    >
+      <i class="fas fa-chevron-left mr-2"></i>Back
+    </button>
+    <div class="content-card">
+      <div class="row">
+        <!-- Image -->
+        <div class="col-md-3">
+          <img src="/image/book/{{bookId}}" width="100%" alt="" />
         </div>
-        <small class="photo-creds centered d-block mt-2">photo by <a href="https://unsplash.com/@henry_be" target="_blank" rel="noopener noreferrer">Henry Be</a> via <a href="https://unsplash.com/photos/lc7xcWebECc" target="_blank" rel="noopener noreferrer">Unsplash</a></small>
-    </div>
-
-    <div id="blur"></div>
-    <div class="blurred-modal" id="request">
-        <div class="space-between">
-            <h5>Request to buy</h5>
-            <span><button class="close-modal" onclick="hideModal('request')"><i class="fas fa-times"></i></button></span>
-        </div>
-        <h6>You can contact <b><a href="/user/{{ownerUserId}}">{{firstname}} {{lastname}}</a></b> via:</h6>
-        <a class="btn btn-outline-info ml-3" id="contact-link" href="" target="_blank" rel="noopener noreferrer">
-            {{#if loggedIn}}
-            <span id="contact-icon"></span> <span id="platform">{{contactPlatform}}</span>: <span id="contact-value">{{contactInfo}}</span>
-            {{/if}}
-        </a>
-    </div>
-
-    <div class="blurred-modal" id="delete">
-        <div class="space-between">
-            <h5>Why would you like to delete the listing?</h5>
-            <span><button class="close-modal" onclick="hideModal('delete')"><i class="fas fa-times"></i></button></span>
-        </div>
-        <p>Once you delete a listing, you cannot retrieve it.</p>
-        <div class="">
+        <div class="col-md-9 mt-3 mt-md-0">
+          <h1>{{title}}</h1>
+          <h5 class="bold">${{price}}</h5>
+          <h6 class="bold">Condition: {{condition}}</h6>
+          <h6 class="faint mb-4">
+            Department: {{department}}{{#if courseNumber}}
+            {{courseNumber}}{{/if}}
+          </h6>
+          {{#if ISBN10}}
+          <h6 class="fainter">ISBN-10: {{ISBN10}}</h6>
+          {{/if}} {{#if ISBN13}}
+          <h6 class="fainter">ISBN-13: {{ISBN13}}</h6>
+          {{/if}}
+          <h6 class="mt-4">Description:</h6>
+          <p>{{description}}</p>
+          <div id="options">
             <form method="POST">
-                <button class="btn btn-success" formaction="/bookSold/{{bookId}}">The book sold!</button>
-                <button class="buttonAsLink italic" formaction="/deleteBook/{{bookId}}">The book didn't sell, just delete.</button>
+              {{#if bookOwner}}
+              <a href="/edit/{{bookId}}" class="btn btn-outline-dark"
+                ><i class="fas fa-pen"></i> Edit</a
+              >
+              <button
+                type="button"
+                class="btn btn-outline-dark"
+                onclick="showModal('delete')"
+              >
+                <i class="fas fa-minus-circle"></i> Remove Listing
+              </button>
+              <button
+                type="button"
+                class="btn btn-light"
+                id="copy-to-clipboard"
+                onclick="copyLink();"
+              >
+                <i class="fas fa-link"></i> Copy Link
+              </button>
+              {{else if loggedIn}}
+              <button
+                type="button"
+                class="btn btn-success"
+                onclick="makeContactInfoDynamic(); showModal('request');"
+              >
+                <i class="far fa-handshake"></i> Request to purchase
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-info"
+                id="copy-to-clipboard"
+                onclick="copyLink();"
+              >
+                <i class="fas fa-link"></i> Copy Link
+              </button>
+              {{#if reported}}
+              <button
+                type="submit"
+                formaction="/reports/unreportBook/{{bookId}}"
+                class="btn btn-light mt-3 mt-md-0"
+              >
+                <i class="far fa-flag"></i> Unreport
+              </button>
+              {{else}} {{#if canReport}}
+              <button
+                type="submit"
+                formaction="/reports/reportBook/{{bookId}}"
+                class="btn btn-light mt-3 mt-md-0"
+                disabled
+              >
+                <i class="far fa-flag"></i> Report
+              </button>
+              {{else}}
+              <button
+                type="submit"
+                formaction="/reports/reportBook/{{bookId}}"
+                class="btn btn-light mt-3 mt-md-0"
+              >
+                <i class="far fa-flag"></i> Report
+              </button>
+              {{/if}} {{/if}} {{else}}
+              <a href="/login?after=/book/{{bookId}}" class="btn btn-success"
+                ><i class="far fa-handshake"></i> Request to purchase</a
+              >
+              <button
+                type="button"
+                class="btn btn-outline-info"
+                id="copy-to-clipboard"
+                onclick="copyLink();"
+              >
+                <i class="fas fa-link"></i> Copy Link
+              </button>
+              <a
+                href="/login?after=/book/{{bookId}}"
+                class="btn btn-light mt-3 mt-md-0"
+                ><i class="far fa-flag"></i> Report</a
+              >
+              {{/if}}
             </form>
+          </div>
         </div>
+      </div>
     </div>
+    <small class="photo-creds centered d-block mt-2"
+      >photo by
+      <a
+        href="https://unsplash.com/@henry_be"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Henry Be</a
+      >
+      via
+      <a
+        href="https://unsplash.com/photos/lc7xcWebECc"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Unsplash</a
+      ></small
+    >
+  </div>
 
-    <div class="blurred-modal" id="share">
-        <div class="space-between">
-            <h5>Share your book</h5>
-            <span><button class="close-modal" onclick="hideModal('share')"><i class="fas fa-times"></i></button></span>
-        </div>
-        <h6>The best way to get people to buy your book is to share it on social media. Click the button below to copy the link to your book.</h6>
-        <button type="button" class="btn btn-success" id="copy-to-clipboard-modal" onclick="copyLink('copy-to-clipboard-modal');"><i class="fas fa-link"></i> Copy Link</button>
+  <div id="blur"></div>
+  <div class="blurred-modal" id="request">
+    <div class="space-between">
+      <h5>Request to buy</h5>
+      <span
+        ><button class="close-modal" onclick="hideModal('request')">
+          <i class="fas fa-times"></i></button
+      ></span>
     </div>
+    <h6>
+      You can contact
+      <b><a href="/user/{{ownerUserId}}">{{firstname}} {{lastname}}</a></b>
+      via:
+    </h6>
+    <a
+      class="btn btn-outline-info ml-3"
+      id="contact-link"
+      href=""
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {{#if loggedIn}}
+      <span id="contact-icon"></span>
+      <span id="platform">{{contactPlatform}}</span>:
+      <span id="contact-value">{{contactInfo}}</span>
+      {{/if}}
+    </a>
+  </div>
+
+  <div class="blurred-modal" id="delete">
+    <div class="space-between">
+      <h5>Why would you like to delete the listing?</h5>
+      <span
+        ><button class="close-modal" onclick="hideModal('delete')">
+          <i class="fas fa-times"></i></button
+      ></span>
+    </div>
+    <p>Once you delete a listing, you cannot retrieve it.</p>
+    <div class="">
+      <form method="POST">
+        <button class="btn btn-success" formaction="/bookSold/{{bookId}}">
+          The book sold!
+        </button>
+        <button
+          class="buttonAsLink italic"
+          formaction="/deleteBook/{{bookId}}"
+        >
+          The book didn't sell, just delete.
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="blurred-modal" id="share">
+    <div class="space-between">
+      <h5>Share your book</h5>
+      <span
+        ><button class="close-modal" onclick="hideModal('share')">
+          <i class="fas fa-times"></i></button
+      ></span>
+    </div>
+    <h6>
+      The best way to get people to buy your book is to share it on social
+      media. Click the button below to copy the link to your book.
+    </h6>
+    <button
+      type="button"
+      class="btn btn-success"
+      id="copy-to-clipboard-modal"
+      onclick="copyLink('copy-to-clipboard-modal');"
+    >
+      <i class="fas fa-link"></i> Copy Link
+    </button>
+  </div>
 </div>
 <span id="original-contact-value" class="hidden">{{contactInfo}}</span>
 <script type="text/javascript" src="/main.js"></script>
 {{#if justListed}}
 <script type="text/javascript">
-    showModal('share');
+  showModal("share");
 </script>
 {{/if}}

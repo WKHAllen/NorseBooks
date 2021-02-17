@@ -1,8 +1,14 @@
 <div class="container">
-    <h1 class="centered">Verify Account</h1>
-    {{#if valid}}
-    <p class="centered">Email verified! <a href="/login">Click here</a> to go to the login page.</p>
-    {{else}}
-    <p class="centered">Failed to verify email address. This is likely because the link expired. Please register again, bearing in mind you have one hour before the link in the email email expires.</p>
-    {{/if}}        
+  <h1 class="centered">Verify Account</h1>
+  {{#if valid}}
+  <p class="centered">
+    Email verified! <a href="/login">Click here</a> to go to the login page.
+  </p>
+  {{else}}
+  <p class="centered">
+    Failed to verify email address. This is likely because the link expired.
+    Please register again, bearing in mind you have one hour before the link in
+    the email email expires.
+  </p>
+  {{/if}}
 </div>

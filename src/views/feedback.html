@@ -1,14 +1,22 @@
 <div class="container">
-    <h1 class="centered">Provide Feedback</h1>
-    {{#if canProvideFeedback}}
-    <p>Please use the text box below to give us some feedback about the site.</p>
-    <form method="POST">
-        <div class="form-group">
-            <textarea type="text" class="form-control" id="feedback" name="feedback" maxlength="2048" rows="6" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-    {{else}}
-    <p class="centered">You have already provided feedback recently.</p>
-    {{/if}}
+  <h1 class="centered">Provide Feedback</h1>
+  {{#if canProvideFeedback}}
+  <p>Please use the text box below to give us some feedback about the site.</p>
+  <form method="POST">
+    <div class="form-group">
+      <textarea
+        type="text"
+        class="form-control"
+        id="feedback"
+        name="feedback"
+        maxlength="2048"
+        rows="6"
+        required
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  {{else}}
+  <p class="centered">You have already provided feedback recently.</p>
+  {{/if}}
 </div>

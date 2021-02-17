@@ -1,33 +1,55 @@
 <script type="text/javascript" src="/js/column-sort.js"></script>
 <div class="container">
-	<h1 class="centered">Books</h1>
-	<p class="justified">This page contains relevant information on books. To sort by a column, click on the column header. <a href="/admin">Click here</a> to return to the admin page.</p>
-	<table class="table table-striped table-hover table-sm">
-		<thead>
-			<tr>
-				<th scope="col"><a href="?orderBy=title" id="title-header">Title</a></th>
-				<th scope="col"><a href="?orderBy=author" id="author-header">Author</a></th>
-				<th scope="col"><a href="?orderBy=listedBy" id="listedBy-header">Listed by</a></th>
-				<th scope="col"><a href="?orderBy=department" id="department-header">Department</a></th>
-				<th scope="col"><a href="?orderBy=courseNumber" id="courseNumber-header">Course number</a></th>
-				<th scope="col"><a href="?orderBy=price" id="price-header">Price</a></th>
-				<th scope="col"><a href="?orderBy=listedTimestamp" id="listedTimestamp-header">Listed</a></th>
-			</tr>
-		</thead>
-		<tbody>
-			{{#each books}}
-			<tr>
-				<td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
-				<td>{{this.author}}</td>
-				<td><a href="/user/{{this.userid}}">{{this.listedby}}</a></td>
-				<td>{{this.department}}</td>
-				<td>{{this.coursenumber}}</td>
-				<td>${{this.price}}</td>
-				<td class="timestamp">{{this.listedtimestamp}}</td>
-			</tr>
-			{{/each}}
-		</tbody>
-	</table>
-	<span class="hidden" id="order-by">{{orderBy}}</span>
-	<span class="hidden" id="order-direction">{{orderDirection}}</span>
+  <h1 class="centered">Books</h1>
+  <p class="justified">
+    This page contains relevant information on books. To sort by a column,
+    click on the column header. <a href="/admin">Click here</a> to return to
+    the admin page.
+  </p>
+  <table class="table table-striped table-hover table-sm">
+    <thead>
+      <tr>
+        <th scope="col">
+          <a href="?orderBy=title" id="title-header">Title</a>
+        </th>
+        <th scope="col">
+          <a href="?orderBy=author" id="author-header">Author</a>
+        </th>
+        <th scope="col">
+          <a href="?orderBy=listedBy" id="listedBy-header">Listed by</a>
+        </th>
+        <th scope="col">
+          <a href="?orderBy=department" id="department-header">Department</a>
+        </th>
+        <th scope="col">
+          <a href="?orderBy=courseNumber" id="courseNumber-header"
+            >Course number</a
+          >
+        </th>
+        <th scope="col">
+          <a href="?orderBy=price" id="price-header">Price</a>
+        </th>
+        <th scope="col">
+          <a href="?orderBy=listedTimestamp" id="listedTimestamp-header"
+            >Listed</a
+          >
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each books}}
+      <tr>
+        <td><a href="/book/{{this.bookid}}">{{this.title}}</a></td>
+        <td>{{this.author}}</td>
+        <td><a href="/user/{{this.userid}}">{{this.listedby}}</a></td>
+        <td>{{this.department}}</td>
+        <td>{{this.coursenumber}}</td>
+        <td>${{this.price}}</td>
+        <td class="timestamp">{{this.listedtimestamp}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <span class="hidden" id="order-by">{{orderBy}}</span>
+  <span class="hidden" id="order-direction">{{orderDirection}}</span>
 </div>
