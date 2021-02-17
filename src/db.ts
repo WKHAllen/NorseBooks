@@ -23,7 +23,6 @@ export class DB {
   pool: Pool;
 
   constructor(dbURL: string, ssl: boolean = true, max: number = 20) {
-    console.log("  Constructing database object");
     this.pool = new Pool({
       connectionString: dbURL,
       ssl: ssl,
@@ -33,14 +32,18 @@ export class DB {
 
   // Execute a SQL query
   execute(stmt: string, params: any[], callback?: (rows: any[]) => void) {
-    console.log("  Executing query:", stmt);
+    console.log("Executing query:", stmt);
     var paramCount = 0;
+    console.log("Replacing ? with $n");
     while (stmt.includes("?")) {
       stmt = stmt.replace("?", `$${++paramCount}`);
     }
+    console.log("Getting client from pool");
     this.pool.connect((err, client, release) => {
+      console.log("Got client, executing query");
       if (err) throw err;
       client.query(stmt, params, (err, res) => {
+        console.log("Query executed, returning");
         release();
         if (err) logError(stmt, params, res, err);
         if (callback) callback(res.rows);
