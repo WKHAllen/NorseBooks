@@ -20,10 +20,10 @@ export default function scrapeDepartments(
       const $ = cheerio.load(res.body);
       var departments = [];
       $("table tbody tr td strong a").each((index, element) => {
-        departments.push($(element).children[0].data);
+        departments.push(element.children[0].data);
       });
       $("table tbody tr td a strong").each((index, element) => {
-        departments.push($(element).children[0].data);
+        departments.push(element.children[0].data);
       });
       if (callback) callback(null, departments);
     })
