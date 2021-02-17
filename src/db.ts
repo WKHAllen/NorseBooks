@@ -23,10 +23,9 @@ export class DB {
   pool: Pool;
 
   constructor(dbURL: string, ssl: boolean = true, max: number = 20) {
-    console.log(max);
     this.pool = new Pool({
       connectionString: dbURL,
-      ssl: ssl,
+      ssl: false,
       max: max,
     });
   }
@@ -37,13 +36,10 @@ export class DB {
     while (stmt.includes("?")) {
       stmt = stmt.replace("?", `$${++paramCount}`);
     }
-    console.log("Getting client from pool (async)");
-    this.pool.connect().then((client) => {
-      console.log("Executing query");
+    this.pool.connect((err, client, release) => {
+      if (err) throw err;
       client.query(stmt, params, (err, res) => {
-        console.log("Releasing client");
-        client.release();
-        console.log("Returning values");
+        release();
         if (err) logError(stmt, params, res, err);
         if (callback) callback(res.rows);
       });
