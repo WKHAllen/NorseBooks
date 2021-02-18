@@ -8,7 +8,6 @@ import { PasswordResetService } from "./passwordReset";
 import { SessionService } from "./session";
 import scrapeDepartments from "../departments";
 
-export const debug = Boolean(Number(process.env.DEBUG));
 export const dbURL = process.env.DATABASE_URL;
 export const maxDBClients = 20;
 export const saltRounds = 12;
@@ -24,7 +23,7 @@ export const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 export const staticTablePath = "tables";
 
 // The database object
-export var mainDB = new db.DB(dbURL, debug, maxDBClients);
+export var mainDB = new db.DB(dbURL, maxDBClients);
 
 // Callback types
 export type voidCallback = () => void;
