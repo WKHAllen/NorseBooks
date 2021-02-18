@@ -22,10 +22,10 @@ function logError(
 export class DB {
   pool: Pool;
 
-  constructor(dbURL: string, ssl: boolean = true, max: number = 20) {
+  constructor(dbURL: string, max: number = 20) {
     this.pool = new Pool({
       connectionString: dbURL,
-      ssl: ssl,
+      ssl: { rejectUnauthorized: false },
       max: max,
     });
   }

@@ -23,7 +23,7 @@ export const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 export const staticTablePath = "tables";
 
 // The database object
-export var mainDB = new db.DB(dbURL, true, maxDBClients);
+export var mainDB = new db.DB(dbURL, maxDBClients);
 
 // Callback types
 export type voidCallback = () => void;
@@ -48,7 +48,7 @@ export function tableEmpty(tableName: string, callback?: boolCallback) {
 
 // Get the path to a static table
 export function getStaticTablePath(tableName: string): string {
-  return path.join(__dirname, staticTablePath, tableName) + ".csv";
+  return path.join(__dirname, "..", "..", staticTablePath, tableName) + ".csv";
 }
 
 // Populate the static tables in the database
@@ -127,10 +127,7 @@ function tableDifferences(
 }
 
 // Get the next available ID in a table
-function tableNextId(
-  tableName: string,
-  callback?: (columnId: number) => void
-) {
+function tableNextId(tableName: string, callback?: (columnId: number) => void) {
   var sql = `SELECT MAX(id) from ${tableName};`;
   mainDB.execute(sql, [], (rows) => {
     if (callback) callback(rows[0].max);
