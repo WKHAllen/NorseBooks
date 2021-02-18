@@ -48,7 +48,7 @@ export function tableEmpty(tableName: string, callback?: boolCallback) {
 
 // Get the path to a static table
 export function getStaticTablePath(tableName: string): string {
-  return path.join(__dirname, staticTablePath, tableName) + ".csv";
+  return path.join(__dirname, "..", "..", staticTablePath, tableName) + ".csv";
 }
 
 // Populate the static tables in the database
