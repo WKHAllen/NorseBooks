@@ -8,6 +8,7 @@ import { PasswordResetService } from "./passwordReset";
 import { SessionService } from "./session";
 import scrapeDepartments from "../departments";
 
+export const debug = Boolean(Number(process.env.DEBUG));
 export const dbURL = process.env.DATABASE_URL;
 export const maxDBClients = 20;
 export const saltRounds = 12;
@@ -23,7 +24,7 @@ export const feedbackTimeout = 7 * 24 * 60 * 60 * 1000; // one week
 export const staticTablePath = "tables";
 
 // The database object
-export var mainDB = new db.DB(dbURL, true, maxDBClients);
+export var mainDB = new db.DB(dbURL, debug, maxDBClients);
 
 // Callback types
 export type voidCallback = () => void;
@@ -127,10 +128,7 @@ function tableDifferences(
 }
 
 // Get the next available ID in a table
-function tableNextId(
-  tableName: string,
-  callback?: (columnId: number) => void
-) {
+function tableNextId(tableName: string, callback?: (columnId: number) => void) {
   var sql = `SELECT MAX(id) from ${tableName};`;
   mainDB.execute(sql, [], (rows) => {
     if (callback) callback(rows[0].max);
